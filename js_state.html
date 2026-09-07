@@ -169,7 +169,7 @@ var TimelineState = (function() {
   function syncServer(sceneTitle) {
     saveLocal();
     var indicator = document.getElementById("saveStatus");
-    if (indicator) indicator.textContent = "同期中...";
+    if (indicator) indicator.textContent = "端末に保存済・同期中...";
 
     if (typeof google !== "undefined" && google.script && google.script.run) {
       var payload = {
@@ -191,11 +191,11 @@ var TimelineState = (function() {
           }
         })
         .withFailureHandler(function() {
-          if (indicator) indicator.textContent = "ローカル保存済";
+          if (indicator) indicator.textContent = "端末に保存済";
         })
         .saveProgress(payload);
     } else {
-      if (indicator) indicator.textContent = "ローカル保存済";
+      if (indicator) indicator.textContent = "端末に保存済";
     }
   }
 

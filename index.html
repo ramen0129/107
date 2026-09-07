@@ -937,7 +937,13 @@ window.addEventListener('DOMContentLoaded', function() {
       TimelineState.saveLocal();
 
       if (typeof google !== "undefined" && google.script && google.script.run) {
-        google.script.run.registerStudent(name);
+        google.script.run
+          .withSuccessHandler(function() {})
+          .withFailureHandler(function() {
+            var indicator = document.getElementById("saveStatus");
+            if (indicator) indicator.textContent = "この端末に保存済";
+          })
+          .registerStudent(name);
       }
 
       var passEl = document.getElementById("modalIssuedPasscode");
@@ -1011,7 +1017,7 @@ window.addEventListener('DOMContentLoaded', function() {
     TimelineState.loadLocal();
     var state = TimelineState.getState();
     if (state.studentName === nameInput && state.passcode === passInput) {
-      UIController.showToast("ローカル記録から復元しました！");
+      UIController.showToast("この端末の記録から復元しました！");
       displayCharSelect();
     } else {
       UIController.showToast("照合できませんでした。名前とパスコードをご確認ください。");
