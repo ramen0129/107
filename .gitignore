@@ -1,5 +1,13 @@
+# Exclude heavy raw images and PDFs
+*.jpg
+*.jpeg
+*.png
+*.pdf
+character_images_base64.js
+character_images_base64.json
+
+# Local and temporary files
 .clasp.json
-.clasp.json.bak
-.clasp.old.json
-.clasp-local.json
-*.secret.*
+node_modules/
+*.tmp
+*.log

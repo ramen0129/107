@@ -1,0 +1,22 @@
+# Ignore everything by default
+**/*
+
+# Whitelist all required GAS Web App files
+!appsscript.json
+!Code.js
+!index.html
+!css.html
+!js_assets.html
+!js_tips.html
+!scenario_ren.html
+!scenario_elena.html
+!scenario_daniel.html
+!scenario_climax_ren.html
+!scenario_climax_elena.html
+!scenario_climax_daniel.html
+!scenario_climax.html
+!scenario_shin.html
+!js_audio.html
+!js_state.html
+!js_ui.html
+!js_engine.html

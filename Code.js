@@ -3,11 +3,13 @@
  * 428型 タイムライン群像劇 バックエンドAPIシステム (Code.js)
  * 
  * 【モジュール構成・スプレッドシート完全永続化】
- * - スプレッドシートIDはScript Propertiesから読み込む
+ * - スプレッドシートID: 1c_b9hAlH2virJOQnm8pfEZfcsGykoZBQbBlUgB6ruEY
  * - doGet での HtmlService.createTemplateFromFile テンプレート評価
  * - 11カラム構成のプレイ記録永続化・LockService排他制御
  * - exportScenarioToSpreadsheet による全シナリオ一括スプレッドシート書き出し
  */
+
+const SPREADSHEET_ID = "1c_b9hAlH2virJOQnm8pfEZfcsGykoZBQbBlUgB6ruEY";
 
 function doGet(e) {
   return HtmlService.createTemplateFromFile('index')
@@ -31,15 +33,11 @@ function doPost(e) {
 
 function getOrCreateSheet() {
   let ss = null;
-  const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
   try {
     ss = SpreadsheetApp.getActiveSpreadsheet();
   } catch (e) {}
-  if (!ss && spreadsheetId) {
-    ss = SpreadsheetApp.openById(spreadsheetId);
-  }
   if (!ss) {
-    throw new Error('SPREADSHEET_ID is not configured in Script Properties.');
+    ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   }
 
   const sheetName = 'プレイ記録';
@@ -209,10 +207,8 @@ function saveProgress(data) {
  */
 function exportScenarioToSpreadsheet() {
   let ss = null;
-  const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
   try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (e) {}
-  if (!ss && spreadsheetId) ss = SpreadsheetApp.openById(spreadsheetId);
-  if (!ss) throw new Error('SPREADSHEET_ID is not configured in Script Properties.');
+  if (!ss) ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
   // 1. 各主人公シートの準備
   const sheetConfigs = [

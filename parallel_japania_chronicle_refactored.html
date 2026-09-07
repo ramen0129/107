@@ -1,0 +1,2296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap');
+
+  body {
+    font-family: 'Shippori Mincho', serif;
+    background-color: #030712;
+    color: #f1f5f9;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .font-sans-jp {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+  }
+
+  /* 428 KEEP OUT 斜め警戒ストライプ */
+  .keep-out-stripe {
+    background: repeating-linear-gradient(
+      -45deg,
+      #b91c1c,
+      #b91c1c 20px,
+      #000000 20px,
+      #000000 40px
+    );
+  }
+
+  /* 428式 TIPS 逆照射アンカーリンク */
+  .tip-link {
+    color: #38bdf8;
+    border-bottom: 2px dashed #0284c7;
+    cursor: pointer;
+    font-weight: 700;
+    padding: 0 4px;
+    margin: 0 1px;
+    border-radius: 3px;
+    background-color: rgba(14, 165, 233, 0.12);
+    transition: all 0.2s ease;
+  }
+  .tip-link:hover {
+    background-color: rgba(56, 189, 248, 0.3);
+    border-bottom-style: solid;
+    color: #bae6fd;
+    text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+  }
+
+  /* テキスト送りアニメーション */
+  .para-in {
+    animation: paraFadeIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes paraFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* タップ送りマーカー */
+  .blink-indicator {
+    animation: blinkMarker 1.1s infinite ease-in-out;
+  }
+  @keyframes blinkMarker {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(3px); }
+  }
+
+  /* 画面振動VFX */
+  .shake-screen {
+    animation: shakeAnim 0.36s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+  @keyframes shakeAnim {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-6px, 4px); }
+    40% { transform: translate(6px, -4px); }
+    60% { transform: translate(-3px, 3px); }
+    80% { transform: translate(3px, -2px); }
+  }
+
+  /* 光学スキャンレーザー */
+  .scanner-beam {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #ef4444, #38bdf8, #ef4444, transparent);
+    box-shadow: 0 0 16px #ef4444, 0 0 28px #38bdf8;
+    animation: scanSweep 2.2s infinite ease-in-out;
+  }
+  @keyframes scanSweep {
+    0% { top: 4%; opacity: 0.7; }
+    50% { top: 94%; opacity: 1; }
+    100% { top: 4%; opacity: 0.7; }
+  }
+
+  .gold-glow {
+    animation: goldGlowAnim 2.2s infinite alternate;
+  }
+  @keyframes goldGlowAnim {
+    from { box-shadow: 0 0 15px rgba(234, 179, 8, 0.3); border-color: rgba(234, 179, 8, 0.5); }
+    to { box-shadow: 0 0 35px rgba(234, 179, 8, 0.85); border-color: rgba(234, 179, 8, 1); }
+  }
+</style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col justify-between p-2 sm:p-5 relative font-sans-jp bg-neutral-950">
+
+<div id="vfxOverlay" class="absolute inset-0 pointer-events-none z-50 transition-colors duration-300"></div>
+
+<!-- ヘッダーバー -->
+<header class="flex justify-between items-center z-20 border-b border-neutral-800 pb-2 px-1">
+  <div class="flex items-center gap-2 sm:gap-3">
+    <div id="btnLogoHome" class="flex items-center gap-1.5 cursor-pointer">
+      <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+      <span class="font-black text-xs sm:text-sm tracking-widest text-neutral-100 uppercase">PARALLEL: 428</span>
+    </div>
+
+    <!-- 3主人公並行切り替えタブ -->
+    <div id="charTabContainer" class="hidden flex items-center gap-1 bg-neutral-900/95 p-1 rounded-xl border border-neutral-800 text-xs">
+      <button id="tabCharA" data-char="A" class="char-tab px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 text-emerald-400 bg-neutral-800 border border-emerald-500">
+        <span>レン</span><span class="text-[10px] opacity-80">(自由)</span>
+      </button>
+      <button id="tabCharB" data-char="B" class="char-tab px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 text-neutral-400 hover:bg-neutral-800">
+        <span>エレナ</span><span class="text-[10px] opacity-80">(平等)</span>
+      </button>
+      <button id="tabCharC" data-char="C" class="char-tab px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 text-neutral-400 hover:bg-neutral-800">
+        <span>ダニエル</span><span class="text-[10px] opacity-80">(社会)</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-1.5 sm:gap-2">
+    <button id="btnAudioToggle" class="text-xs px-2 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 rounded-lg border border-neutral-800 flex items-center gap-1 transition-all" title="音声音量切替">
+      <span id="audioIcon">🔊</span>
+    </button>
+    <div id="saveIndicator" class="text-[11px] text-neutral-400 hidden sm:flex items-center gap-1 font-mono bg-neutral-900/80 px-2 py-1 rounded-lg border border-neutral-800">
+      <span>☁️</span><span id="saveStatus">待機中</span>
+    </div>
+    <button id="btnChart" class="hidden text-xs px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg border border-neutral-700 flex items-center gap-1 transition-all">
+      <span>🔀</span><span class="hidden sm:inline">時間軸図鑑</span>
+    </button>
+    <button id="btnHome" class="hidden text-xs px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg border border-neutral-700 transition-all">
+      🏠
+    </button>
+  </div>
+</header>
+
+<!-- メインコンテナ -->
+<main class="flex-1 flex flex-col justify-center max-w-3xl mx-auto w-full my-auto z-10 py-1 sm:py-3">
+
+  <!-- 1. スタートビュー -->
+  <div id="viewStart" class="text-center space-y-4">
+    <div class="space-y-1">
+      <div class="text-[11px] font-black tracking-widest text-red-500 uppercase">Constitutional Timeline Chronicle</div>
+      <h1 class="text-3xl sm:text-5xl font-black tracking-widest text-neutral-100 leading-tight">
+        パラレル・ジャパニア<br>
+        <span class="text-amber-500 text-2xl sm:text-4xl">〜失われた人権の180分〜</span>
+      </h1>
+      <p class="text-xs sm:text-sm text-neutral-400 pt-1">
+        自由・平等・社会。奪われた基本的人権を取り戻す、本格428型タイムライン群像劇。
+      </p>
+    </div>
+
+    <!-- 新規 / 継続 タブ -->
+    <div class="flex border-b border-neutral-800 max-w-md mx-auto">
+      <button id="tabModeNew" class="flex-1 py-2.5 text-xs sm:text-sm font-black border-b-2 border-amber-500 text-amber-400">
+        🌸 さいしょから（新規登録）
+      </button>
+      <button id="tabModeCont" class="flex-1 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-neutral-500 hover:text-neutral-300">
+        🔄 つづきから（パスコード復元）
+      </button>
+    </div>
+
+    <!-- 新規ボックス -->
+    <div id="boxNewGame" class="bg-neutral-900/90 border border-neutral-800 p-5 rounded-2xl shadow-2xl text-left max-w-md mx-auto space-y-3.5">
+      <div>
+        <label class="text-xs font-black text-neutral-300 block mb-1">プレイヤー名（カタカナ・フルネーム）</label>
+        <input id="inputNewKatakana" type="text" placeholder="例: ササキ タロウ" class="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-500 transition-all font-bold">
+        <p class="text-[11px] text-neutral-400 mt-1">※ 入力した名前に4桁の暗証パスコードが自動発行されます。</p>
+      </div>
+      <button id="btnSubmitNew" class="w-full py-3.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-neutral-950 font-black rounded-xl text-sm shadow-xl transition-all active:scale-[0.99] flex justify-center items-center gap-2">
+        <span>パスコードを発行してタイムラインへ突入</span>
+      </button>
+    </div>
+
+    <!-- 継続ボックス -->
+    <div id="boxContGame" class="hidden bg-neutral-900/90 border border-neutral-800 p-5 rounded-2xl shadow-2xl text-left max-w-md mx-auto space-y-3">
+      <div>
+        <label class="text-xs font-black text-neutral-300 block mb-1">登録名（カタカナ・フルネーム）</label>
+        <input id="inputLoadKatakana" type="text" placeholder="例: ササキ タロウ" class="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-500 transition-all font-bold">
+      </div>
+      <div>
+        <label class="text-xs font-black text-neutral-300 block mb-1">発行された4桁パスコード</label>
+        <input id="inputLoadPasscode" type="password" maxlength="4" placeholder="例: 4821" class="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-3 text-sm text-white font-mono tracking-widest focus:outline-none focus:border-amber-500 transition-all">
+      </div>
+      <button id="btnSubmitLoad" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-neutral-950 font-black rounded-xl text-sm shadow-xl transition-all active:scale-[0.99] flex justify-center items-center gap-2">
+        <span>タイムライン記録を復元して再開</span>
+      </button>
+    </div>
+
+    <!-- 主人公選択パネル（ログイン後） -->
+    <div id="boxCharSelect" class="hidden bg-neutral-900/95 border border-neutral-800 p-5 rounded-2xl shadow-2xl max-w-lg mx-auto space-y-3.5 text-left">
+      <div class="flex justify-between items-center border-b border-neutral-800 pb-2">
+        <div>
+          <span class="text-[10px] text-neutral-400">ログイン中:</span>
+          <strong id="displayLoginName" class="text-amber-400 text-xs sm:text-sm ml-1 font-black"></strong>
+        </div>
+        <div class="text-[11px] text-neutral-400">
+          パスコード: <span id="displayLoginPass" class="font-mono text-white font-bold bg-neutral-800 px-2 py-0.5 rounded"></span>
+        </div>
+      </div>
+
+      <!-- 全結末解放バナー -->
+      <div id="bannerAllClearHeader" style="display: none;" class="p-3.5 bg-gradient-to-r from-amber-950 to-neutral-900 border border-amber-500 rounded-xl gold-glow flex justify-between items-center">
+        <div>
+          <div class="text-[10px] font-black text-amber-400 tracking-wider">★ ALL CHRONICLES COMPLETED ★</div>
+          <div class="text-xs sm:text-sm font-black text-white">全結末・人権調和を解明！</div>
+        </div>
+        <button id="btnCertFromBanner" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-xs font-black rounded-lg shadow-lg">
+          🏆 表彰状を受け取る
+        </button>
+      </div>
+
+      <p class="text-xs text-neutral-300 font-bold">視点（主人公）を選択してタイムラインを開始：</p>
+
+      <div class="space-y-2.5">
+        <button data-launch="A" class="char-launch-btn w-full p-3.5 bg-neutral-950 hover:bg-neutral-850 border border-emerald-700/60 hover:border-emerald-500 text-left rounded-xl transition-all flex items-start justify-between">
+          <div>
+            <div class="text-[10px] font-black text-emerald-400">【主人公A：自由権】</div>
+            <div class="font-black text-sm text-emerald-200 mt-0.5">レン 〜地下スラムの脱走少年〜</div>
+            <div class="text-[11px] text-neutral-400 mt-1">電磁首輪を割り、誰にも縛られず走る権利のために跳ぶ。</div>
+          </div>
+          <span class="text-xs text-emerald-400 font-bold ml-2">10:00 -&gt;</span>
+        </button>
+
+        <button data-launch="B" class="char-launch-btn w-full p-3.5 bg-neutral-950 hover:bg-neutral-850 border border-sky-700/60 hover:border-sky-500 text-left rounded-xl transition-all flex items-start justify-between">
+          <div>
+            <div class="text-[10px] font-black text-sky-400">【主人公B：平等権】</div>
+            <div class="font-black text-sm text-sky-200 mt-0.5">エレナ 〜特権階級の若き監査官〜</div>
+            <div class="text-[11px] text-neutral-400 mt-1">門地・血統による身分支配を拒絶し、同じ人間としての平等を叫ぶ。</div>
+          </div>
+          <span class="text-xs text-sky-400 font-bold ml-2">10:00 -&gt;</span>
+        </button>
+
+        <button data-launch="C" class="char-launch-btn w-full p-3.5 bg-neutral-950 hover:bg-neutral-850 border border-amber-700/60 hover:border-amber-500 text-left rounded-xl transition-all flex items-start justify-between">
+          <div>
+            <div class="text-[10px] font-black text-amber-400">【主人公C：社会権】</div>
+            <div class="font-black text-sm text-amber-200 mt-0.5">ダニエル 〜地下診療所の無償医師〜</div>
+            <div class="text-[11px] text-neutral-400 mt-1">自由と平等だけではパンは買えない。命と健康を守る尊厳を問う。</div>
+          </div>
+          <span class="text-xs text-amber-400 font-bold ml-2">10:00 -&gt;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. サウンドノベルビュー -->
+  <div id="viewNovel" class="hidden flex flex-col justify-between h-[76vh] bg-neutral-950/95 p-4 sm:p-7 rounded-2xl border border-neutral-800 shadow-2xl relative">
+    <div id="novelTapZone" class="flex-1 overflow-y-auto pr-2 space-y-4 text-base sm:text-lg leading-relaxed text-neutral-200 cursor-pointer">
+      <div class="flex justify-between items-center border-b border-neutral-800 pb-2">
+        <div class="flex items-center gap-2">
+          <span id="sceneTimeBadge" class="text-xs font-black tracking-wider text-amber-400 font-mono bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">10:00</span>
+          <span id="sceneCharBadge" class="text-xs font-bold text-neutral-300"></span>
+        </div>
+        <div id="sceneTitleBadge" class="text-xs sm:text-sm font-black text-neutral-300 truncate max-w-[260px]"></div>
+      </div>
+
+      <div id="paragraphsList" class="space-y-3.5 pt-2"></div>
+
+      <div id="promptNext" class="hidden text-right pt-2">
+        <span class="blink-indicator inline-block text-amber-400 text-xs sm:text-sm font-black">▼ タップして次へ</span>
+      </div>
+    </div>
+
+    <div id="choicesWrapper" class="hidden mt-3 pt-3 border-t border-neutral-800 flex flex-col gap-2"></div>
+  </div>
+
+  <!-- 3. KEEP OUT ビュー（トリプル・シンクロゲート対応） -->
+  <div id="viewKeepOut" class="hidden h-[76vh] bg-neutral-950 rounded-2xl border-4 border-red-700 shadow-2xl flex flex-col justify-between p-5 sm:p-6 relative overflow-hidden text-center">
+    <div class="keep-out-stripe h-6 w-full absolute top-0 left-0"></div>
+    <div class="keep-out-stripe h-6 w-full absolute bottom-0 left-0"></div>
+
+    <div class="my-auto space-y-3.5 z-10 max-w-lg mx-auto w-full">
+      <div class="text-4xl sm:text-5xl font-black text-red-500 tracking-widest uppercase">KEEP OUT</div>
+      <div class="text-xs font-mono text-red-400 tracking-wider">これ以上、この時間軸を進めることはできない！</div>
+
+      <!-- 同期ゲートステータスボックス -->
+      <div id="syncGateStatusBox" class="p-3 bg-black/80 border border-red-800/80 rounded-xl space-y-2">
+        <div class="text-[10px] font-mono text-red-400 font-bold uppercase tracking-wider">TIMELINE SYNCHRONIZATION STATUS (11:30 GATES)</div>
+        <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+          <div id="syncStatusA" class="p-2 rounded-lg border bg-neutral-900 border-neutral-700 text-neutral-400">
+            <div class="text-[10px]">A: レン</div>
+            <div id="syncTextA" class="font-bold mt-0.5 text-[11px]">未到達</div>
+          </div>
+          <div id="syncStatusB" class="p-2 rounded-lg border bg-neutral-900 border-neutral-700 text-neutral-400">
+            <div class="text-[10px]">B: エレナ</div>
+            <div id="syncTextB" class="font-bold mt-0.5 text-[11px]">未到達</div>
+          </div>
+          <div id="syncStatusC" class="p-2 rounded-lg border bg-neutral-900 border-neutral-700 text-neutral-400">
+            <div class="text-[10px]">C: ダニエル</div>
+            <div id="syncTextC" class="font-bold mt-0.5 text-[11px]">未到達</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="p-3.5 bg-red-950/40 border border-red-800/80 rounded-xl text-left space-y-1.5">
+        <div class="text-xs text-neutral-200 font-bold" id="keepOutReason"></div>
+        <div class="text-xs text-amber-400 font-bold pt-1.5 border-t border-red-900/60 flex items-start gap-1">
+          <span>💡</span><span id="keepOutHint"></span>
+        </div>
+      </div>
+
+      <button id="btnKeepOutJump" class="w-full py-3.5 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-neutral-950 font-black rounded-xl text-sm shadow-xl flex items-center justify-center gap-2 active:scale-[0.99] transition-all">
+        <span id="keepOutJumpLabel">対象主人公の時間軸へ JUMP -&gt;</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. BAD END ビュー -->
+  <div id="viewBadEnd" class="hidden h-[76vh] bg-neutral-950 rounded-2xl border-4 border-neutral-800 shadow-2xl flex flex-col justify-between p-5 sm:p-7 relative overflow-y-auto">
+    <div class="text-center space-y-1">
+      <div class="flex justify-between items-center border-b border-neutral-800 pb-2 mb-2">
+        <div class="flex items-center gap-2">
+          <span id="badEndTimeBadge" class="text-xs font-black tracking-wider text-red-400 font-mono bg-neutral-900 px-2 py-0.5 rounded border border-red-900">10:20</span>
+          <span id="badEndCharBadge" class="text-xs font-bold text-neutral-300">[エレナ（平等権）]</span>
+        </div>
+        <div class="text-xs font-black tracking-widest text-red-500 uppercase font-mono">CHRONICLE TERMINATED</div>
+      </div>
+      <h2 id="badEndTitle" class="text-xl sm:text-2xl font-black text-neutral-100"></h2>
+    </div>
+
+    <div class="space-y-4 my-auto py-2">
+      <div id="badEndParagraphs" class="space-y-2 text-sm sm:text-base text-neutral-300 bg-neutral-900/80 p-4 rounded-xl border border-neutral-800"></div>
+
+      <div class="p-4 bg-amber-950/30 border border-amber-800/60 rounded-xl text-left">
+        <div class="text-xs font-black text-amber-400 flex items-center gap-1">
+          <span>📜</span><span>現代社会・公民科の視点から学ぶ原因</span>
+        </div>
+        <p id="badEndLesson" class="text-xs text-neutral-300 leading-relaxed mt-1.5"></p>
+      </div>
+    </div>
+
+    <button id="btnBadEndJump" class="w-full py-3.5 bg-gradient-to-r from-neutral-700 to-neutral-600 hover:from-neutral-600 hover:to-neutral-500 text-white font-black rounded-xl text-sm shadow-xl flex items-center justify-center gap-2 active:scale-[0.99] transition-all">
+      <span>原因となった時間軸へ JUMP -&gt;</span>
+    </button>
+  </div>
+
+  <!-- 5. TRUE SECRET END ビュー（光学スキャン＆4幕構成エピローグ） -->
+  <div id="viewTrueEnd" class="hidden h-[76vh] bg-neutral-950 rounded-2xl border-2 border-sky-500 shadow-2xl flex flex-col justify-between p-4 sm:p-6 relative overflow-hidden">
+    <div class="scanner-beam"></div>
+
+    <div class="flex justify-between items-center border-b border-neutral-800 pb-2 z-10">
+      <div class="text-xs font-mono text-sky-400 font-black tracking-widest">TURING SAFEGUARD // CONSTITUTIONAL OCR</div>
+      <div class="text-xs text-amber-400 font-bold">★ TRUE SECRET END</div>
+    </div>
+
+    <div id="scanConsole" class="my-auto space-y-3.5 z-10 overflow-y-auto pr-1">
+      <div id="scanStatusText" class="text-xs sm:text-sm font-mono text-neutral-200 leading-relaxed bg-neutral-900/90 p-3.5 rounded-xl border border-neutral-800">
+        システム音声：『光学スキャナ上に3つの遺物を確認。画像解析を開始します……』
+      </div>
+
+      <div id="decodeCardsGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-xs">
+        <div class="p-3 bg-neutral-900 border border-emerald-800 rounded-xl space-y-1">
+          <div class="text-[10px] text-emerald-400 font-bold">【レンの胸を守った青い鉄板】</div>
+          <div id="decodeTextA" class="font-black text-sm text-neutral-400 font-mono tracking-widest">幾何学パターン展開中...</div>
+        </div>
+        <div class="p-3 bg-neutral-900 border border-sky-800 rounded-xl space-y-1">
+          <div class="text-[10px] text-sky-400 font-bold">【エレナの真鍮銘板】</div>
+          <div id="decodeTextB" class="font-black text-sm text-neutral-400 font-mono tracking-widest">幾何学パターン展開中...</div>
+        </div>
+        <div class="p-3 bg-neutral-900 border border-amber-800 rounded-xl space-y-1">
+          <div class="text-[10px] text-amber-400 font-bold">【ダニエルが背負った救急木箱】</div>
+          <div id="decodeTextC" class="font-black text-sm text-neutral-400 font-mono tracking-widest">幾何学パターン展開中...</div>
+        </div>
+      </div>
+
+      <div id="trueEndDramaContainer" class="hidden p-4 bg-neutral-900/95 border border-amber-500/70 rounded-xl text-left space-y-2.5 text-xs sm:text-sm text-neutral-200 leading-relaxed">
+        <div id="trueEndActTitle" class="text-xs font-black text-amber-400 uppercase tracking-widest border-b border-neutral-800 pb-1"></div>
+        <div id="trueEndActContent" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <div class="z-10 pt-2 flex gap-2">
+      <button id="btnProceedTrueEnd" class="flex-1 py-3.5 bg-gradient-to-r from-sky-500 to-amber-500 hover:from-sky-400 hover:to-amber-400 text-neutral-950 font-black rounded-xl text-xs sm:text-sm shadow-xl active:scale-[0.99] transition-all">
+        次へ進める -&gt;
+      </button>
+      <button id="btnCertFromTrue" style="display: none;" class="px-5 py-3.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black rounded-xl text-xs sm:text-sm shadow-xl flex items-center justify-center gap-1.5">
+        <span>🏆</span><span>特別表彰状（主権者認定証）を発行</span>
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<!-- TIPS逆照射モーダル -->
+<div id="modalTip" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-11/12 max-w-lg bg-neutral-900 border-2 border-sky-500 p-4 rounded-xl shadow-2xl z-50 text-sm">
+  <div class="flex justify-between items-start mb-1">
+    <div>
+      <span class="text-[10px] px-2 py-0.5 bg-sky-950 text-sky-300 rounded border border-sky-800 font-bold">💡 本来言いたいこと（日本国憲法の知恵）</span>
+      <h4 id="tipTermTitle" class="font-black text-sky-400 text-base sm:text-lg mt-1"></h4>
+      <div id="tipLawName" class="text-[11px] text-neutral-400 font-mono"></div>
+    </div>
+    <button id="btnCloseTip" class="text-xs text-neutral-400 hover:text-white px-2 py-1 bg-neutral-800 rounded-lg">✕ 閉じる</button>
+  </div>
+  <p id="tipDescription" class="text-neutral-200 text-xs sm:text-sm leading-relaxed mt-2 pt-2 border-t border-neutral-800"></p>
+</div>
+
+<!-- パスコードモーダル -->
+<div id="modalPasscodeNotice" class="hidden fixed inset-0 bg-black/95 p-4 z-50 flex items-center justify-center">
+  <div class="bg-neutral-900 border-2 border-amber-500 p-6 rounded-2xl shadow-2xl max-w-sm w-full space-y-4 text-center">
+    <div class="text-amber-400 text-4xl">🔑</div>
+    <div>
+      <h3 class="text-lg font-black text-white">4桁パスコードを発行しました</h3>
+      <p class="text-xs text-neutral-400 mt-1">次回、別端末から再開する際に使用します。<br>メモ帳やノートに控えておいてください。</p>
+    </div>
+
+    <div class="p-4 bg-neutral-950 border border-neutral-700 rounded-xl">
+      <div class="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">YOUR SECRET PASSCODE</div>
+      <div id="passDisplayNumber" class="text-3xl font-mono font-black text-amber-400 tracking-widest my-1"></div>
+      <div id="passDisplayName" class="text-xs text-neutral-300"></div>
+    </div>
+
+    <button id="btnClosePassNotice" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black rounded-xl text-sm shadow-lg transition-all">
+      控えた！タイムラインを開始する -&gt;
+    </button>
+  </div>
+</div>
+
+<!-- 時間軸図鑑モーダル -->
+<div id="modalTimelineChart" class="hidden fixed inset-0 bg-black/95 p-3 sm:p-6 z-50 overflow-y-auto flex flex-col max-w-4xl mx-auto my-auto h-[92vh] rounded-2xl border border-neutral-800">
+  <div class="flex justify-between items-center mb-3 border-b border-neutral-800 pb-2.5">
+    <div>
+      <h2 class="text-base sm:text-lg font-black text-amber-400 flex items-center gap-1.5">
+        <span>🔀</span><span>タイムライン時間軸図鑑</span>
+      </h2>
+      <p class="text-[11px] text-neutral-400">通過したシーンをタップすると、その過去の時間へ直接JUMPできます。</p>
+    </div>
+    <button id="btnCloseChart" class="text-neutral-400 hover:text-white text-xs px-3 py-1 bg-neutral-800 rounded-lg">✕ 閉じる</button>
+  </div>
+
+  <div class="mb-3 p-3 bg-neutral-900 border border-neutral-750 rounded-xl flex justify-between items-center text-xs">
+    <div>
+      <span class="text-neutral-400">結末の解明状況：</span>
+      <strong id="chartProgressText" class="text-amber-400 font-mono text-sm ml-1">0 / 6 結末</strong>
+    </div>
+    <button id="btnChartCertDownload" style="display: none;" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-[11px] font-black rounded shadow">
+      🏆 表彰状を発行
+    </button>
+  </div>
+
+  <div id="chartColumns" class="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1 overflow-y-auto pr-1">
+    <div class="bg-neutral-950 border border-emerald-900/60 rounded-xl p-3 flex flex-col gap-2">
+      <div class="text-xs font-black text-emerald-400 border-b border-emerald-900 pb-1 flex justify-between">
+        <span>A: レン</span><span>自由権</span>
+      </div>
+      <div id="columnNodesA" class="space-y-2"></div>
+    </div>
+    <div class="bg-neutral-950 border border-sky-900/60 rounded-xl p-3 flex flex-col gap-2">
+      <div class="text-xs font-black text-sky-400 border-b border-sky-900 pb-1 flex justify-between">
+        <span>B: エレナ</span><span>平等権</span>
+      </div>
+      <div id="columnNodesB" class="space-y-2"></div>
+    </div>
+    <div class="bg-neutral-950 border border-amber-900/60 rounded-xl p-3 flex flex-col gap-2">
+      <div class="text-xs font-black text-amber-400 border-b border-amber-900 pb-1 flex justify-between">
+        <span>C: ダニエル</span><span>社会権</span>
+      </div>
+      <div id="columnNodesC" class="space-y-2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 表彰状モーダル -->
+<div id="modalCertificate" class="hidden fixed inset-0 bg-black/95 p-3 sm:p-6 z-50 flex flex-col items-center justify-center overflow-y-auto">
+  <div class="max-w-2xl w-full space-y-3.5 text-center">
+    <div class="flex justify-between items-center px-1">
+      <div class="text-left">
+        <span id="certGradeBadge" class="text-xs font-black text-amber-400 tracking-widest uppercase">CONSTITUTIONAL MASTER</span>
+        <h3 id="certMainTitle" class="text-xl font-black text-white">人権調和 表彰状</h3>
+      </div>
+      <button id="btnCloseCertTop" class="text-xs px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg">✕ 閉じる</button>
+    </div>
+
+    <div class="border-2 border-amber-600 rounded-xl overflow-hidden shadow-2xl bg-amber-50">
+      <canvas id="canvasCert" width="1600" height="1131" class="w-full h-auto block"></canvas>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 pt-1">
+      <button id="btnDownloadPdf" class="flex-1 py-3.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-sm rounded-xl shadow-xl flex items-center justify-center gap-2">
+        <span>📄</span><span>表彰状をPDFで保存する</span>
+      </button>
+      <button id="btnCloseCertBottom" class="px-6 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold text-sm rounded-xl">
+        閉じる
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ホーム戻り確認モーダル -->
+<div id="modalConfirmHome" class="hidden fixed inset-0 bg-black/90 p-4 z-50 flex items-center justify-center">
+  <div class="bg-neutral-900 border border-neutral-700 p-5 rounded-2xl max-w-sm w-full space-y-3 text-center">
+    <h4 class="text-base font-black text-white">タイトル画面へ戻りますか？</h4>
+    <p class="text-xs text-neutral-400">現在のタイムライン進捗と解放した結末は自動的に保存されています。</p>
+    <div class="flex gap-2 pt-2">
+      <button id="btnExecHome" class="flex-1 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs">はい、戻る</button>
+      <button id="btnCancelHome" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl text-xs">続ける</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   1. MASTER SCENARIO DATABASE (逆照射TIPS・全結末到達可能ルート内包)
+   ========================================================================== */
+var MASTER_DB = {
+  tips: {
+    "身体の自由": {
+      term: "身体の自由・居住移転の自由",
+      law: "日本国憲法 第18条・第22条・第31条",
+      desc: "💡【本来言いたいこと】：誰の許可もいらず、自分の行きたい場所へ行き、住む場所を選べる権利です。正当な法の手続きなしに人を縛ったり、意に反して奴隷のように働かせることを永久に禁じる、すべての自由の原点です。"
+    },
+    "表現の自由": {
+      term: "表現の自由・検閲の禁止",
+      law: "日本国憲法 第21条",
+      desc: "💡【本来言いたいこと】：思ったことを叫び、ビラを配り、電波やネットで意見を発信できる権利です。政府が事前に言論を取り締まる『検閲』を禁じ、多様な批判や議論によって社会を正しく保つための盾です。"
+    },
+    "法の下の平等": {
+      term: "法の下の平等（門地・身分差別の禁止）",
+      law: "日本国憲法 第14条",
+      desc: "💡【本来言いたいこと】：生まれた家柄や親の血統、人種、性別によって人生の価値や扱いを分けられてはならないという鉄則です。現代社会において貴族などの特権階級の存在を永久に認めない防壁です。"
+    },
+    "生存権": {
+      term: "生存権（健康で文化的な最低限度の生活）",
+      law: "日本国憲法 第25条",
+      desc: "💡【本来言いたいこと】：『働けぬ者は飢えて死ね』という弱肉強食を許さず、人間である限り、社会全体で健康で文化的な生活を支え合う権利です。医療保険、年金、生活保護などの公的制度の土台です。"
+    },
+    "労働基本権": {
+      term: "勤労権・労働三権",
+      law: "日本国憲法 第27条・第28条",
+      desc: "💡【本来言いたいこと】：過酷労働や使い捨てから命を守るため、働く者が団結して労働組合をつくり、労働時間や賃金などの改善を対等に交渉する権利です。"
+    },
+    "公共の福祉": {
+      term: "公共の福祉による権利の調整",
+      law: "日本国憲法 第12条・第13条",
+      desc: "💡【本来言いたいこと】：自分の自由を振りかざして他人の生命や尊厳を奪ってはならないという『社会全体の調和ルール』です。人権は絶対ですが、他人の人権と衝突した時にはお互いに譲り合わなければなりません。"
+    }
+  },
+
+  nodes: {
+    /* -------------------------------------------------------------
+       主人公A: レン（自由権）
+       ------------------------------------------------------------- */
+    "A_1000": {
+      id: "A_1000", char: "A", charName: "レン（自由権）", time: "10:00",
+      stage: "10:00 スラム地下工場", title: "首輪の火花",
+      paragraphs: [
+        "首に取り付けられた電磁首輪が、赤い警告音をピピピと響かせている。",
+        "ここは地下100メートルの軍需工場。外へ出ることは掟で禁じられ、逆らう者は即座に電流で気絶させられる。",
+        "あなたはスラムの少年レン。今日こそ、この見えない檻を脱出すると決めた。"
+      ],
+      choices: [
+        { text: "非常用レンチで首輪のロックを力づくで叩き割る！", next: "A_1015", slot: "A_1000", flagValue: "A_BROKE_COLLAR", fx: "flash" }
+      ]
+    },
+
+    "A_1015": {
+      id: "A_1015", char: "A", charName: "レン（自由権）", time: "10:15",
+      stage: "10:15 地上検問路地", title: "検問ゲートの選択",
+      paragraphs: [
+        "火花とともに首輪が砕け散り、首を締め付ける鉄の冷たさが消えた！ 息ができる。<span class='tip-link' data-tip='身体の自由'>自分の足で、どこへだって走っていける</span>んだ！",
+        "だが非常警報が鳴り響き、警備ドローンが路地を塞ぎに来る。",
+        "目の前の壁には「街全体の配電盤」と、ドローンを制御する「警察の通信アンテナ」がある。"
+      ],
+      choices: [
+        {
+          text: "配電盤をショートさせて街路灯を消し、闇に紛れて逃げる",
+          next: "A_1030_DARK",
+          slot: "A_1015",
+          flagValue: "A_BLACKOUT",
+          fx: "flash"
+        },
+        {
+          text: "通信アンテナを壊し、ドローンの追跡電波だけを狂わせる",
+          next: "A_1030_SIGNAL",
+          slot: "A_1015",
+          flagValue: "A_SIGNAL_BROKEN",
+          fx: "none"
+        }
+      ]
+    },
+
+    "A_1030_DARK": {
+      id: "A_1030_DARK", char: "A", charName: "レン（自由権）", time: "10:30",
+      stage: "10:30 静まり返るスラム", title: "闇の中の逃亡",
+      paragraphs: [
+        "バチバチと火花が散り、スラム一帯の明かりが一斉に消え去った。",
+        "追跡ドローンは暗闇の中で見失い、逃走には成功した。",
+        "しかし遠くの地下診療所の方角から、非常電源のアラームと悲痛な叫び声が響いた気がした……。"
+      ],
+      choices: [
+        { text: "胸騒ぎを覚えながらも、先を急ぐ", next: "A_1045_WATERGATE" }
+      ]
+    },
+
+    "A_1030_SIGNAL": {
+      id: "A_1030_SIGNAL", char: "A", charName: "レン（自由権）", time: "10:30",
+      stage: "10:30 地下水路の泥板", title: "泥の中の幾何学板",
+      paragraphs: [
+        "アンテナを鉄パイプでへし折ると、ドローンは旋回を狂わせてビルの壁に激突した。",
+        "地上ゲートの方角でも、上空のドローンが狂乱し、警備兵たちが慌てて空を見上げているのが見えた。",
+        "足元に泥に埋もれた「青い長方形の金属板」が転がっていた。厚みは3ミリほどあり、叩くと硬質な音が返ってくる。表面には白く掠れた角ばった直線が描かれている。"
+      ],
+      choices: [
+        { text: "こんなガラクタに構っている暇はない。先を急ごう", next: "A_1045_WATERGATE" },
+        {
+          text: "頑丈そうだ。防弾板として上着の胸元に差し込んでおこう",
+          next: "A_1045_WATERGATE",
+          setFlags: ["PIECE_A"],
+          fx: "none"
+        }
+      ]
+    },
+
+    "A_1045_WATERGATE": {
+      id: "A_1045_WATERGATE", char: "A", charName: "レン（自由権）", time: "10:45",
+      stage: "10:45 地下水路・境界水門", title: "濁流の水門扉",
+      keepOut: {
+        requireFlag: "C_PUMP_ACTIVATED",
+        jumpChar: "C",
+        jumpTime: "10:25",
+        reason: "地下水路が激しい濁流で水没しており、水門の扉へ近づくことができない！",
+        hint: "10:25 地下診療所のダニエル（C）が、手術を成功させて排水ポンプを動かせば水位が下がるはずだ。"
+      },
+      paragraphs: [
+        "ゴオオオ……と地下のどこかで巨大な排水ポンプが唸りを上げ、水路の濁流が一気に引き始めた！",
+        "「水が引いた……？ 理由はわからないが、天が味方してくれたんだ！」",
+        "露出した水門扉を押し開け、レンは中央印刷所へと続くダクトへ駆け込んだ！"
+      ],
+      choices: [
+        { text: "中央印刷所に潜入し、全都市への告発放送を行う！", next: "A_1100" }
+      ]
+    },
+
+    "A_1100": {
+      id: "A_1100", char: "A", charName: "レン（自由権）", time: "11:00",
+      stage: "11:00 中央印刷所", title: "鳴り響く火災報知器",
+      paragraphs: [
+        "印刷所の放送ブースへ滑り込もうとしたレンだったが、通路には武装した検閲警備兵が立ち塞がっていた！",
+        "「くそっ、このままじゃブースに入る前に射殺される……一か八かだ！」",
+        "レンは壁の非常用スプリンクラー起動レバーを力任せに引き倒し、火災ベルを叩き割った！",
+        "ウーウーと全館サイレンが鳴り響き、滝のような水が噴き出して印刷所は大パニックに陥った！",
+        "「火事だ！ 大規模火災だ！ 貴族街の本部へ応援を要請しろ！」と警備兵たちが慌てふためいて逃げ出していく！"
+      ],
+      choices: [
+        {
+          text: "パニックに乗じて放送室へ飛び込み、全都市へ演説を流す！",
+          next: "A_1130",
+          slot: "A_1100",
+          flagValue: "A_ALARM_RING"
+        }
+      ]
+    },
+
+    "A_1130": {
+      id: "A_1130", char: "A", charName: "レン（自由権）", time: "11:30",
+      stage: "11:30 印刷所マイク前", title: "生きた声と防弾板",
+      paragraphs: [
+        "全都市のスピーカーを占拠したレンは、胸の底から湧き上がる怒りをマイクへ叩きつけた。",
+        "「目を覚ませ！ 怯えて黙り込むのはもう終わりだ！ <span class='tip-link' data-tip='表現の自由'>思ったことを叫んで</span>、どこへでも自分の足で歩いていく……俺たちは誰かの飼い犬じゃない、生きてる人間だ！！」",
+        "突入してきた警備ドローンがレンの胸元へ電磁テーザー弾を放つ！",
+        "バチィンッ！！ 鋭い金属音が響いた。胸ポケットに差し込んでいた青い鉄板が、弾丸を見事に跳ね返したのだ！",
+        "だが印刷所の出口は完全封鎖された。「下へ逃げる道はない……上だ！ 塔の点検ハッチから屋上へ逃げて、あそこの主アンテナから放送を続けるしかない！」"
+      ],
+      choices: [
+        {
+          text: "追っ手を振り切り、時計塔頂上の主アンテナを目指して階段を駆け上がる！",
+          next: "CLIMAX_HUB",
+          slot: "A_1130",
+          flagValue: "A_FREEDOM_DONE"
+        },
+        {
+          text: "言論など無意味だ。マイクを捨て、首輪の解除コードだけを奪って身を潜める",
+          next: "BAD_04",
+          slot: "A_1130",
+          flagValue: "A_GIVEUP_SPEECH"
+        }
+      ]
+    },
+
+    /* -------------------------------------------------------------
+       主人公B: エレナ（平等権）
+       ------------------------------------------------------------- */
+    "B_1000": {
+      id: "B_1000", char: "B", charName: "エレナ（平等権）", time: "10:00",
+      stage: "10:00 特権監査局", title: "純白の制服",
+      paragraphs: [
+        "エレナは特権階級「大歯車」の紋章が刻まれた純白の制服に身を包んでいた。",
+        "手元の極秘ファイルには、家柄や血統だけで市民の階級を固定する不当な改ざん記録が記されていた。"
+      ],
+      choices: [
+        { text: "実態を確かめるため、境界ゲートの現場監査へ向かう", next: "B_1020" }
+      ]
+    },
+
+    "B_1020": {
+      id: "B_1020", char: "B", charName: "エレナ（平等権）", time: "10:20",
+      stage: "10:20 境界ゲート", title: "境界線の銃口",
+      paragraphs: [
+        "貴族区とスラムを隔てる巨大な鉄の境界ゲート。",
+        "身分証を持たないスラムの少年が、警備兵に銃口を突きつけられていた。"
+      ],
+      choices: [
+        {
+          text: "「銃を下ろしなさい！ 生まれた血筋だけで命の価値を決める掟など、私が絶対に認めません！」と割り込む",
+          next: "B_1040_SAVE",
+          slot: "B_1020",
+          flagValue: "B_SAVED_BOY",
+          fx: "flash"
+        },
+        {
+          text: "職務権限を越えるトラブルを避け、冷徹に見過ごす",
+          next: "BAD_02",
+          slot: "B_1020",
+          flagValue: "B_IGNORED_BOY",
+          fx: "none"
+        }
+      ]
+    },
+
+    "B_1040_SAVE": {
+      id: "B_1040_SAVE", char: "B", charName: "エレナ（平等権）", time: "10:40",
+      stage: "10:40 境界ゲート裏", title: "託された使命",
+      paragraphs: [
+        "エレナの一喝に怯んだ警備兵は銃を収め、少年は「ありがとう監査官さん！ 母ちゃんの薬を持ってスラムへ逃げなきゃ！」と地下の抜け穴へ脱兎のごとく駆け去っていった。",
+        "エレナは拳を強く握りしめた。門地や血統による差別の根源を断つため、貴族街の中央公文書保管庫（特権薬品庫の地下）にある身分制度マスターサーバーへ潜入することを決意した。"
+      ],
+      choices: [
+        { text: "貴族薬品庫・地下公文書庫へ向かう", next: "B_1100" }
+      ]
+    },
+
+    "B_1100": {
+      id: "B_1100", char: "B", charName: "エレナ（平等権）", time: "11:00",
+      stage: "11:00 貴族街・特権薬品庫前", title: "重警備の鉄扉",
+      keepOut: {
+        requireFlag: "A_ALARM_RING",
+        jumpChar: "A",
+        jumpTime: "11:00",
+        reason: "貴族薬品庫の周囲に重装備の警備兵が密集しており、近づけない！",
+        hint: "11:00 中央印刷所にいるレン（A）が、警備兵の目を逸らす火災報知器を鳴らせるはずだ。"
+      },
+      paragraphs: [
+        "突如として、中央印刷所の方角からけたたましい火災報知サイレンが響き渡った！",
+        "「印刷所でテロ発生！ 全員直ちに応援へ向かえ！」と叫び、薬品庫を守っていた警備兵たちが一斉に走り去っていく！",
+        "「……何が起きたのか知らないけれど、天が味方してくれたわ。」",
+        "もぬけの殻となった扉へ滑り込み、エレナは身分制撤廃マスターコードを手に入れた！"
+      ],
+      choices: [
+        {
+          text: "崩壊金庫の残骸を調べる",
+          next: "B_1120_VAULT",
+          slot: "B_1100",
+          flagValue: "B_GOT_CODE"
+        }
+      ]
+    },
+
+    "B_1120_VAULT": {
+      id: "B_1120_VAULT", char: "B", charName: "エレナ（平等権）", time: "11:20",
+      stage: "11:20 爆破解体された古代金庫", title: "瓦礫の真鍮銘板",
+      paragraphs: [
+        "ふと横を見ると、爆破された古代金庫の瓦礫に鈍い金色を放つ真鍮プレートが落ちていた。",
+        "煤を払うと、水平の溝の下に十字交差があり、四角が縦に並んだ緻密な溝が刻まれている。"
+      ],
+      choices: [
+        { text: "煙が充満する前に、放送バルコニーへ急ぐ", next: "B_1130" },
+        {
+          text: "強い意志を感じる銘板だ。制服のポケットに大切にしまおう",
+          next: "B_1130",
+          setFlags: ["PIECE_B"],
+          fx: "none"
+        }
+      ]
+    },
+
+    "B_1130": {
+      id: "B_1130", char: "B", charName: "エレナ（平等権）", time: "11:30",
+      stage: "11:30 議事堂大バルコニー", title: "平等の叫び",
+      paragraphs: [
+        "バルコニーに立ったエレナは、胸の貴族章を引きちぎって群衆の前へ投げ捨てた！",
+        "「生まれついた家柄が何だというの！？ <span class='tip-link' data-tip='法の下の平等'>流れる血の色は、貴族もスラムの民も同じ赤</span>よ！ 誰一人として、生まれた瞬間に踏みつけられていい命なんてないわ！！」",
+        "広場が地鳴りのような歓声に包まれたその時、保安局の全セキュリティからエレナへ抹殺プロトコルが発令される！",
+        "「現場の端末では地方局レベルしか解除できない……！ 身分認証サーバーを物理的に落とせるのは、統治AIが置かれた時計塔最上階の【原本管理室】だけよ！」"
+      ],
+      choices: [
+        {
+          text: "私の家族が築いた偽りの支配を止めるため、時計塔最上階へ突入する！",
+          next: "CLIMAX_HUB",
+          slot: "B_1130",
+          flagValue: "B_EQUALITY_DONE"
+        }
+      ]
+    },
+
+    /* -------------------------------------------------------------
+       主人公C: ダニエル（社会権）
+       ------------------------------------------------------------- */
+    "C_1000": {
+      id: "C_1000", char: "C", charName: "ダニエル（社会権）", time: "10:00",
+      stage: "10:00 スラム地下診療所", title: "命の選別",
+      paragraphs: [
+        "地下診療所には、工場の有害ガスで肺を侵された労働者たちが折り重なるように倒れていた。",
+        "医師ダニエルは私財を投げ打って無償治療を続けていたが、薬品も電力も底をつきかけていた。"
+      ],
+      choices: [
+        { text: "運ばれてきた重症労働者の緊急手術を開始する", next: "C_1025" }
+      ]
+    },
+
+    "C_1025": {
+      id: "C_1025", char: "C", charName: "ダニエル（社会権）", time: "10:25",
+      stage: "10:25 手術室", title: "薄氷の生命維持",
+      trap: {
+        triggerFlag: "A_BLACKOUT",
+        badEndNode: "BAD_01"
+      },
+      keepOut: {
+        requireFlag: "B_SAVED_BOY",
+        jumpChar: "B",
+        jumpTime: "10:20",
+        reason: "患者の血圧が急低下！止血用の特殊抗凝固剤が手元になく、執刀を続けられない！",
+        hint: "10:20 境界ゲートのエレナ（B）が少年を救っていれば、少年が薬を持って診療所へ駆け込むはずだ。"
+      },
+      paragraphs: [
+        "「先生！ 助けてくれ、母ちゃんの手術に使ってくれ！」 境界ゲートの検問を命からがら逃げ延びてきた少年が、胸ポケットから貴重な止血用アンプルを差し出した！",
+        "無影灯の明かりの下、ダニエルのメスが正確に患部を捉える。生命維持装置が力強い脈動を刻み、手術は見事に成功した。",
+        "だがその瞬間、足元から冷たい水が押し寄せてきた。非常警報の赤ランプが点滅する！",
+        "「まずい！ 地下水路が氾濫して、この診療所まで水没しかけている！ 電力が回復している今なら、主配電盤の第4大型排水ポンプを動かせるはずだ！」"
+      ],
+      choices: [
+        {
+          text: "浸水を防ぐため大型排水ポンプを全開にし、旧防空壕跡へ薬品調達に向かう",
+          next: "C_1100",
+          slot: "C_1025",
+          flagValue: "C_PUMP_ACTIVATED"
+        }
+      ]
+    },
+
+    "C_1100": {
+      id: "C_1100", char: "C", charName: "ダニエル（社会権）", time: "11:00",
+      stage: "11:00 崩落防空壕跡", title: "奇跡の救急木箱",
+      paragraphs: [
+        "手術を終えたダニエルは、旧防空壕跡を掘り起こした。",
+        "瓦礫の下から引っ張り出したのは、奇跡的に腐食を免れていた重い樫の木の箱だった。"
+      ],
+      choices: [
+        { text: "中身の抗生物質だけを掴み、工場前へ急ぐ", next: "C_1130" },
+        {
+          text: "この木箱ごと運ぼう。誰かの祈りがこもっている気がする",
+          next: "C_1130",
+          setFlags: ["PIECE_C"],
+          fx: "none"
+        }
+      ]
+    },
+
+    "C_1130": {
+      id: "C_1130", char: "C", charName: "ダニエル（社会権）", time: "11:30",
+      stage: "11:30 工場前広場", title: "生存の叫びとストライキ",
+      paragraphs: [
+        "街中には「自由だ！」「平等だ！」と歓喜の声が響いている。",
+        "だが工場主たちは冷笑を浮かべて腕を組んだ。「自由に休め。だが働かない奴には一銭も払わん。飢えて死ね」",
+        "ダニエルは薬品を配りながら、労働者たちの先頭に立って叫んだ！",
+        "「首輪を外して自由になれば、それで腹が膨れるとでも思っているのか！？ 働いても働いても薬一粒買えず、<span class='tip-link' data-tip='労働基本権'>病気になればゴミのように捨てられる</span>……そんな生き地獄を許していいはずがない！ <span class='tip-link' data-tip='生存権'>人間らしく飯を食い、眠り、生き抜くための命の分け前</span>を寄こせ！！」",
+        "激怒した支配層は報復としてスラム全域の生命維持ライフライン（電力・送水・医療用酸素）の元栓を強制遮断した！",
+        "「先生！ 診療所の酸素ボンベが尽きかけ、患者たちが呼吸停止に陥っています！ 元栓があるのは時計塔最上階の環境統括ブロックです！」",
+        "「目の前で数百人の命を見殺しにできるか！ 私が行く！！」"
+      ],
+      choices: [
+        {
+          text: "スラムの生命維持ラインを復旧させるため、時計塔最上階へ駆け上がる！",
+          next: "CLIMAX_HUB",
+          slot: "C_1130",
+          flagValue: "C_SOCIAL_DONE"
+        },
+        {
+          text: "これ以上の反抗は危険だ。ストライキを解散し、配給を乞う",
+          next: "BAD_03",
+          slot: "C_1130",
+          flagValue: "C_GIVEUP_STRIKE"
+        }
+      ]
+    },
+
+    /* -------------------------------------------------------------
+       合流ハブ・最終判定
+       ------------------------------------------------------------- */
+    "CLIMAX_HUB": {
+      id: "CLIMAX_HUB", char: "ALL", charName: "運命の交差点", time: "12:00",
+      stage: "12:00 時計塔最上階", title: "人権の調停スキャナ",
+      paragraphs: [
+        "バタンッ！！ 銃創を押さえ、息を切らした少年レンが部屋へ転がり込んできた。「ハァ、ハァ……ここまで登れば……追っ手は……！」",
+        "カチャリと金属音が鳴り、反対側の通路から白の制服を血と煤で汚したエレナが銃を構える。「動かないで！ ……えっ、スラムの子供！？ なぜこんな場所に！？」",
+        "「うわっ、貴族の監査官！？ 待ち伏せか！？」 レンが胸の青い鉄板を盾にして身構える。",
+        "そこへ、ドカドカと階段を駆け上がってきたダニエルが、泥だらけの救急箱を抱えて防護扉を蹴破った。「どいてくれ！ ライフラインの強制解除コンソールはどこだ！？ 下層区の患者たちが息絶えてしまうんだ！！」",
+        "レン：「あんた……地下診療所のダニエル先生か！？ なんでここに！？」",
+        "エレナ：「待ちなさい、あなたたち！ 争っている場合じゃないわ。この部屋のシステムそのものが、侵入者を感知して防衛プロトコルを起動している！」",
+        "ウィーーン……と冷たい電子音が響き、部屋の中央にあるガラス張りの平らなスキャナが、青いレーザー光を放ち始める。"
+      ],
+      choices: [
+        { text: "スキャン台の前に立ち、システムの最終判定を受ける！", next: "FINAL_EVALUATE" }
+      ]
+    },
+
+    "FINAL_EVALUATE": {
+      id: "FINAL_EVALUATE", char: "ALL", charName: "歴史の審判", time: "12:15",
+      stage: "12:15 統治プロトコル・オメガ", title: "人間性の証明",
+      paragraphs: [
+        "システム音声：『統治プロトコル・オメガ、最終判定を開始。』",
+        "『警告。本システムはこれより、あなたたちが統治されるべき家畜か、あるいは主権を持つ人間であるかを判定します。』",
+        "『あなたたちが自らの尊厳のために戦ってきたというなら、その手にある【命の痕跡】をスキャナへ提示してください。』"
+      ],
+      choices: [
+        { text: "手にあるすべての遺物をスキャナの上へ並べる！", next: "FINAL_BRANCH" }
+      ]
+    },
+
+    /* -------------------------------------------------------------
+       結末群（全6結末）
+       ------------------------------------------------------------- */
+    "BAD_01": {
+      id: "BAD_01", type: "BAD", no: "01",
+      char: "C", charName: "ダニエル（社会権）", time: "10:25",
+      title: "暗闇の心停止 〜他者の命を奪った自由〜",
+      paragraphs: [
+        "プツン……と突然、手術室の無影灯が消え去り、生命維持装置の電子音が途絶えた！",
+        "「停電だと！？ 非常用バッテリーはなぜ動かない！？」",
+        "ダニエルは暗闇の中で必死に人工呼吸を続けたが、手元の患者の体温は刻一刻と冷たくなっていく。スラム一帯の電源を何者かが強制ショートさせたのだ。目の前の命を救うことすらできず、ダニエルは暗闇で膝から崩れ落ちた……。",
+        "【原因】10:15 レン（A）が自分の逃亡のために配電盤を爆破し、スラムを大停電させたため。"
+      ],
+      lesson: "自分の自由（身体・移動の自由）を行使するあまり、他人の生存権（命）を奪ってはならないという『公共の福祉』の原則を学ぶ結末です。"
+    },
+
+    "BAD_02": {
+      id: "BAD_02", type: "BAD", no: "02",
+      char: "B", charName: "エレナ（平等権）", time: "10:20",
+      title: "広場の処刑台 〜平等なき世界の圧殺〜",
+      paragraphs: [
+        "エレナが境界ゲートで目を背けた直後、背後で乾いた銃声が響いた。振り返ると、少年は冷たい石畳に倒れ、薬の小瓶は泥にまみれて踏みにじられていた。",
+        "「職務を守っただけよ……」そう自分に言い聞かせるエレナだったが、身分差別を肯定した社会の刃は、やがてエレナ自身へと向けられる。",
+        "特権監査局の内部抗争により、エレナは「スラム出身の血が混ざっている」という根拠のない密告で拘束された。門地による差別が正当化された世界では、抗弁の機会すら与えられない。",
+        "かつて目を背けた少年と同じように、エレナ自身もまた、誰からも助けられることなく冷たい処刑台へと送られた……。",
+        "【原因】10:20 エレナ（B）がゲートでの身分差別と少年の命を見過ごしたため。"
+      ],
+      lesson: "『法の下の平等』が保障されていない社会では、弱者を見捨てた特権階級自身もまた、より強大な権力や理不尽な差別の暴力によって容易に処刑・圧殺されてしまいます。"
+    },
+
+    "BAD_03": {
+      id: "BAD_03", type: "BAD", no: "03",
+      char: "C", charName: "ダニエル（社会権）", time: "11:30",
+      title: "自由という名の飢餓 〜社会権なき市場の地獄〜",
+      paragraphs: [
+        "これ以上の対立を恐れたダニエルはストライキを断念し、労働者たちと共に再び工場主の前へ頭を下げた。",
+        "首輪こそ形式的に外されたものの、労働条件の改善や医療補償は一切認められず、「働けぬ者は勝手に飢えて死ね」という冷酷な弱肉強食が街を支配した。",
+        "診療所には治療費の払えない病人と行き倒れが溢れ返り、やがて飢餓に耐えかねた暴徒たちが診療所へ雪崩れ込んできた。",
+        "ダニエルは空っぽの薬箱を抱きしめたまま、理不尽な略奪の嵐に呑み込まれていった……。",
+        "【原因】11:30 ダニエル（C）が『社会権（生存権・労働基本権）』の確立を諦めたため。"
+      ],
+      lesson: "18〜19世紀の自由権・平等権だけでは資本主義の格差や貧困を解決できませんでした。20世紀に『社会権（人間らしい生活の保障）』が生まれた歴史的必然性を教える結末です。"
+    },
+
+    "BAD_04": {
+      id: "BAD_04", type: "BAD", no: "04",
+      char: "A", charName: "レン（自由権）", time: "11:30",
+      title: "パンと首輪の飼育場 〜自由なき配給社会〜",
+      paragraphs: [
+        "レンは放送マイクを捨て、奪い取った首輪の解除コードだけを使って下水道の奥深くへ身を潜めた。",
+        "言論の狼煙が上がらなかった印刷所は保安部隊に即座に奪還され、情報統制はより強固なものとなった。",
+        "反乱を恐れた支配層は、全市民に最低限の合成パンと粗悪な薬品を均等に配給したが、移動と言論の自由は完全に剥奪された。",
+        "首輪の電流の恐怖は消えた。だが人々は何も考えず、ただ生き永らえるためだけに配給の列に並ぶ、冷たい家畜の群れへと成り果てた……。",
+        "【原因】11:30 レン（A）が『表現の自由』を行使せず、保身を選んだため。"
+      ],
+      lesson: "社会権（生活保障）のために自由権を放棄すれば、待っているのは全体主義・独裁国家です。"
+    },
+
+    "NORMAL_CLEAR": {
+      id: "NORMAL_CLEAR", type: "CLEAR", no: "01",
+      title: "人権統合の夜明け 〜嵐の中の暫定船出〜",
+      paragraphs: [
+        "3人は中枢コンソールへ飛び込み、非常停止キーを叩き込んだ！ けたたましい警報が止まり、スラムへの医療用酸素と電力が勢いよく逆流していく！",
+        "首輪の強制電流も停止し、銃撃の雨は止んだ。当面の虐殺と酸欠死という【最悪の危機】は、3人の決断によって間一髪で回避されたのだ。",
+        "だが……光学スキャナは冷たい警告音を鳴らし、手元のガラクタを『未登録の異物』として吐き出した。統治AIは最高法規のロックを解除せず、ただ最低限の【緊急暫定自治モード】で再起動したに過ぎなかった。",
+        "時計塔のバルコニーから広場を見下ろした3人を待ち受けていたのは、平和なユートピアなどではなく、吹き荒れる【混沌と怒号】だった。",
+        "【自由の暴走】「首輪が外れたんだ！ 誰の命令も聞く必要はねえ、富裕層の屋敷を略奪しろ！」と叫ぶ武装グループに対し、レンは必死に立ちはだかる。「<span class='tip-link' data-tip='公共の福祉'>他人の命や家を奪うのは自由じゃねえ</span>！ そんなの前の支配者と同じじゃねえか！」だが、ルールなき群衆の熱狂を止める言葉が見つからない。",
+        "【平等の反発】「法的な根拠のない暴徒の暫定ルールなど認めん！」旧特権層は私兵を雇って邸宅街にバリケードを築き、物資と食料の囲い込みを始めた。エレナは「生まれた家柄で命を差別するな！」と銃を構えて対峙するが、私有財産と平等の境界線を巡って広場は一触即発の内戦前夜と化す。",
+        "【福祉の限界】ダニエルの診療所には数千人の病人が押し寄せるが、薬品も食料も瞬く間に底をつきかける。「誰がこの医療費を負担するんだ？」「働けない者を誰が養うんだ？」と、急造の市民評議会は連日罵倒と責任転嫁の嵐で紛糾し、何一つ決まらない。",
+        "エレナは乾いた笑みを漏らし、額の汗を拭った。「……暴政を倒すことより、倒した後にみんなが納得する『正義の背骨』を打ち立てることのほうが、何百倍も難しいわね」",
+        "ダニエルは疲れ果てた眼差しで、それでも往診カバンを握り直した。「ああ。だが、少なくとも私たちは『自分たちの頭で考え、対立を乗り越えるスタートライン』に立ったんだ。誰かの奴隷として決められるのではなく、自分たちで苦しむ権利を手に入れた」",
+        "レンは青い鉄板を胸に抱き、朝日が差し込む混沌の街を睨み据えた。「問題は山積みだ。明日にも街が真っ二つに割れるかもしれねえ。……上等だ！ 誰かの家畜に戻るくらいなら、この泥沼を仲間と切り拓いてやるよ！」",
+        "最高法規なき街の船出は、暗雲立ち込める嵐の海へ漕ぎ出すようなものだった。だが3人の瞳には、二度と屈しない人間の光が宿っていた。"
+      ],
+      lesson: "独裁者を倒して首輪を外しても、それだけでは安定した社会は生まれません。自由の暴走を防ぎ、差別を排し、弱者を支えるための『社会全体の共通の規範＝憲法（最高法規）』が欠けていれば、社会は容易に対立と内戦へ逆戻りします。『人権を保障する確固たる法典』がいかに社会の背骨として不可欠かを痛感させる結末です。（※3つの遺物をすべて揃えることで、この混沌を乗り越える「真の最高規範」に到達できます）"
+    },
+
+    "TRUE_SECRET_END": {
+      id: "TRUE_SECRET_END", type: "TRUE", no: "SECRET",
+      title: "永久の信託 〜トウキョウの夜明け〜",
+      paragraphs: [
+        "光学スキャナから立ち上った青い光が、3つの遺物の掠れた幾何学模様を空中で漢字へと結像させた。",
+        "【レンの胸を守った鉄板 ────► 『東 京 都 新 宿 区』】",
+        "【エレナの真鍮銘板 ──────► 『日 本 国 憲 法 第 三 章』】",
+        "【ダニエルが背負った木箱 ──► 『厚 生 労 働 省』】",
+        "システム音声：『……照合完了。国家最高法規「日本国憲法 第3章」のロックを全解除。都市全域の統治プロトコルを、主権者による自治規範へ書き換えます。』",
+        "それは単なる暗号解読ではなかった。この瞬間から、街を支配していた「不条理なルール」が、法制度の根底から音を立てて崩壊を始めたのだ。",
+        "【自由権の確立】電磁首輪による強制労働プログラムが恒久停止。軍需工場は閉鎖され、地下に幽閉されていた数万人の労働者が、誰の許可証もいらずに地上へ歩き出した。言論統制局は解体され、広場の壁には市民が自らの声で未来を語り合う壁新聞が次々と貼り出された。",
+        "【法の下の平等の施行】貴族階級「大歯車」の免税特権・世襲身分が全廃。スラムと貴族街を分断していた巨大な鉄の境界ゲートはクレーンで撤去され、出自による身分証は広場で公的に焼却された。すべての市民が等しく一票を持つ、法の下の代表者議会が招集された。",
+        "【社会権の制度化】「働けぬ者は飢えて死ね」という弱肉強食が法律で禁止された。ダニエルの地下診療所は市立総合医療センターとして公設化され、公費による無償治療と食料配給制度が開始。労働者には人間らしい労働時間と団結して交渉する権利が法的に義務付けられた。",
+        "遮蔽壁が完全に開き、200年ぶりの潮風と朝日が東京湾を黄金色に染め上げる。レンは青い標識板を抱えて笑い、エレナは新しい法案の草案を握りしめ、ダニエルは往診カバンを手に新しい街へと踏み出した。"
+      ],
+      lesson: "『日本国憲法 第97条：この憲法が日本国民に保障する基本的人権は、人類の多年にわたる自由獲得の努力の成果であつて、現在及び将来の国民に対し、侵すことのできない永久の権利として信託されたものである。』人権とはただ涙を流すための言葉ではなく、理不尽な権力から人々の日常と命を守り抜くために、先人が血を流して築き上げた社会の具体的な防壁です。"
+    }
+  }
+};
+
+/* ==========================================================================
+   2. AUDIO ENGINE MODULE (Web Audio API 音響合成)
+   ========================================================================== */
+var AudioEngine = (function() {
+  var ctx = null;
+  var isMuted = false;
+
+  function init() {
+    if (!ctx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) ctx = new AC();
+    }
+  }
+
+  function play(type) {
+    if (isMuted) return;
+    init();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+
+    var now = ctx.currentTime;
+
+    if (type === 'tap') {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(320, now + 0.05);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } else if (type === 'jump' || type === 'keepout') {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.28);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.28);
+    } else if (type === 'badend') {
+      [220, 233, 155].forEach(function(freq) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.6);
+      });
+    } else if (type === 'scan') {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.linearRampToValueAtTime(1400, now + 0.2);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    } else if (type === 'chime') {
+      [523.25, 659.25, 783.99, 1046.50].forEach(function(freq, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + (i * 0.1));
+        gain.gain.setValueAtTime(0.1, now + (i * 0.1));
+        gain.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.1) + 0.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + (i * 0.1));
+        osc.stop(now + (i * 0.1) + 0.5);
+      });
+    }
+  }
+
+  function toggleMute() {
+    isMuted = !isMuted;
+    var icon = document.getElementById('audioIcon');
+    if (icon) icon.textContent = isMuted ? '🔇' : '🔊';
+    return isMuted;
+  }
+
+  return { play: play, toggleMute: toggleMute };
+})();
+
+/* ==========================================================================
+   3. STATE & TIMELINE STORAGE MODULE (非破壊セーブ・スロット排他管理)
+   ========================================================================== */
+var TimelineState = (function() {
+  var STORAGE_KEY = "PARALLEL_JAPANIA_CHRONICLE_SAVE_v4";
+
+  var state = {
+    studentName: "",
+    passcode: "",
+    currentChar: "A",
+    currentNodeKey: "A_1000",
+    slots: {},
+    userFlags: [],
+    visitedNodes: ["A_1000", "B_1000", "C_1000"],
+    unlockedEndings: {}
+  };
+
+  function rebuildFlags() {
+    var flags = new Set();
+    Object.keys(state.slots).forEach(function(k) {
+      var val = state.slots[k];
+      if (typeof val === "string") {
+        flags.add(val);
+      } else if (val === true) {
+        flags.add(k);
+      }
+    });
+    state.userFlags = Array.from(flags);
+  }
+
+  function rollbackFutureSlots(targetNodeId) {
+    var targetNode = MASTER_DB.nodes[targetNodeId];
+    if (!targetNode || !targetNode.time || !targetNode.char || targetNode.char === "ALL") return;
+
+    var targetMinutes = parseTimeToMinutes(targetNode.time);
+    var targetChar = targetNode.char;
+
+    Object.keys(state.slots).forEach(function(slotKey) {
+      if (slotKey.indexOf(targetChar + "_") === 0) {
+        var parts = slotKey.split("_");
+        var nodeTimeStr = parts[1];
+        var slotMinutes = parseNodeTimeCodeToMinutes(nodeTimeStr);
+        if (slotMinutes > targetMinutes) {
+          delete state.slots[slotKey];
+        }
+      }
+    });
+    rebuildFlags();
+  }
+
+  function parseTimeToMinutes(tStr) {
+    var parts = tStr.split(":");
+    return parts.length === 2 ? (parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10)) : 0;
+  }
+
+  function parseNodeTimeCodeToMinutes(code) {
+    if (code && code.length >= 4) {
+      var h = parseInt(code.substring(0, 2), 10);
+      var m = parseInt(code.substring(2, 4), 10);
+      return h * 60 + m;
+    }
+    return 0;
+  }
+
+  function saveLocal() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.error("Local state save error", e);
+    }
+  }
+
+  function loadLocal() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed.studentName) {
+          state = Object.assign({}, state, parsed);
+          state.slots = parsed.slots || {};
+          if (parsed.userFlags && Array.isArray(parsed.userFlags) && Object.keys(state.slots).length === 0) {
+            parsed.userFlags.forEach(function(f) {
+              var m = f.match(/^([ABC]_\d{4})/);
+              if (m) state.slots[m[1]] = f;
+              else state.slots[f] = true;
+            });
+          }
+          rebuildFlags();
+          state.visitedNodes = Array.from(new Set(state.visitedNodes.concat(parsed.visitedNodes || [])));
+          state.unlockedEndings = Object.assign({}, state.unlockedEndings, parsed.unlockedEndings || {});
+        }
+      }
+    } catch (e) {
+      console.error("Local state load error", e);
+    }
+  }
+
+  function syncServer(sceneTitle) {
+    rebuildFlags();
+    saveLocal();
+
+    var indicator = document.getElementById("saveStatus");
+    if (indicator) indicator.textContent = "同期中...";
+
+    var payload = {
+      studentName: state.studentName,
+      passcode: state.passcode,
+      currentCharName: state.currentChar + ": " + (state.currentChar === "A" ? "レン（自由権）" : state.currentChar === "B" ? "エレナ（平等権）" : "ダニエル（社会権）"),
+      currentSceneTitle: sceneTitle || "進行中",
+      currentNodeKey: state.currentNodeKey,
+      slots: state.slots,
+      userFlags: state.userFlags,
+      visitedNodes: state.visitedNodes,
+      unlockedEndings: state.unlockedEndings,
+      unlockedCount: Object.keys(state.unlockedEndings).length
+    };
+
+    if (typeof google !== "undefined" && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (indicator) indicator.textContent = "☁️ 保存済 " + (res && res.time ? res.time : "");
+        })
+        .withFailureHandler(function() {
+          if (indicator) indicator.textContent = "⚠️ ローカル保護中";
+        })
+        .saveProgress(payload);
+    } else {
+      setTimeout(function() {
+        if (indicator) indicator.textContent = "ローカル保護済";
+      }, 350);
+    }
+  }
+
+  return {
+    getState: function() { return state; },
+    rebuildFlags: rebuildFlags,
+    rollbackFutureSlots: rollbackFutureSlots,
+    saveLocal: saveLocal,
+    loadLocal: loadLocal,
+    syncServer: syncServer
+  };
+})();
+
+/* ==========================================================================
+   4. NOVEL & CAUSAL GAME ENGINE (因果エンジン・シンクロゲート)
+   ========================================================================== */
+var GameEngine = (function() {
+  var currentParagraphIndex = 0;
+  var currentParagraphs = [];
+  var trueEndStep = 0;
+
+  function checkSyncGate(targetNodeId, currentChar) {
+    if (targetNodeId !== "CLIMAX_HUB") {
+      return { pass: true };
+    }
+
+    TimelineState.rebuildFlags();
+    var flags = TimelineState.getState().userFlags;
+    var isADone = flags.indexOf("A_FREEDOM_DONE") !== -1;
+    var isBDone = flags.indexOf("B_EQUALITY_DONE") !== -1;
+    var isCDone = flags.indexOf("C_SOCIAL_DONE") !== -1;
+
+    if (isADone && isBDone && isCDone) {
+      return { pass: true };
+    }
+
+    var pendingChar = "";
+    var pendingName = "";
+    if (!isADone && currentChar !== "A") {
+      pendingChar = "A"; pendingName = "レン";
+    } else if (!isBDone && currentChar !== "B") {
+      pendingChar = "B"; pendingName = "エレナ";
+    } else if (!isCDone && currentChar !== "C") {
+      pendingChar = "C"; pendingName = "ダニエル";
+    } else {
+      if (!isADone) { pendingChar = "A"; pendingName = "レン"; }
+      else if (!isBDone) { pendingChar = "B"; pendingName = "エレナ"; }
+      else { pendingChar = "C"; pendingName = "ダニエル"; }
+    }
+
+    return {
+      pass: false,
+      isSyncGate: true,
+      isADone: isADone,
+      isBDone: isBDone,
+      isCDone: isCDone,
+      keepOut: {
+        jumpChar: pendingChar,
+        jumpTime: "11:30",
+        reason: "時計塔最上階の防護扉が頑として動かない！ 他の時間軸で、まだ運命の針が12:00に揃っていない！",
+        hint: "主人公" + pendingChar + "（" + pendingName + "）のタイムラインを11:30まで進め、3人の時間を同期させろ！"
+      }
+    };
+  }
+
+  function launchNode(nodeId) {
+    if (nodeId === "FINAL_BRANCH") {
+      evaluateClimaxBranch();
+      return;
+    }
+
+    var state = TimelineState.getState();
+    var syncCheck = checkSyncGate(nodeId, state.currentChar);
+    if (!syncCheck.pass) {
+      UIController.showKeepOut(syncCheck.keepOut, syncCheck);
+      return;
+    }
+
+    var node = MASTER_DB.nodes[nodeId];
+    if (!node) {
+      console.error("Node not found:", nodeId);
+      return;
+    }
+
+    TimelineState.rollbackFutureSlots(nodeId);
+
+    if (state.visitedNodes.indexOf(nodeId) === -1) {
+      state.visitedNodes.push(nodeId);
+    }
+    state.currentNodeKey = nodeId;
+    if (node.char && node.char !== "ALL") {
+      state.currentChar = node.char;
+    }
+
+    UIController.switchView('novel');
+    UIController.updateHeaderTabs();
+
+    if (node.trap) {
+      if (state.userFlags.indexOf(node.trap.triggerFlag) !== -1) {
+        triggerBadEnd(node.trap.badEndNode);
+        return;
+      }
+    }
+
+    if (node.keepOut) {
+      if (state.userFlags.indexOf(node.keepOut.requireFlag) === -1) {
+        UIController.showKeepOut(node.keepOut, null);
+        return;
+      }
+    }
+
+    document.getElementById("sceneTimeBadge").textContent = node.time || "12:00";
+    document.getElementById("sceneCharBadge").textContent = "[" + (node.charName || "") + "]";
+    document.getElementById("sceneTitleBadge").textContent = node.title || "";
+
+    currentParagraphs = node.paragraphs || [];
+    currentParagraphIndex = 0;
+
+    var list = document.getElementById("paragraphsList");
+    list.innerHTML = "";
+    document.getElementById("choicesWrapper").classList.add("hidden");
+    document.getElementById("choicesWrapper").innerHTML = "";
+
+    showNextParagraph();
+    TimelineState.syncServer(node.title);
+  }
+
+  function showNextParagraph() {
+    if (currentParagraphIndex < currentParagraphs.length) {
+      AudioEngine.play('tap');
+      var pText = currentParagraphs[currentParagraphIndex];
+      var pEl = document.createElement("p");
+      pEl.className = "para-in leading-relaxed";
+      pEl.innerHTML = pText;
+      document.getElementById("paragraphsList").appendChild(pEl);
+
+      currentParagraphIndex++;
+
+      var tapZone = document.getElementById("novelTapZone");
+      tapZone.scrollTop = tapZone.scrollHeight;
+
+      var prompt = document.getElementById("promptNext");
+      if (currentParagraphIndex < currentParagraphs.length) {
+        prompt.classList.remove("hidden");
+      } else {
+        prompt.classList.add("hidden");
+        renderChoices();
+      }
+    }
+  }
+
+  function renderChoices() {
+    var state = TimelineState.getState();
+    var node = MASTER_DB.nodes[state.currentNodeKey];
+    if (!node || !node.choices) return;
+
+    var wrapper = document.getElementById("choicesWrapper");
+    wrapper.innerHTML = "";
+    wrapper.classList.remove("hidden");
+
+    node.choices.forEach(function(ch) {
+      var btn = document.createElement("button");
+      btn.className = "w-full text-left p-3.5 bg-neutral-900 hover:bg-neutral-850 active:scale-[0.99] border border-neutral-750 hover:border-amber-500 rounded-xl text-xs sm:text-sm font-bold text-neutral-100 transition-all flex items-center justify-between group shadow-lg";
+      btn.innerHTML = '<span class="group-hover:text-amber-300 transition-colors">' + ch.text + '</span>'
+        + '<span class="text-amber-400 font-mono text-xs opacity-80 group-hover:opacity-100">選択 -&gt;</span>';
+
+      btn.onclick = function(e) {
+        e.stopPropagation();
+        AudioEngine.play('tap');
+        if (ch.fx === "flash") UIController.flashScreen();
+
+        if (ch.slot) {
+          state.slots[ch.slot] = ch.flagValue || true;
+        }
+        if (ch.setFlags && Array.isArray(ch.setFlags)) {
+          ch.setFlags.forEach(function(f) {
+            var m = f.match(/^([ABC]_\d{4})/);
+            if (m) state.slots[m[1]] = f;
+            else state.slots[f] = true;
+          });
+        }
+        TimelineState.rebuildFlags();
+        launchNode(ch.next);
+      };
+
+      wrapper.appendChild(btn);
+    });
+  }
+
+  function triggerBadEnd(badEndId) {
+    AudioEngine.play('badend');
+    var badNode = MASTER_DB.nodes[badEndId];
+    if (!badNode) return;
+
+    var state = TimelineState.getState();
+    state.unlockedEndings[badNode.title] = { type: badNode.type, no: badNode.no };
+    TimelineState.saveLocal();
+    TimelineState.syncServer(badNode.title);
+
+    UIController.switchView('badend');
+    document.getElementById("badEndTitle").textContent = badNode.title;
+
+    var timeBadge = document.getElementById("badEndTimeBadge");
+    var charBadge = document.getElementById("badEndCharBadge");
+    if (timeBadge) timeBadge.textContent = badNode.time || "12:00";
+    if (charBadge) charBadge.textContent = "[" + (badNode.charName || "時間軸崩壊") + "]";
+
+    var pBox = document.getElementById("badEndParagraphs");
+    pBox.innerHTML = "";
+    badNode.paragraphs.forEach(function(p) {
+      var pEl = document.createElement("p");
+      pEl.innerHTML = p;
+      pBox.appendChild(pEl);
+    });
+
+    document.getElementById("badEndLesson").textContent = badNode.lesson;
+
+    var btn = document.getElementById("btnBadEndJump");
+    btn.onclick = function() {
+      AudioEngine.play('jump');
+      if (badEndId === "BAD_01") {
+        switchChar("A");
+        launchNode("A_1015");
+      } else if (badEndId === "BAD_02") {
+        switchChar("B");
+        launchNode("B_1020");
+      } else if (badEndId === "BAD_03") {
+        switchChar("C");
+        launchNode("C_1130");
+      } else if (badEndId === "BAD_04") {
+        switchChar("A");
+        launchNode("A_1130");
+      } else {
+        switchChar("A");
+        launchNode("A_1000");
+      }
+    };
+  }
+
+  function evaluateClimaxBranch() {
+    TimelineState.rebuildFlags();
+    var flags = TimelineState.getState().userFlags;
+    var hasA = flags.indexOf("PIECE_A") !== -1;
+    var hasB = flags.indexOf("PIECE_B") !== -1;
+    var hasC = flags.indexOf("PIECE_C") !== -1;
+
+    if (hasA && hasB && hasC) {
+      launchTrueSecretEnd();
+      return;
+    }
+
+    triggerNormalClear();
+  }
+
+  function triggerNormalClear() {
+    AudioEngine.play('chime');
+    var node = MASTER_DB.nodes["NORMAL_CLEAR"];
+    var state = TimelineState.getState();
+    state.unlockedEndings[node.title] = { type: "CLEAR", no: "01" };
+    TimelineState.saveLocal();
+    TimelineState.syncServer(node.title);
+
+    UIController.switchView('novel');
+
+    document.getElementById("sceneTimeBadge").textContent = "12:30";
+    document.getElementById("sceneCharBadge").textContent = "[人権暫定合意]";
+    document.getElementById("sceneTitleBadge").textContent = node.title;
+
+    currentParagraphs = node.paragraphs;
+    currentParagraphIndex = 0;
+    document.getElementById("paragraphsList").innerHTML = "";
+    showNextParagraph();
+
+    var wrapper = document.getElementById("choicesWrapper");
+    wrapper.innerHTML = [
+      '<div class="p-3.5 bg-neutral-900 border border-amber-600/70 rounded-xl space-y-2 text-left">',
+      '  <div class="text-xs font-black text-amber-400 flex items-center gap-1">',
+      '    <span>📜</span><span>現代社会・公民科の視点から学ぶ課題</span>',
+      '  </div>',
+      '  <p class="text-xs text-neutral-300 leading-relaxed">' + node.lesson + '</p>',
+      '</div>',
+      '<div class="flex flex-col sm:flex-row gap-2 pt-1">',
+      '  <button id="btnOpenCertFromNormal" class="flex-1 py-3.5 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-neutral-950 font-black rounded-xl text-xs sm:text-sm shadow-xl transition-all flex items-center justify-center gap-1.5">',
+      '    <span>📜</span><span>【人権統合 修了証書】を受け取る</span>',
+      '  </button>',
+      '  <button id="btnOpenChartFromNormal" class="flex-1 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-amber-400 border border-amber-500/60 font-black rounded-xl text-xs sm:text-sm shadow-xl transition-all flex items-center justify-center gap-1.5">',
+      '    <span>🔀</span><span>時間軸図鑑へ戻り「3つの遺物」を探す</span>',
+      '  </button>',
+      '</div>'
+    ].join('');
+    wrapper.classList.remove("hidden");
+
+    document.getElementById("btnOpenCertFromNormal").onclick = function() { CertRenderer.openModal(); };
+    document.getElementById("btnOpenChartFromNormal").onclick = function() { UIController.openChart(); };
+    UIController.checkAllClearBadge();
+  }
+
+  function launchTrueSecretEnd() {
+    AudioEngine.play('scan');
+    UIController.switchView('trueend');
+
+    trueEndStep = 0;
+    document.getElementById("decodeTextA").textContent = "幾何学パターン解析中...";
+    document.getElementById("decodeTextB").textContent = "幾何学パターン解析中...";
+    document.getElementById("decodeTextC").textContent = "幾何学パターン解析中...";
+    document.getElementById("trueEndDramaContainer").classList.add("hidden");
+    document.getElementById("btnCertFromTrue").style.display = "none";
+    document.getElementById("btnProceedTrueEnd").style.display = "block";
+    document.getElementById("btnProceedTrueEnd").textContent = "解析を開始する ->";
+    document.getElementById("scanStatusText").textContent =
+      "システム音声：『光学スキャナ上に3つの遺物を確認。画像解析を開始します……』";
+  }
+
+  function advanceTrueEnd() {
+    trueEndStep++;
+    AudioEngine.play('scan');
+
+    var statusText = document.getElementById("scanStatusText");
+    var dramaBox = document.getElementById("trueEndDramaContainer");
+    var actTitle = document.getElementById("trueEndActTitle");
+    var actContent = document.getElementById("trueEndActContent");
+    var btnNext = document.getElementById("btnProceedTrueEnd");
+
+    if (trueEndStep === 1) {
+      document.getElementById("decodeTextA").textContent = "『東 京 都 新 宿 区』";
+      document.getElementById("decodeTextA").className = "font-black text-sm text-emerald-400 tracking-wider";
+      statusText.textContent = "『レンの防弾鉄板：欠損部を古代日本語データベースと照合。旧・日本国首都「東京都新宿区」の道路案内標識と特定！』";
+      btnNext.textContent = "次の遺物を解析 ->";
+    } else if (trueEndStep === 2) {
+      document.getElementById("decodeTextB").textContent = "『日 本 国 憲 法 第 三 章』";
+      document.getElementById("decodeTextB").className = "font-black text-sm text-sky-400 tracking-wider";
+      statusText.textContent = "『エレナの真鍮銘板：旧国家最高法規「日本国憲法 第3章 原本保管庫」の封印銘板と特定！』";
+      btnNext.textContent = "次の遺物を解析 ->";
+    } else if (trueEndStep === 3) {
+      document.getElementById("decodeTextC").textContent = "『厚 生 労 働 省』";
+      document.getElementById("decodeTextC").className = "font-black text-sm text-amber-400 tracking-wider";
+      statusText.textContent = "『ダニエルの救急箱：旧・日本国政府「厚生労働省 災害備蓄用医療箱」の公的刻印と特定！』";
+      btnNext.textContent = "最終判定を下す ->";
+    } else if (trueEndStep === 4) {
+      AudioEngine.play('chime');
+      statusText.textContent = "システム音声：『旧最高法規「日本国憲法」の認証に成功。都市全域の基本行政OSを【主権在民・基本的人権の尊重】へ上書きします。』";
+
+      dramaBox.classList.remove("hidden");
+      actTitle.textContent = "ACT 1 // 条文の返還と人間性の回復";
+      actContent.innerHTML = [
+        '<p class="para-in">端末から噴き上がった黄金の光が、中枢タワーの全モニターを書き換えていく。そこには、支配者たちが200年隠蔽し続けた「人間が人間として生きるための絶対の約束」が並んでいた。</p>',
+        '<div class="p-3 bg-neutral-950/80 border-l-4 border-emerald-500 rounded space-y-1">',
+        '  <div class="text-xs font-black text-emerald-400">『第十三条 すべて国民は、個人として尊重される。』</div>',
+        '  <div class="text-[11px] text-neutral-300">首輪のロックが全スラムで一斉に跳ね飛んだ。レンは首筋の冷たい鉄が外れた感触に息を呑み、拳を握りしめた。「俺たちは、誰かの利益のための歯車や消耗品じゃない。生きてるだけで尊重されるべき人間だったんだ！」</div>',
+        '</div>',
+        '<div class="p-3 bg-neutral-950/80 border-l-4 border-sky-500 rounded space-y-1">',
+        '  <div class="text-xs font-black text-sky-400">『第十四条 すべて国民は、法の下に平等であつて、門地により差別されない。』</div>',
+        '  <div class="text-[11px] text-neutral-300">貴族データベースの特権フラグが消滅していく。エレナは制服から貴族章を引きちぎり、床へ投げ捨てた。「生まれた血筋で命の価値が決まる掟は、今この瞬間に終わったわ。今日から私たちは、ただの同じ人間よ！」</div>',
+        '</div>',
+        '<div class="p-3 bg-neutral-950/80 border-l-4 border-amber-500 rounded space-y-1">',
+        '  <div class="text-xs font-black text-amber-400">『第二十五条 すべて国民は、健康で文化的な最低限度の生活を営む権利を有する。』</div>',
+        '  <div class="text-[11px] text-neutral-300">モニターにスラム全域の生命維持ライフライン・医療用酸素の全面復旧が表示された。ダニエルは膝を突いて息を吐いた。「病気や貧困を自己責任だと切り捨てる社会は間違っていたんだ。人は人間である限り、社会全体で生かし合わなければならない！」</div>',
+        '</div>'
+      ].join('');
+      btnNext.textContent = "この権利が街をどう変えたのかを見る ->";
+    } else if (trueEndStep === 5) {
+      actTitle.textContent = "ACT 2 // 権利の施行と社会の構造変革";
+      actContent.innerHTML = [
+        '<div class="space-y-3 para-in text-xs sm:text-sm">',
+        '  <p class="font-bold text-amber-400 border-b border-neutral-700 pb-1">『条文を取り戻したこと』によって、具体的に街の何が変わったのか？</p>',
+        '  <div class="space-y-2">',
+        '    <div class="p-2.5 bg-neutral-950 rounded-lg border border-emerald-900/60">',
+        '      <strong class="text-emerald-400">① 自由権が変えた現実：【強制労働の廃止と言論の復活】</strong>',
+        '      <p class="text-neutral-300 text-[11px] mt-1 leading-relaxed">地下100メートルの軍需工場は即日操業停止され、過酷な奴隷労働から数万人が解放された。検閲局の通信ジャミングは停止し、広場には市民が政治や生活への意見を自由に書き込める掲示板が設置された。レンは胸を守った青い標識板を広場の中央に建て、誰の移動許可証も持たずに自分の足で地上の世界へと歩き出した。</p>',
+        '    </div>',
+        '    <div class="p-2.5 bg-neutral-950 rounded-lg border border-sky-900/60">',
+        '      <strong class="text-sky-400">② 平等権が変えた現実：【身分境界ゲートの解体と法の下の裁判】</strong>',
+        '      <p class="text-neutral-300 text-[11px] mt-1 leading-relaxed">貴族とスラムを分断していた重装甲の境界検問ゲートは、重機によって物理的に解体・撤去された。身分による裁判の免除や私刑は禁止され、元貴族も元スラム住民も等しく裁かれ、等しく参政権を持つ新しい市民自治評議会が組織された。エレナは現場の作業着に身を包み、身分制撤廃の法案起草官として奔走を始めた。</p>',
+        '    </div>',
+        '    <div class="p-2.5 bg-neutral-950 rounded-lg border border-amber-900/60">',
+        '      <strong class="text-amber-400">③ 社会権が変えた現実：【公的医療保険と労働保護法の誕生】</strong>',
+        '      <p class="text-neutral-300 text-[11px] mt-1 leading-relaxed">「金のない者は死ね」というルールは違法とされた。ダニエルの診療所は公設の「市民第一総合病院」へ改編され、公費による医薬品の安定供給と無償医療制度が始まった。工場主には労働時間の規制と労働組合の結成権が義務付けられ、過酷労働による不当な解雇や病気の放置が根絶された。</p>',
+        '    </div>',
+        '  </div>',
+        '</div>'
+      ].join('');
+      btnNext.textContent = "新しい街の朝を見る ->";
+    } else if (trueEndStep === 6) {
+      actTitle.textContent = "ACT 3 // 200年ぶりの夜明けと調和";
+      actContent.innerHTML = [
+        '<div class="space-y-2 para-in">',
+        '  <p>ガタガタガタ……と重い駆動音を響かせ、時計塔を覆っていた巨大な鉄の遮蔽壁がゆっくりと外へスライドしていく。</p>',
+        '  <p>隙間から吹き込んできたのは、煤煙の匂いではなく、どこまでも澄んだ潮風の香りだった。</p>',
+        '  <p class="text-amber-200 font-bold text-sm">遮蔽壁が完全に開き放たれたその時、3人の目の前に広がっていたのは、ディストピアの暗闇ではなかった。</p>',
+        '  <p class="text-amber-300 font-bold text-base">200年ぶりの朝日に黄金色に輝く、どこまでも青い東京湾の海原と、壁の消えたひとつの街だった。</p>',
+        '  <p class="text-xs text-neutral-300 pt-1">自由だけでも、平等だけでも、福祉だけでもない。3つが揃って初めて、人間は誰にも支配されず、飢えることもなく、誇り高く生きていける。かつてこの地にあった先人たちの知恵が、再び街を包み込んでいた。</p>',
+        '</div>'
+      ].join('');
+      btnNext.textContent = "あなたへ託された言葉 ->";
+    } else if (trueEndStep === 7) {
+      AudioEngine.play('chime');
+      var node = MASTER_DB.nodes["TRUE_SECRET_END"];
+      var state = TimelineState.getState();
+      state.unlockedEndings[node.title] = { type: "TRUE", no: "SECRET" };
+      TimelineState.saveLocal();
+      TimelineState.syncServer(node.title);
+
+      actTitle.textContent = "ACT 4 // 永久の信託（日本国憲法 第97条）";
+      actContent.innerHTML = [
+        '<div class="space-y-3 para-in">',
+        '  <div class="p-3 bg-amber-950/60 border border-amber-500 rounded-xl text-amber-100 font-serif leading-relaxed">',
+        '    <p class="font-bold text-amber-300">『日本国憲法 第九十七条』</p>',
+        '    <p class="mt-1">この憲法が日本国民に保障する基本的人権は、人類の多年にわたる自由獲得の努力の成果であつて、これらの権利は、過去幾多の試練に堪へ、現在及び将来の国民に対し、侵すことのできない永久の権利として信託されたものである。</p>',
+        '  </div>',
+        '  <div class="text-neutral-200 text-xs sm:text-sm leading-relaxed space-y-1 pt-1">',
+        '    <p>画面の前のあなたへ。</p>',
+        '    <p>あなたが今、当たり前のように吸っているその「自由」と「尊厳」の空気は、かつて数え切れない人々が血を流し、命を賭けて手に入れ、今、あなたに託された宝物です。</p>',
+        '    <p class="text-amber-300 font-bold pt-1">どうか、その手を離さないで。これからの未来をつくる主権者は、あなた自身です。</p>',
+        '  </div>',
+        '</div>'
+      ].join('');
+
+      btnNext.style.display = "none";
+      document.getElementById("btnCertFromTrue").style.display = "flex";
+      UIController.checkAllClearBadge();
+    }
+  }
+
+  function switchChar(charId) {
+    var state = TimelineState.getState();
+    if (state.currentChar === charId) return;
+    AudioEngine.play('tap');
+    state.currentChar = charId;
+
+    var charStarts = { A: "A_1000", B: "B_1000", C: "C_1000" };
+    var resumeNode = charStarts[charId];
+
+    for (var i = state.visitedNodes.length - 1; i >= 0; i--) {
+      var k = state.visitedNodes[i];
+      if (k.indexOf(charId + "_") === 0) {
+        resumeNode = k;
+        break;
+      }
+    }
+
+    UIController.updateHeaderTabs();
+    launchNode(resumeNode);
+  }
+
+  return {
+    launchNode: launchNode,
+    showNextParagraph: showNextParagraph,
+    switchChar: switchChar,
+    advanceTrueEnd: advanceTrueEnd
+  };
+})();
+
+/* ==========================================================================
+   5. UI CONTROLLER & VIEW MANAGEMENT (画面切り替え・UI同期)
+   ========================================================================== */
+var UIController = (function() {
+  function switchView(viewName) {
+    var views = ["viewStart", "viewNovel", "viewKeepOut", "viewBadEnd", "viewTrueEnd"];
+    views.forEach(function(v) {
+      var el = document.getElementById(v);
+      if (el) {
+        if (v === ("view" + viewName.charAt(0).toUpperCase() + viewName.slice(1))) {
+          el.classList.remove("hidden");
+        } else {
+          el.classList.add("hidden");
+        }
+      }
+    });
+
+    var isGameActive = (viewName === 'novel' || viewName === 'keepOut' || viewName === 'badEnd' || viewName === 'trueEnd');
+    var charTabs = document.getElementById("charTabContainer");
+    var btnChart = document.getElementById("btnChart");
+    var btnHome = document.getElementById("btnHome");
+
+    if (isGameActive) {
+      if (charTabs) charTabs.classList.remove("hidden");
+      if (btnChart) btnChart.classList.remove("hidden");
+      if (btnHome) btnHome.classList.remove("hidden");
+    } else {
+      if (charTabs) charTabs.classList.add("hidden");
+      if (btnChart) btnChart.classList.add("hidden");
+      if (btnHome) btnHome.classList.add("hidden");
+    }
+  }
+
+  function updateHeaderTabs() {
+    var state = TimelineState.getState();
+    var tabs = { A: "tabCharA", B: "tabCharB", C: "tabCharC" };
+    Object.keys(tabs).forEach(function(k) {
+      var el = document.getElementById(tabs[k]);
+      if (el) {
+        if (k === state.currentChar) {
+          var borderClr = (k === 'A') ? 'border-emerald-500 text-emerald-300' : (k === 'B') ? 'border-sky-500 text-sky-300' : 'border-amber-500 text-amber-300';
+          el.className = "char-tab px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 bg-neutral-800 border " + borderClr;
+        } else {
+          el.className = "char-tab px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 text-neutral-400 hover:bg-neutral-800";
+        }
+      }
+    });
+  }
+
+  function showKeepOut(keepOutObj, syncInfo) {
+    AudioEngine.play('keepout');
+    switchView('keepOut');
+
+    document.getElementById("keepOutReason").textContent = keepOutObj.reason;
+    document.getElementById("keepOutHint").textContent = keepOutObj.hint;
+    document.getElementById("keepOutJumpLabel").textContent = keepOutObj.jumpTime + " 主人公" + keepOutObj.jumpChar + "の時間軸へ JUMP ->";
+
+    var syncBox = document.getElementById("syncGateStatusBox");
+    if (syncInfo && syncInfo.isSyncGate) {
+      syncBox.classList.remove("hidden");
+      updateSyncBadge("syncStatusA", "syncTextA", syncInfo.isADone);
+      updateSyncBadge("syncStatusB", "syncTextB", syncInfo.isBDone);
+      updateSyncBadge("syncStatusC", "syncTextC", syncInfo.isCDone);
+    } else {
+      syncBox.classList.add("hidden");
+    }
+
+    var btnJump = document.getElementById("btnKeepOutJump");
+    btnJump.onclick = function() {
+      AudioEngine.play('jump');
+      GameEngine.switchChar(keepOutObj.jumpChar);
+    };
+  }
+
+  function updateSyncBadge(cardId, textId, isDone) {
+    var card = document.getElementById(cardId);
+    var text = document.getElementById(textId);
+    if (card && text) {
+      if (isDone) {
+        card.className = "p-2 rounded-lg border bg-emerald-950/80 border-emerald-500 text-emerald-300 font-bold";
+        text.textContent = "到達済 ✓";
+      } else {
+        card.className = "p-2 rounded-lg border bg-neutral-900 border-red-800 text-red-400 font-bold animate-pulse";
+        text.textContent = "未到達 ✕";
+      }
+    }
+  }
+
+  function flashScreen() {
+    var overlay = document.getElementById("vfxOverlay");
+    overlay.classList.add("bg-red-600/60");
+    document.body.classList.add("shake-screen");
+    setTimeout(function() {
+      overlay.classList.remove("bg-red-600/60");
+      document.body.classList.remove("shake-screen");
+    }, 360);
+  }
+
+  function openChart() {
+    AudioEngine.play('tap');
+    var chartModal = document.getElementById("modalTimelineChart");
+    chartModal.classList.remove("hidden");
+
+    var state = TimelineState.getState();
+    var unlockedCount = Object.keys(state.unlockedEndings).length;
+    document.getElementById("chartProgressText").textContent = unlockedCount + " / 6 結末解明";
+
+    if (unlockedCount >= 1) {
+      document.getElementById("btnChartCertDownload").style.display = "block";
+    }
+
+    renderChartColumn("A", "columnNodesA");
+    renderChartColumn("B", "columnNodesB");
+    renderChartColumn("C", "columnNodesC");
+  }
+
+  function closeChart() {
+    AudioEngine.play('tap');
+    document.getElementById("modalTimelineChart").classList.add("hidden");
+  }
+
+  function renderChartColumn(charId, containerId) {
+    var container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    var state = TimelineState.getState();
+    var allNodeKeys = Object.keys(MASTER_DB.nodes).filter(function(k) {
+      return k.indexOf(charId + "_") === 0;
+    });
+
+    allNodeKeys.forEach(function(key) {
+      var node = MASTER_DB.nodes[key];
+      var isVisited = state.visitedNodes.indexOf(key) !== -1;
+      var isCurrent = state.currentNodeKey === key;
+
+      var div = document.createElement("div");
+      var baseCls = "p-2.5 rounded-xl border text-xs transition-all ";
+      if (isCurrent) {
+        div.className = baseCls + "bg-amber-950/80 border-amber-500 text-white font-bold ring-1 ring-amber-400";
+      } else if (isVisited) {
+        div.className = baseCls + "bg-neutral-900 hover:bg-neutral-850 border-neutral-750 text-neutral-200 cursor-pointer";
+      } else {
+        div.className = baseCls + "bg-neutral-950/60 border-neutral-850 text-neutral-600 opacity-60";
+      }
+
+      var timeColor = isCurrent ? 'text-amber-400 font-black' : isVisited ? 'text-neutral-400' : 'text-neutral-600';
+      var statusText = isCurrent ? '★ 現在地' : isVisited ? '到達済' : '未通過';
+      var titleText = isVisited ? node.title : "？？？？？";
+
+      div.innerHTML = '<div class="flex justify-between items-center">'
+        + '<span class="font-mono ' + timeColor + '">' + (node.time || "10:00") + '</span>'
+        + '<span class="text-[10px]">' + statusText + '</span>'
+        + '</div>'
+        + '<div class="font-bold mt-0.5 truncate">' + titleText + '</div>';
+
+      if (isVisited && !isCurrent) {
+        div.onclick = function() {
+          AudioEngine.play('jump');
+          closeChart();
+          GameEngine.switchChar(charId);
+          GameEngine.launchNode(key);
+        };
+      }
+
+      container.appendChild(div);
+    });
+  }
+
+  function checkAllClearBadge() {
+    var state = TimelineState.getState();
+    var unlockedCount = Object.keys(state.unlockedEndings).length;
+    var isTrueUnlocked = Object.values(state.unlockedEndings).some(function(e) {
+      return e.type === "TRUE";
+    });
+
+    if (unlockedCount >= 2 || isTrueUnlocked) {
+      var banner = document.getElementById("bannerAllClearHeader");
+      if (banner) banner.style.display = "flex";
+    }
+  }
+
+  function openTip(term) {
+    AudioEngine.play('tap');
+    var tip = MASTER_DB.tips[term];
+    if (!tip) return;
+
+    document.getElementById("tipTermTitle").textContent = tip.term;
+    document.getElementById("tipLawName").textContent = tip.law;
+    document.getElementById("tipDescription").textContent = tip.desc;
+    document.getElementById("modalTip").classList.remove("hidden");
+  }
+
+  function closeTip() {
+    AudioEngine.play('tap');
+    document.getElementById("modalTip").classList.add("hidden");
+  }
+
+  function showToast(msg) {
+    var ind = document.getElementById("saveStatus");
+    if (ind) {
+      ind.textContent = msg;
+      setTimeout(function() { ind.textContent = "待機中"; }, 2800);
+    }
+  }
+
+  return {
+    switchView: switchView,
+    updateHeaderTabs: updateHeaderTabs,
+    showKeepOut: showKeepOut,
+    flashScreen: flashScreen,
+    openChart: openChart,
+    closeChart: closeChart,
+    checkAllClearBadge: checkAllClearBadge,
+    openTip: openTip,
+    closeTip: closeTip,
+    showToast: showToast
+  };
+})();
+
+/* ==========================================================================
+   6. CERTIFICATE RENDERING & PDF MODULE (Canvas 高精細A4描画)
+   ========================================================================== */
+var CertRenderer = (function() {
+  function openModal() {
+    AudioEngine.play('chime');
+    var modal = document.getElementById("modalCertificate");
+    modal.classList.remove("hidden");
+
+    var canvas = document.getElementById("canvasCert");
+    var ctx = canvas.getContext("2d");
+    var state = TimelineState.getState();
+
+    var isTrue = Object.values(state.unlockedEndings).some(function(e) {
+      return e.type === "TRUE";
+    });
+    var studentName = state.studentName || "探究の主権者";
+    var dateStr = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    ctx.fillStyle = isTrue ? "#0a0d14" : "#fbfbf7";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (isTrue) {
+      document.getElementById("certGradeBadge").textContent = "SOVEREIGN MASTER // ARTICLE 97";
+      document.getElementById("certMainTitle").textContent = "日本国憲法・主権者認定証";
+
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = "#eab308";
+      ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#ca8a04";
+      ctx.strokeRect(50, 50, canvas.width - 100, canvas.height - 100);
+
+      ctx.fillStyle = "#fde047";
+      ctx.font = "bold 64px 'Shippori Mincho', serif";
+      ctx.textAlign = "center";
+      ctx.fillText("特別表彰：主権者認定証", canvas.width / 2, 180);
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "bold 26px 'Zen Kaku Gothic New', sans-serif";
+      ctx.fillText("PARALLEL JAPANIA CHRONICLE : CONSTITUTIONAL COMPLETE", canvas.width / 2, 235);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 56px 'Zen Kaku Gothic New', sans-serif";
+      ctx.fillText(studentName + "  殿", canvas.width / 2, 380);
+
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "500 32px 'Shippori Mincho', serif";
+      ctx.fillText("あなたは、失われた人権の暗黒時代を駆け抜け、", canvas.width / 2, 480);
+      ctx.fillText("自由・平等・社会権の三位一体の調和を解き明かしました。", canvas.width / 2, 540);
+      ctx.fillText("古代の幾何学模様に刻まれた『日本国憲法』の真実に到達し、", canvas.width / 2, 600);
+      ctx.fillText("人間としての尊厳を自らの手で取り戻した主権者であることを、ここに深く称えます。", canvas.width / 2, 660);
+
+      ctx.fillStyle = "#facc15";
+      ctx.font = "italic bold 28px 'Shippori Mincho', serif";
+      ctx.fillText("『日本国憲法 第97条：基本的人権は、人類の自由獲得の努力の成果であつて、永久の権利として信託されたものである。』", canvas.width / 2, 780);
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "28px 'Zen Kaku Gothic New', sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("授与日: " + dateStr, 120, 960);
+      ctx.textAlign = "right";
+      ctx.fillText("極東統治特区・第八区 人権審判機関", canvas.width - 120, 960);
+
+      // 印章描画
+      ctx.save();
+      ctx.translate(canvas.width - 240, 850);
+      ctx.strokeStyle = "#eab308";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(0, 0, 70, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = "#eab308";
+      ctx.font = "bold 22px 'Zen Kaku Gothic New', sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("永久信託", 0, -8);
+      ctx.fillText("認定之印", 0, 24);
+      ctx.restore();
+    } else {
+      document.getElementById("certGradeBadge").textContent = "STANDARD CLEAR // HUMAN RIGHTS";
+      document.getElementById("certMainTitle").textContent = "人権統合 修了証書";
+
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = "#0284c7";
+      ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+
+      ctx.fillStyle = "#0369a1";
+      ctx.font = "bold 64px 'Shippori Mincho', serif";
+      ctx.textAlign = "center";
+      ctx.fillText("修　了　証　書", canvas.width / 2, 200);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 52px 'Zen Kaku Gothic New', sans-serif";
+      ctx.fillText(studentName + "  殿", canvas.width / 2, 400);
+
+      ctx.fillStyle = "#334155";
+      ctx.font = "500 34px 'Shippori Mincho', serif";
+      ctx.fillText("あなたは、パラレル・ジャパニアのタイムラインを解きほぐし、", canvas.width / 2, 520);
+      ctx.fillText("都市に自由と平等と生存の調和を取り戻しました。", canvas.width / 2, 590);
+      ctx.fillText("その粘り強い探究心と決断力を称え、これを証します。", canvas.width / 2, 660);
+
+      ctx.fillStyle = "#64748b";
+      ctx.font = "28px 'Zen Kaku Gothic New', sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("発行日: " + dateStr, 120, 960);
+      ctx.textAlign = "right";
+      ctx.fillText("パラレル・クロニクル 統治調停委員会", canvas.width - 120, 960);
+    }
+  }
+
+  function closeModal() {
+    AudioEngine.play('tap');
+    document.getElementById("modalCertificate").classList.add("hidden");
+  }
+
+  function downloadPdf() {
+    AudioEngine.play('tap');
+    var canvas = document.getElementById("canvasCert");
+    var imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+    var jsPDF = window.jspdf.jsPDF;
+    var pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+    var studentName = TimelineState.getState().studentName || "主権者";
+    pdf.save("表彰状_" + studentName + "_パラレルジャパニア.pdf");
+  }
+
+  return {
+    openModal: openModal,
+    closeModal: closeModal,
+    downloadPdf: downloadPdf
+  };
+})();
+
+/* ==========================================================================
+   7. APPLICATION ENTRY & EVENT WIRING (イベント委譲・起動初期化)
+   ========================================================================== */
+document.addEventListener('DOMContentLoaded', function() {
+  TimelineState.loadLocal();
+
+  // サウンド切替
+  document.getElementById("btnAudioToggle").onclick = function() {
+    AudioEngine.toggleMute();
+  };
+
+  // ホーム戻り
+  document.getElementById("btnLogoHome").onclick = function() {
+    document.getElementById("modalConfirmHome").classList.remove("hidden");
+  };
+  document.getElementById("btnHome").onclick = function() {
+    document.getElementById("modalConfirmHome").classList.remove("hidden");
+  };
+  document.getElementById("btnCancelHome").onclick = function() {
+    AudioEngine.play('tap');
+    document.getElementById("modalConfirmHome").classList.add("hidden");
+  };
+  document.getElementById("btnExecHome").onclick = function() {
+    AudioEngine.play('tap');
+    document.getElementById("modalConfirmHome").classList.add("hidden");
+    UIController.switchView('start');
+    displayCharSelect();
+  };
+
+  // 時間軸図鑑
+  document.getElementById("btnChart").onclick = function() {
+    UIController.openChart();
+  };
+  document.getElementById("btnCloseChart").onclick = function() {
+    UIController.closeChart();
+  };
+  document.getElementById("btnChartCertDownload").onclick = function() {
+    CertRenderer.openModal();
+  };
+
+  // モード切替タブ
+  document.getElementById("tabModeNew").onclick = function() {
+    AudioEngine.play('tap');
+    document.getElementById("tabModeNew").className = "flex-1 py-2.5 text-xs sm:text-sm font-black border-b-2 border-amber-500 text-amber-400";
+    document.getElementById("tabModeCont").className = "flex-1 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-neutral-500 hover:text-neutral-300";
+    document.getElementById("boxNewGame").classList.remove("hidden");
+    document.getElementById("boxContGame").classList.add("hidden");
+  };
+  document.getElementById("tabModeCont").onclick = function() {
+    AudioEngine.play('tap');
+    document.getElementById("tabModeCont").className = "flex-1 py-2.5 text-xs sm:text-sm font-black border-b-2 border-sky-500 text-sky-400";
+    document.getElementById("tabModeNew").className = "flex-1 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-neutral-500 hover:text-neutral-300";
+    document.getElementById("boxContGame").classList.remove("hidden");
+    document.getElementById("boxNewGame").classList.add("hidden");
+  };
+
+  // 新規ゲーム登録
+  document.getElementById("btnSubmitNew").onclick = function() {
+    AudioEngine.play('tap');
+    var input = document.getElementById("inputNewKatakana");
+    var name = input.value.trim();
+    if (!name) {
+      UIController.showToast("カタカナでお名前を入力してください。");
+      return;
+    }
+
+    var pass = String(Math.floor(1000 + Math.random() * 9000));
+    var state = TimelineState.getState();
+    state.studentName = name;
+    state.passcode = pass;
+    state.visitedNodes = ["A_1000", "B_1000", "C_1000"];
+    state.slots = {};
+    state.userFlags = [];
+    state.unlockedEndings = {};
+
+    if (typeof google !== "undefined" && google.script && google.script.run) {
+      google.script.run.registerStudent(name);
+    }
+
+    TimelineState.saveLocal();
+
+    document.getElementById("passDisplayNumber").textContent = pass;
+    document.getElementById("passDisplayName").textContent = name + " 様";
+    document.getElementById("modalPasscodeNotice").classList.remove("hidden");
+  };
+
+  document.getElementById("btnClosePassNotice").onclick = function() {
+    AudioEngine.play('tap');
+    document.getElementById("modalPasscodeNotice").classList.add("hidden");
+    displayCharSelect();
+  };
+
+  // 継続ロード
+  document.getElementById("btnSubmitLoad").onclick = function() {
+    AudioEngine.play('tap');
+    var nameInput = document.getElementById("inputLoadKatakana").value.trim();
+    var passInput = document.getElementById("inputLoadPasscode").value.trim();
+
+    if (!nameInput || !passInput) {
+      UIController.showToast("登録名と4桁パスコードを入力してください。");
+      return;
+    }
+
+    var indicator = document.getElementById("saveStatus");
+    if (indicator) indicator.textContent = "復元中...";
+
+    if (typeof google !== "undefined" && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.status === "success") {
+            var d = res.data;
+            var state = TimelineState.getState();
+            state.studentName = d.studentName;
+            state.passcode = d.passcode;
+            state.currentNodeKey = d.lastNodeKey;
+            state.slots = JSON.parse(d.slotsJSON || "{}");
+            state.userFlags = JSON.parse(d.userFlagsJSON || "[]");
+            if (Object.keys(state.slots).length === 0 && state.userFlags.length > 0) {
+              state.userFlags.forEach(function(f) {
+                var m = f.match(/^([ABC]_\d{4})/);
+                if (m) state.slots[m[1]] = f;
+                else state.slots[f] = true;
+              });
+            }
+            TimelineState.rebuildFlags();
+            state.visitedNodes = JSON.parse(d.visitedNodesJSON || "[]");
+            state.unlockedEndings = JSON.parse(d.unlockedEndingsJSON || "{}");
+            TimelineState.saveLocal();
+            UIController.showToast("記録を復元しました！");
+            displayCharSelect();
+          } else {
+            UIController.showToast("名前またはパスコードが一致しません。");
+          }
+        })
+        .withFailureHandler(function() {
+          fallbackLocalAuth(nameInput, passInput);
+        })
+        .loadStudentProgress(nameInput, passInput);
+    } else {
+      fallbackLocalAuth(nameInput, passInput);
+    }
+  };
+
+  function fallbackLocalAuth(nameInput, passInput) {
+    TimelineState.loadLocal();
+    var state = TimelineState.getState();
+    if (state.studentName === nameInput && state.passcode === passInput) {
+      UIController.showToast("ローカル記録から復元しました！");
+      displayCharSelect();
+    } else {
+      UIController.showToast("照合できませんでした。名前とパスコードをご確認ください。");
+    }
+  }
+
+  function displayCharSelect() {
+    document.getElementById("boxNewGame").classList.add("hidden");
+    document.getElementById("boxContGame").classList.add("hidden");
+    document.getElementById("boxCharSelect").classList.remove("hidden");
+
+    var state = TimelineState.getState();
+    document.getElementById("displayLoginName").textContent = state.studentName;
+    document.getElementById("displayLoginPass").textContent = state.passcode;
+    UIController.checkAllClearBadge();
+  }
+
+  // 主人公開始ボタン
+  document.querySelectorAll('.char-launch-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      var charId = btn.getAttribute('data-launch');
+      AudioEngine.play('tap');
+      TimelineState.getState().currentChar = charId;
+      var startNodes = { A: "A_1000", B: "B_1000", C: "C_1000" };
+      GameEngine.launchNode(startNodes[charId] || "A_1000");
+    };
+  });
+
+  // 主人公切替タブ
+  document.querySelectorAll('.char-tab').forEach(function(btn) {
+    btn.onclick = function() {
+      var charId = btn.getAttribute('data-char');
+      GameEngine.switchChar(charId);
+    };
+  });
+
+  // タップ送り
+  document.getElementById("novelTapZone").onclick = function() {
+    GameEngine.showNextParagraph();
+  };
+
+  // TRUE END 進行ボタン
+  document.getElementById("btnProceedTrueEnd").onclick = function() {
+    GameEngine.advanceTrueEnd();
+  };
+  document.getElementById("btnCertFromTrue").onclick = function() {
+    CertRenderer.openModal();
+  };
+  document.getElementById("btnCertFromBanner").onclick = function() {
+    CertRenderer.openModal();
+  };
+
+  // 表彰状閉じる・PDF
+  document.getElementById("btnCloseCertTop").onclick = CertRenderer.closeModal;
+  document.getElementById("btnCloseCertBottom").onclick = CertRenderer.closeModal;
+  document.getElementById("btnDownloadPdf").onclick = CertRenderer.downloadPdf;
+
+  // TIPS閉じる
+  document.getElementById("btnCloseTip").onclick = UIController.closeTip;
+
+  // TIPSリンクイベント委譲（インラインonclick完全排除）
+  document.addEventListener('click', function(e) {
+    var tipEl = e.target.closest('.tip-link');
+    if (tipEl) {
+      e.stopPropagation();
+      var term = tipEl.getAttribute('data-tip');
+      if (term) UIController.openTip(term);
+    }
+  });
+
+  // 既存セーブがあれば入力補助
+  var state = TimelineState.getState();
+  if (state.studentName && state.passcode) {
+    var katakanaField = document.getElementById("inputLoadKatakana");
+    var passcodeField = document.getElementById("inputLoadPasscode");
+    if (katakanaField) katakanaField.value = state.studentName;
+    if (passcodeField) passcodeField.value = state.passcode;
+  }
+});
+</script>
+</body>
+</html>

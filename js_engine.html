@@ -5,7 +5,17 @@
  */
 var MASTER_DB = {
   tips: TIPS_MASTER,
-  nodes: Object.assign({}, SCENARIO_REN, SCENARIO_ELENA, SCENARIO_DANIEL, SCENARIO_CLIMAX_REN, SCENARIO_CLIMAX_ELENA, SCENARIO_CLIMAX_DANIEL, SCENARIO_CLIMAX)
+  nodes: Object.assign(
+    {},
+    SCENARIO_REN,
+    SCENARIO_ELENA,
+    SCENARIO_DANIEL,
+    (typeof SCENARIO_CLIMAX_REN !== "undefined" ? SCENARIO_CLIMAX_REN : {}),
+    (typeof SCENARIO_CLIMAX_ELENA !== "undefined" ? SCENARIO_CLIMAX_ELENA : {}),
+    (typeof SCENARIO_CLIMAX_DANIEL !== "undefined" ? SCENARIO_CLIMAX_DANIEL : {}),
+    SCENARIO_CLIMAX,
+    (typeof SCENARIO_SHIN !== "undefined" ? SCENARIO_SHIN : {})
+  )
 };
 
 var GameEngine = (function() {
@@ -173,43 +183,23 @@ var GameEngine = (function() {
 
     var prog = TimelineState.getHourProgress();
 
-    // 428 アワー終端判定：Hour 1 終端（11:00）
-    if (node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") {
-      if (!prog.hour1.allClear) {
-        var tbcBtn = document.createElement("button");
-        tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group cursor-pointer";
-        tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
-          + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
-        tbcBtn.onclick = function(e) {
-          e.stopPropagation();
-          UIController.showToBeContinued(
-            node.char,
-            1,
-            "第1アワー（10:00〜11:00）を突破しました！",
-            "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
-          );
-        };
-        wrapper.appendChild(tbcBtn);
-        return;
-      } else {
-        // 全員がHour 1を突破した場合：428風予告編バナーを常設
-        var prevBtn = document.createElement("button");
-        prevBtn.className = "w-full text-left p-4 bg-gradient-to-r from-emerald-950/90 via-neutral-900 to-sky-950/90 border-2 border-emerald-400 rounded-xl text-xs sm:text-sm font-black text-emerald-200 shadow-xl flex items-center justify-between group cursor-pointer animate-pulse";
-        prevBtn.innerHTML = '<span>🎬【第1アワー突破！】ここまでのあらすじ ＆ 次章予告編を見る</span>'
-          + '<span class="text-emerald-400 font-mono text-xs">PREVIEW ▶</span>';
-        prevBtn.onclick = function(e) {
-          e.stopPropagation();
-          UIController.showHour1Preview();
-        };
-        wrapper.appendChild(prevBtn);
-
-        // 未閲覧なら初回自動表示
-        if (!state.hour1PreviewSeen) {
-          setTimeout(function() {
-            UIController.showHour1Preview();
-          }, 350);
-        }
-      }
+    // 428 アワー終端判定：Hour 1 終端（11:00）で他キャラが未完了の場合
+    if ((node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") && !prog.hour1.allClear) {
+      var tbcBtn = document.createElement("button");
+      tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group";
+      tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
+        + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
+      tbcBtn.onclick = function(e) {
+        e.stopPropagation();
+        UIController.showToBeContinued(
+          node.char,
+          1,
+          "第1アワー（10:00〜11:00）を突破しました！",
+          "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
+        );
+      };
+      wrapper.appendChild(tbcBtn);
+      return;
     }
 
     // 428 アワー終端判定：Hour 2 終端（11:50）で他キャラが未完了の場合
@@ -232,16 +222,6 @@ var GameEngine = (function() {
     }
 
     node.choices.forEach(function(ch) {
-      // 古遺物3つ揃っていない場合はシークレット選択肢を完全非表示
-      if (ch.requiresSecretPieces) {
-        var flags = state.userFlags || [];
-        var hasA = flags.indexOf("PIECE_A") !== -1;
-        var hasB = flags.indexOf("PIECE_B") !== -1;
-        var hasC = flags.indexOf("PIECE_C") !== -1;
-        if (!hasA || !hasB || !hasC) {
-          return;
-        }
-      }
       // クリア後限定選択肢（古遺物回収イベント）の非表示制御
       if (ch.requiresClear && !TimelineState.hasClearedOnce()) {
         return; // 1周目（未クリア時）は表示しない
@@ -609,13 +589,13 @@ var GameEngine = (function() {
       btnNext.textContent = "奇跡の再会へ（最終幕） ->";
     } else if (trueEndStep === 6) {
       AudioEngine.play('fanfare');
-      actTitle.textContent = "ACT 3 // 十七年ぶりの母子、そして新世紀へ";
+      actTitle.textContent = "ACT 3 // 母と子、そして新世紀へ";
       actContent.innerHTML = [
         '<div class="p-3 bg-neutral-950/80 border-l-4 border-emerald-400 rounded space-y-1">',
-        '  <div class="text-xs font-black text-emerald-400">【十七年の断絶を超えた絆】</div>',
-        '  <div class="text-[11px] text-neutral-300">タワー地上広場へ降り立った三人の前へ、スラムから駆けつけたマーサが震える手に古びたお守りを握りしめ、駆け寄る。「……レン……。本当に、私の……私のあの子なのね……！？」</div>',
+        '  <div class="text-xs font-black text-emerald-400">【17年の歳月を超えた絆】</div>',
+        '  <div class="text-[11px] text-neutral-300">タワー地上広場へ降り立った三人の前へ、スラムから駆けつけたマーサが涙を流して歩み寄る。その震える手には、17年間片時も離さず抱きしめ続けていた青い産着の片割れが握られていた。</div>',
         '</div>',
-        '<p class="para-in text-xs text-neutral-300 leading-relaxed">レンは胸元の首飾りを取り出し、マーサの手のお守りにそっと重ね合わせた。刻まれた傷と意匠が寸分違わず噛み合う——手放さざるを得なかった、命と愛の証だった。崩れ落ちるように抱き合う二人を、エレナが涙ぐみながら見つめていた。「マーサ……あなたが、こんなにも大きな悲しみを一人で抱えていたなんて……」</p>',
+        '<p class="para-in text-xs text-neutral-300 leading-relaxed">レンは胸元の擦り切れた青い布を取り出し、母の布とそっと重ね合わせた。17年の断絶を超え、繊維のほつれが寸分違わず噛み合う——命と愛の証だった。「……ただいま、母さん」。溢れる涙を止められない抱擁に、広場中から地鳴りのような歓声と拍手が湧き起こる。</p>',
         '<p class="para-in text-xs text-neutral-300 leading-relaxed">エレナとダニエルは互いに頷き合い、朝陽に照らされた東京の空を見上げた。人間として生まれた誰もが尊重され、平等に生き、命を守られる世界——新しい日本の歴史が、ここから始まるのだ。</p>'
       ].join("");
 
@@ -715,13 +695,22 @@ document.addEventListener("DOMContentLoaded", function() {
 
       var prog = TimelineState.getHourProgress();
 
-      // 待機中の主人公を押した場合は親切な選択モーダルを開く
-      var isWaitingH1 = (!prog.hour1.allClear && prog.hour1[targetChar]);
-      var isWaitingH2 = (prog.hour1.allClear && !prog.hour2.allClear && prog.hour2[targetChar]);
-      if (isWaitingH1 || isWaitingH2) {
-        AudioEngine.play('tap');
-        UIController.showCharWaitOption(targetChar, isWaitingH1 ? 1 : 2);
-        return;
+      // もしHour 1未完了で、既にクリア済みのキャラを押した場合
+      if (!prog.hour1.allClear) {
+        if (prog.hour1[targetChar]) {
+          AudioEngine.play('tap');
+          UIController.showToast("この主人公は第1アワー（10:00〜11:00）をクリア済みです。\n他の主人公を進めて11:00を解放してください。");
+          return;
+        }
+      }
+
+      // もしHour 1完了後、Hour 2進行中で既にクリア済みのキャラを押した場合
+      if (prog.hour1.allClear && !prog.hour2.allClear) {
+        if (prog.hour2[targetChar]) {
+          AudioEngine.play('tap');
+          UIController.showToast("この主人公は第2アワー（11:00〜12:00）をクリア済みです。\n他の主人公を進めて12:00クライマックスを解放してください。");
+          return;
+        }
       }
 
       GameEngine.switchChar(targetChar);

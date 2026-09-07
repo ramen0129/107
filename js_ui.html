@@ -157,6 +157,23 @@ var UIController = (function() {
     var totalCountEl = document.getElementById("archiveTotalCount");
     if (totalCountEl) totalCountEl.textContent = allKeys.length;
 
+    // 全TIPS解明時：検定クイズ挑戦バナーの表示制御
+    var quizBanner = document.getElementById("bannerTipsQuizChallenge");
+    if (quizBanner) {
+      if (unlockedKeys.length >= allKeys.length && allKeys.length > 0) {
+        quizBanner.classList.remove("hidden");
+        var btnStart = document.getElementById("btnStartTipsQuiz");
+        if (btnStart) {
+          btnStart.onclick = function() {
+            closeTipsArchive();
+            QuizController.startQuiz();
+          };
+        }
+      } else {
+        quizBanner.classList.add("hidden");
+      }
+    }
+
     var grid = document.getElementById("archiveCardsGrid");
     if (!grid) return;
     grid.innerHTML = "";
@@ -304,6 +321,36 @@ var UIController = (function() {
       emptyEl.innerHTML = '<div class="text-2xl">💀</div><div>「' + (searchQuery || "") + '」に一致する結末は見つかりませんでした。</div>';
       grid.appendChild(emptyEl);
       return;
+    }
+    // 全BAD END（23件）解明時、またはシン読了時に特別カードを表示
+    var isShinUnlocked = (unlockedBadEnds.length >= 23 || state.visitedNodes.indexOf("SHIN_01_MEMORY") !== -1);
+    var isShinCompleted = (state.visitedNodes.indexOf("SHIN_06_PROLOGUE_LOOP") !== -1);
+
+    if (isShinUnlocked && (!filterCategory || filterCategory === "all") && !q) {
+      var shinCard = document.createElement("div");
+      shinCard.className = "archive-card p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between transition-all border-2 border-amber-500/80 bg-gradient-to-br from-amber-950/50 via-neutral-900 to-neutral-950 shadow-[0_0_20px_rgba(245,158,11,0.25)] col-span-full sm:col-span-2";
+      shinCard.innerHTML = '<div>' +
+        '<div class="flex items-center justify-between gap-1 mb-1.5">' +
+          '<span class="text-[9px] font-mono px-2 py-0.5 rounded border text-amber-300 border-amber-600 bg-amber-950/90 font-bold">🕊️ 奇跡解禁【全BAD END踏破特典】</span>' +
+          '<span class="text-[10px] text-amber-400 font-mono font-bold">' + (isShinCompleted ? '✓ 読了済' : '★ 未読了') + '</span>' +
+        '</div>' +
+        '<h4 class="text-sm sm:text-base font-black text-amber-200 font-hud">外伝：雨の日の約束 〜シンの見た青空〜</h4>' +
+        '<p class="text-[11px] text-neutral-300 mt-2 leading-relaxed">1年前の酸性雨の夜、親友レンを生かすために自ら犠牲となった少年シン。23通りの絶望を踏破した者だけに明かされる、すべての始まりの真実。</p>' +
+        '</div>' +
+        '<div class="mt-3 pt-2.5 border-t border-amber-900/60 flex justify-between items-center">' +
+          '<span class="text-[10px] text-amber-500/80 font-mono font-bold">EPISODE: SHIN</span>' +
+          '<button class="btn-play-shin px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 text-xs font-black rounded-lg shadow-lg transition-all active:scale-95 cursor-pointer font-hud">特別エピソードを開始する ➔</button>' +
+        '</div>';
+      var btnShin = shinCard.querySelector(".btn-play-shin");
+      if (btnShin) {
+        btnShin.onclick = function(e) {
+          e.stopPropagation();
+          AudioEngine.play('jump');
+          closeBadEndArchive();
+          GameEngine.launchNode("SHIN_01_MEMORY");
+        };
+      }
+      grid.appendChild(shinCard);
     }
 
     filteredKeys.forEach(function(k) {
@@ -640,72 +687,6 @@ var UIController = (function() {
     }
   }
 
-  function showHour1Preview() {
-    AudioEngine.play('preview');
-    var modal = document.getElementById("modalHour1Preview");
-    if (!modal) return;
-    modal.classList.remove("hidden");
-
-    var state = TimelineState.getState();
-    state.hour1PreviewSeen = true;
-    TimelineState.saveLocal();
-
-    var btn = document.getElementById("btnStartHour2FromPreview");
-    if (btn) {
-      btn.onclick = function() {
-        AudioEngine.play('tap');
-        modal.classList.add("hidden");
-        switchView('auth');
-        renderTimeBlockStatus();
-      };
-    }
-  }
-
-  function showCharWaitOption(charKey, hourNum) {
-    AudioEngine.play('tap');
-    var modal = document.getElementById("modalCharWaitOption");
-    if (!modal) return;
-
-    var cName = charKey === "A" ? "レン（自由権）" : charKey === "B" ? "エレナ（平等権）" : "ダニエル（社会権）";
-    var titleEl = document.getElementById("charWaitModalTitle");
-    if (titleEl) titleEl.textContent = cName + " は第" + hourNum + "アワー待機中です";
-
-    var descEl = document.getElementById("charWaitModalDesc");
-    if (descEl) {
-      descEl.textContent = hourNum === 1
-        ? "第1アワー（10:00〜11:00）を突破し、他の主人公の到達を待っています。現在のシーンを確認するか、タイムラインを開いて過去の選択肢を変更できます。"
-        : "第2アワー（11:00〜12:00）を突破し、管制室で待機中です。現在のシーンを確認するか、タイムラインを開いて過去の分岐へジャンプできます。";
-    }
-
-    modal.classList.remove("hidden");
-
-    var btnGo = document.getElementById("btnCharWaitGoScene");
-    if (btnGo) {
-      btnGo.onclick = function() {
-        AudioEngine.play('tap');
-        modal.classList.add("hidden");
-        GameEngine.switchChar(charKey);
-      };
-    }
-
-    var btnChart = document.getElementById("btnCharWaitOpenChart");
-    if (btnChart) {
-      btnChart.onclick = function() {
-        AudioEngine.play('tap');
-        modal.classList.add("hidden");
-        openChart();
-      };
-    }
-
-    var btnClose = document.getElementById("btnCharWaitClose");
-    if (btnClose) {
-      btnClose.onclick = function() {
-        AudioEngine.play('tap');
-        modal.classList.add("hidden");
-      };
-    }
-  }
-
   function checkAllClearBadge() {
     var state = TimelineState.getState();
     var count = Object.keys(state.unlockedEndings).length;
@@ -734,19 +715,205 @@ var UIController = (function() {
     renderBadEndArchiveModal: renderBadEndArchiveModal,
     renderTimeBlockStatus: renderTimeBlockStatus,
     showToBeContinued: showToBeContinued,
-    showHour1Preview: showHour1Preview,
-    showCharWaitOption: showCharWaitOption,
     checkAllClearBadge: checkAllClearBadge
+  };
+})();
+
+// 憲法マスター検定クイズコントローラー
+var QuizController = (function() {
+  var quizQuestions = [
+    {
+      category: "自由権（身体の自由）",
+      question: "ネオ・ジャパニアで市民に強制されていた『電子首輪による移動制限や労働強制』。現実の日本国憲法において、何人も正当な法的手続きによらずに抑留・拘禁されず、奴隷的拘束を受けないことを保障している権利はどれか？",
+      choices: [
+        "第18条・第31条：身体の自由（奴隷的拘束の禁止と適正手続の保障）",
+        "第21条：表現の自由（集会・結社及び言論の自由と検閲の禁止）",
+        "第29条：財産権の保障（正当な補償の下での収用）"
+      ],
+      correctIndex: 0,
+      explanation: "正解！ 憲法第18条は何人も奴隷的拘束を受けないことを規定し、第31条は法律の定める適正な手続によらなければ生命・自由を奪われないことを保障しています。"
+    },
+    {
+      category: "平等権（法の下の平等）",
+      question: "貴族院や統制局特権階級による支配に立ち向かったエレナ。現実の日本国憲法第14条第1項（法の下の平等）に基づき、最高裁判所が戦後初めて違憲判決を下した重大事件（刑法200条の尊属に対する殺人罪重罰規定を巡る判例）はどれか？",
+      choices: [
+        "東大ポポロ事件（学問の自由と大学の自治）",
+        "尊属殺重罰規定違憲判決（法の下の平等と刑罰の不均衡）",
+        "津地平熱鎮撫事件（政教分離原則と宗教的儀式）"
+      ],
+      correctIndex: 1,
+      explanation: "正解！ 1973年、最高裁判所は普通殺人よりも著しく重い刑を科す尊属殺規定（旧刑法200条）について、目的は正当でも手段が不合理に過酷であり、法の下の平等に反し違憲であると判断しました。"
+    },
+    {
+      category: "社会権（生存権）",
+      question: "地下診療所で無償医療を行い『命に値段がついてる世界はおかしい』と叫んだダニエル。現実の日本国憲法第25条第1項で保障されている、すべて国民が営む権利を有する生活の基準とは何か？",
+      choices: [
+        "贅沢で文化的な最高の生活水準",
+        "国家が指定する統制管理された労働生活",
+        "健康で文化的な最低限度の生活"
+      ],
+      correctIndex: 2,
+      explanation: "正解！ 憲法第25条第1項は『すべて国民は、健康で文化的な最低限度の生活を営む権利を有する』と定め、国の生存権保障義務（生活保護や公衆衛生の向上等）の根幹となっています。"
+    }
+  ];
+
+  var currentIndex = 0;
+  var isAnswering = false;
+
+  function init() {
+    var btnClose = document.getElementById("btnCloseQuiz");
+    if (btnClose) {
+      btnClose.onclick = function() {
+        AudioEngine.play('tap');
+        closeQuiz();
+      };
+    }
+  }
+
+  function startQuiz() {
+    AudioEngine.play('chime');
+    currentIndex = 0;
+    isAnswering = false;
+    var modal = document.getElementById("modalQuiz");
+    if (modal) modal.classList.remove("hidden");
+    renderCurrentQuestion();
+  }
+
+  function closeQuiz() {
+    var modal = document.getElementById("modalQuiz");
+    if (modal) modal.classList.add("hidden");
+  }
+
+  function renderCurrentQuestion() {
+    var q = quizQuestions[currentIndex];
+    if (!q) return;
+
+    isAnswering = false;
+    var idxEl = document.getElementById("quizCurrentIndex");
+    if (idxEl) idxEl.textContent = currentIndex + 1;
+
+    var catEl = document.getElementById("quizCategoryBadge");
+    if (catEl) catEl.textContent = q.category;
+
+    var textEl = document.getElementById("quizQuestionText");
+    if (textEl) textEl.textContent = q.question;
+
+    var feedbackBox = document.getElementById("quizFeedbackBox");
+    if (feedbackBox) {
+      feedbackBox.classList.add("hidden");
+      feedbackBox.innerHTML = "";
+    }
+
+    var choicesCont = document.getElementById("quizChoicesContainer");
+    if (!choicesCont) return;
+    choicesCont.innerHTML = "";
+
+    q.choices.forEach(function(choiceText, idx) {
+      var btn = document.createElement("button");
+      btn.className = "w-full p-3.5 sm:p-4 rounded-xl border border-neutral-700 bg-neutral-800/80 hover:bg-neutral-700/90 text-left text-xs sm:text-sm font-hud text-neutral-200 transition-all flex items-center justify-between gap-2 cursor-pointer shadow-md";
+      btn.innerHTML = '<span class="flex items-center gap-2.5"><span>' + ['①', '②', '③'][idx] + '</span><span>' + choiceText + '</span></span>' +
+                       '<span class="text-neutral-500 text-xs shrink-0">選択 ▶</span>';
+
+      btn.onclick = function() {
+        if (isAnswering) return;
+        isAnswering = true;
+        handleAnswer(idx);
+      };
+
+      choicesCont.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(selectedIdx) {
+    var q = quizQuestions[currentIndex];
+    var isCorrect = (selectedIdx === q.correctIndex);
+    var feedbackBox = document.getElementById("quizFeedbackBox");
+    if (!feedbackBox) return;
+
+    feedbackBox.classList.remove("hidden");
+
+    if (isCorrect) {
+      AudioEngine.play('chime');
+      feedbackBox.className = "p-4 rounded-xl border border-emerald-500/70 bg-emerald-950/40 text-xs font-hud space-y-2 text-emerald-200 shadow-lg";
+      feedbackBox.innerHTML = '<div>' +
+        '<div class="font-black text-emerald-400 text-sm flex items-center gap-1.5"><span>⭕</span><span>正 解 ！</span></div>' +
+        '<p class="mt-1 text-neutral-300 leading-relaxed font-sans-jp">' + q.explanation + '</p>' +
+        '</div>' +
+        '<div class="pt-2 text-right">' +
+        '<button id="btnQuizNextAction" class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 text-neutral-950 font-black text-xs rounded-lg shadow cursor-pointer font-hud transition-transform active:scale-95">' +
+        (currentIndex + 1 < quizQuestions.length ? '次の問題へ進む ▶' : '🏆 全問合格！ 修了証書を受け取る ▶') +
+        '</button>' +
+        '</div>';
+
+      var nextBtn = document.getElementById("btnQuizNextAction");
+      if (nextBtn) {
+        nextBtn.onclick = function() {
+          AudioEngine.play('tap');
+          if (currentIndex + 1 < quizQuestions.length) {
+            currentIndex++;
+            renderCurrentQuestion();
+          } else {
+            // 合格処理
+            closeQuiz();
+            var state = TimelineState.getState();
+            state.quizMasterPassed = true;
+            TimelineState.saveLocal();
+            CertRenderer.openModal(true);
+          }
+        };
+      }
+    } else {
+      AudioEngine.play('bad');
+      feedbackBox.className = "p-4 rounded-xl border border-rose-500/70 bg-rose-950/40 text-xs font-hud space-y-2 text-rose-200 shadow-lg";
+      feedbackBox.innerHTML = '<div>' +
+        '<div class="font-black text-rose-400 text-sm flex items-center gap-1.5"><span>❌</span><span>不 正 解 ……</span></div>' +
+        '<p class="mt-1 text-neutral-300 leading-relaxed font-sans-jp">もう一度条文と判例の解説を振り返り、再挑戦してください。</p>' +
+        '</div>' +
+        '<div class="pt-2 text-right">' +
+        '<button id="btnQuizRetryAction" class="px-4 py-2 bg-rose-800 hover:bg-rose-700 text-white font-bold text-xs rounded-lg shadow cursor-pointer font-hud transition-transform active:scale-95">もう一度解き直す 🔄</button>' +
+        '</div>';
+
+      var retryBtn = document.getElementById("btnQuizRetryAction");
+      if (retryBtn) {
+        retryBtn.onclick = function() {
+          AudioEngine.play('tap');
+          renderCurrentQuestion();
+        };
+      }
+    }
+  }
+
+  // 初期化実行
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  return {
+    startQuiz: startQuiz,
+    closeQuiz: closeQuiz
   };
 })();
 
 // 表彰状PDFジェネレータ
 var CertRenderer = (function() {
-  function openModal() {
+  function openModal(isQuizMaster) {
     AudioEngine.play('chime');
     var modal = document.getElementById("modalCertificate");
     if (modal) modal.classList.remove("hidden");
-    drawCertificate();
+
+    var gradeBadge = document.getElementById("certGradeBadge");
+    var mainTitle = document.getElementById("certMainTitle");
+    if (isQuizMaster) {
+      if (gradeBadge) gradeBadge.textContent = "CONSTITUTIONAL MASTER QUALIFIED";
+      if (mainTitle) mainTitle.textContent = "日本国憲法マスター 修了証書";
+    } else {
+      if (gradeBadge) gradeBadge.textContent = "CONSTITUTIONAL HARMONY DIPLOMA";
+      if (mainTitle) mainTitle.textContent = "人権調和 表彰状";
+    }
+
+    drawCertificate(isQuizMaster);
   }
 
   function closeModal() {
@@ -755,7 +922,7 @@ var CertRenderer = (function() {
     if (modal) modal.classList.add("hidden");
   }
 
-  function drawCertificate() {
+  function drawCertificate(isQuizMaster) {
     var canvas = document.getElementById("canvasCert");
     if (!canvas) return;
     var ctx = canvas.getContext("2d");
@@ -769,7 +936,7 @@ var CertRenderer = (function() {
     // 背景
     var bgGrad = ctx.createLinearGradient(0, 0, w, h);
     bgGrad.addColorStop(0, "#0a0a0f");
-    bgGrad.addColorStop(0.5, "#12131f");
+    bgGrad.addColorStop(0.5, isQuizMaster ? "#17150a" : "#12131f");
     bgGrad.addColorStop(1, "#0a0a0f");
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
@@ -787,11 +954,11 @@ var CertRenderer = (function() {
     ctx.fillStyle = "#fde047";
     ctx.font = "bold 44px 'Shippori Mincho', serif";
     ctx.textAlign = "center";
-    ctx.fillText("憲 法 探 究 証 書", w / 2, 120);
+    ctx.fillText(isQuizMaster ? "日 本 国 憲 法 マ ス タ ー 修 了 証 書" : "憲 法 探 究 証 書", w / 2, 120);
 
     ctx.fillStyle = "#94a3b8";
     ctx.font = "18px 'Zen Kaku Gothic New', sans-serif";
-    ctx.fillText("PARALLEL JAPANIA CHRONICLE CERTIFICATE", w / 2, 160);
+    ctx.fillText(isQuizMaster ? "PARALLEL JAPANIA CONSTITUTIONAL MASTER DIPLOMA" : "PARALLEL JAPANIA CHRONICLE CERTIFICATE", w / 2, 160);
 
     // 授与者名
     ctx.fillStyle = "#ffffff";
@@ -801,16 +968,27 @@ var CertRenderer = (function() {
     // 本文
     ctx.fillStyle = "#e2e8f0";
     ctx.font = "20px 'Shippori Mincho', serif";
-    ctx.fillText("貴殿は『パラレル・ジャパニア：クロニクル』において、", w / 2, 320);
-    ctx.fillText("自由権・平等権・社会権の三大基本的人権を巡る幾多の歴史的分岐を乗り越え、", w / 2, 360);
-    ctx.fillText("日本国憲法第97条が謳う『永久の信託』の精神を体現し、", w / 2, 400);
-    ctx.fillText("人権の真の尊厳を解き明かしたことをここに証します。", w / 2, 440);
+    if (isQuizMaster) {
+      ctx.fillText("貴殿は『パラレル・ジャパニア：クロニクル』全人権TIPSを完全解明し、", w / 2, 320);
+      ctx.fillText("自由権・平等権・社会権の憲法マスター検定において極めて優秀な知見を示されました。", w / 2, 360);
+      ctx.fillText("日本国憲法第97条が謳う『人類の多年にわたる自由獲得の成果』を胸に刻み、", w / 2, 400);
+      ctx.fillText("人権の尊厳を守り抜く真のマスターたる見識を有することをここに証します。", w / 2, 440);
+    } else {
+      ctx.fillText("貴殿は『パラレル・ジャパニア：クロニクル』において、", w / 2, 320);
+      ctx.fillText("自由権・平等権・社会権の三大基本的人権を巡る幾多の歴史的分岐を乗り越え、", w / 2, 360);
+      ctx.fillText("日本国憲法第97条が謳う『永久の信託』の精神を体現し、", w / 2, 400);
+      ctx.fillText("人権の真の尊厳を解き明かしたことをここに証します。", w / 2, 440);
+    }
 
     // 実績
-    var count = Object.keys(state.unlockedEndings).length;
     ctx.fillStyle = "#38bdf8";
     ctx.font = "bold 22px 'Zen Kaku Gothic New', sans-serif";
-    ctx.fillText("到達結末数: " + count + " / 25 結末解明", w / 2, 530);
+    if (isQuizMaster) {
+      ctx.fillText("全18大 人権TIPS完全解明 ＆ 憲法マスター検定全問合格", w / 2, 530);
+    } else {
+      var count = Object.keys(state.unlockedEndings).length;
+      ctx.fillText("到達結末数: " + count + " / 25 結末解明", w / 2, 530);
+    }
 
     // 日付・発行者
     var today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
