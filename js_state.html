@@ -1,0 +1,216 @@
+<script>
+/**
+ * 『パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜』
+ * タイムライン状態・タイムブロック（Hour制）管理モジュール
+ */
+var TimelineState = (function() {
+  var STORAGE_KEY = "PARALLEL_JAPANIA_CHRONICLE_SAVE_v5";
+
+  var state = {
+    studentName: "",
+    passcode: "",
+    currentChar: "A",
+    currentNodeKey: "A_1000",
+    slots: {},
+    userFlags: [],
+    visitedNodes: ["A_1000"],
+    unlockedEndings: {},
+    unlockedTips: {},
+    hasClearedOnce: false
+  };
+
+  function rebuildFlags() {
+    var flags = new Set();
+    Object.keys(state.slots).forEach(function(k) {
+      var val = state.slots[k];
+      if (typeof val === "string") {
+        flags.add(val);
+      } else if (val === true) {
+        flags.add(k);
+      }
+    });
+    // 保有フラグもマージ
+    state.userFlags.forEach(function(f) { flags.add(f); });
+    state.userFlags = Array.from(flags);
+  }
+
+  function rollbackFutureSlots(targetNodeId) {
+    var targetNode = MASTER_DB.nodes[targetNodeId];
+    if (!targetNode || !targetNode.time || !targetNode.char || targetNode.char === "ALL") return;
+
+    var targetMinutes = parseTimeToMinutes(targetNode.time);
+    var targetChar = targetNode.char;
+
+    Object.keys(state.slots).forEach(function(slotKey) {
+      if (slotKey.indexOf(targetChar + "_") === 0) {
+        var parts = slotKey.split("_");
+        var nodeTimeStr = parts[1];
+        var slotMinutes = parseNodeTimeCodeToMinutes(nodeTimeStr);
+        if (slotMinutes > targetMinutes) {
+          delete state.slots[slotKey];
+        }
+      }
+    });
+    rebuildFlags();
+  }
+
+  function parseTimeToMinutes(tStr) {
+    var parts = tStr.split(":");
+    return parts.length === 2 ? (parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10)) : 0;
+  }
+
+  function parseNodeTimeCodeToMinutes(code) {
+    if (code && code.length >= 4) {
+      var h = parseInt(code.substring(0, 2), 10);
+      var m = parseInt(code.substring(2, 4), 10);
+      return h * 60 + m;
+    }
+    return 0;
+  }
+
+  // 428型 アワー進捗判定
+  function getHourProgress() {
+    var v = state.visitedNodes || [];
+    var f = state.userFlags || [];
+
+    // Hour 1 (10:00 - 11:00) 完了判定
+    var h1_ren = (v.indexOf("A_1100") !== -1 || f.indexOf("A_HOUR1_CLEAR") !== -1);
+    var h1_elena = (v.indexOf("B_1100") !== -1 || f.indexOf("B_HOUR1_CLEAR") !== -1);
+    var h1_daniel = (v.indexOf("C_1100") !== -1 || f.indexOf("C_HOUR1_CLEAR") !== -1);
+    var h1_all = (h1_ren && h1_elena && h1_daniel);
+
+    // Hour 2 (11:00 - 12:00) 完了判定
+    var h2_ren = (v.indexOf("A_1150") !== -1 || f.indexOf("A_FREEDOM_DONE") !== -1);
+    var h2_elena = (v.indexOf("B_1150") !== -1 || f.indexOf("B_EQUALITY_DONE") !== -1);
+    var h2_daniel = (v.indexOf("C_1150") !== -1 || f.indexOf("C_SOCIAL_DONE") !== -1);
+    var h2_all = (h2_ren && h2_elena && h2_daniel);
+
+    return {
+      hour1: {
+        A: h1_ren,
+        B: h1_elena,
+        C: h1_daniel,
+        allClear: h1_all
+      },
+      hour2: {
+        A: h2_ren,
+        B: h2_elena,
+        C: h2_daniel,
+        allClear: h2_all
+      },
+      climaxUnlocked: (h1_all && h2_all)
+    };
+  }
+
+  function markHourClear(charKey, hourNum) {
+    var flag = charKey + "_HOUR" + hourNum + "_CLEAR";
+    if (state.userFlags.indexOf(flag) === -1) {
+      state.userFlags.push(flag);
+    }
+    state.slots[flag] = true;
+    rebuildFlags();
+    saveLocal();
+  }
+
+  function saveLocal() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.error("Local state save error", e);
+    }
+  }
+
+  function loadLocal() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed.studentName) {
+          state = Object.assign({}, state, parsed);
+          state.slots = parsed.slots || {};
+          rebuildFlags();
+          state.visitedNodes = Array.from(new Set(state.visitedNodes.concat(parsed.visitedNodes || [])));
+          state.unlockedEndings = Object.assign({}, state.unlockedEndings, parsed.unlockedEndings || {});
+          state.unlockedTips = Object.assign({}, state.unlockedTips, parsed.unlockedTips || {});
+          state.hasClearedOnce = Boolean(
+            parsed.hasClearedOnce ||
+            (parsed.unlockedEndings && (parsed.unlockedEndings["NORMAL_CLEAR"] || parsed.unlockedEndings["TRUE_SECRET_END"])) ||
+            (parsed.visitedNodes && (parsed.visitedNodes.indexOf("NORMAL_CLEAR") !== -1 || parsed.visitedNodes.indexOf("TRUE_SECRET_END") !== -1))
+          );
+        }
+      }
+    } catch (e) {
+      console.error("Local state load error", e);
+    }
+  }
+
+  function hasClearedOnce() {
+    return Boolean(
+      state.hasClearedOnce ||
+      (state.unlockedEndings && (state.unlockedEndings["NORMAL_CLEAR"] || state.unlockedEndings["TRUE_SECRET_END"])) ||
+      (state.visitedNodes && (state.visitedNodes.indexOf("NORMAL_CLEAR") !== -1 || state.visitedNodes.indexOf("TRUE_SECRET_END") !== -1))
+    );
+  }
+
+  function hasClearedTrueEnd() {
+    return Boolean(
+      (state.unlockedEndings && state.unlockedEndings["TRUE_SECRET_END"]) ||
+      (state.visitedNodes && state.visitedNodes.indexOf("TRUE_SECRET_END") !== -1)
+    );
+  }
+
+  function markCleared(endingKey) {
+    state.hasClearedOnce = true;
+    if (!state.unlockedEndings) state.unlockedEndings = {};
+    state.unlockedEndings[endingKey || "NORMAL_CLEAR"] = true;
+    saveLocal();
+  }
+
+  function syncServer(sceneTitle) {
+    saveLocal();
+    var indicator = document.getElementById("saveStatus");
+    if (indicator) indicator.textContent = "同期中...";
+
+    if (typeof google !== "undefined" && google.script && google.script.run) {
+      var payload = {
+        studentName: state.studentName,
+        passcode: state.passcode,
+        currentCharName: state.currentChar === "A" ? "レン（自由権）" : state.currentChar === "B" ? "エレナ（平等権）" : "ダニエル（社会権）",
+        currentSceneTitle: sceneTitle || "進行中",
+        currentNodeKey: state.currentNodeKey,
+        userFlags: state.userFlags,
+        visitedNodes: state.visitedNodes,
+        unlockedEndings: state.unlockedEndings,
+        slots: state.slots
+      };
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (indicator) {
+            indicator.textContent = (res && res.time) ? (res.time + " 保存済") : "保存完了";
+          }
+        })
+        .withFailureHandler(function() {
+          if (indicator) indicator.textContent = "ローカル保存済";
+        })
+        .saveProgress(payload);
+    } else {
+      if (indicator) indicator.textContent = "ローカル保存済";
+    }
+  }
+
+  return {
+    getState: function() { return state; },
+    rebuildFlags: rebuildFlags,
+    rollbackFutureSlots: rollbackFutureSlots,
+    getHourProgress: getHourProgress,
+    markHourClear: markHourClear,
+    saveLocal: saveLocal,
+    loadLocal: loadLocal,
+    syncServer: syncServer,
+    hasClearedOnce: hasClearedOnce,
+    hasClearedTrueEnd: hasClearedTrueEnd,
+    markCleared: markCleared
+  };
+})();
+</script>

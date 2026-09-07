@@ -1,0 +1,858 @@
+<script>
+/**
+ * 『パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜』
+ * 428型 ゲーム進行・タイムブロック（Hour制）エンジンモジュール
+ */
+var MASTER_DB = {
+  tips: TIPS_MASTER,
+  nodes: Object.assign({}, SCENARIO_REN, SCENARIO_ELENA, SCENARIO_DANIEL, SCENARIO_CLIMAX_REN, SCENARIO_CLIMAX_ELENA, SCENARIO_CLIMAX_DANIEL, SCENARIO_CLIMAX)
+};
+
+var GameEngine = (function() {
+  var currentParagraphIndex = 0;
+  var currentParagraphs = [];
+  var trueEndStep = 0;
+
+  function launchNode(nodeId) {
+    var state = TimelineState.getState();
+    var node = MASTER_DB.nodes[nodeId];
+    if (!node) {
+      console.error("Node not found:", nodeId);
+      return;
+    }
+
+    TimelineState.rollbackFutureSlots(nodeId);
+
+    var isAlreadyVisited = (state.visitedNodes.indexOf(nodeId) !== -1);
+    if (!isAlreadyVisited) {
+      state.visitedNodes.push(nodeId);
+    }
+    state.currentNodeKey = nodeId;
+    if (node.char && node.char !== "ALL") {
+      state.currentChar = node.char;
+    }
+
+    // 428 アワー進捗の自動マーキング
+    if (nodeId === "A_1100") TimelineState.markHourClear("A", 1);
+    if (nodeId === "B_1100") TimelineState.markHourClear("B", 1);
+    if (nodeId === "C_1100") TimelineState.markHourClear("C", 1);
+    if (nodeId === "A_1150") TimelineState.markHourClear("A", 2);
+    if (nodeId === "B_1150") TimelineState.markHourClear("B", 2);
+    if (nodeId === "C_1150") TimelineState.markHourClear("C", 2);
+
+    if (node.isTrueEnd) {
+      startTrueEndSequence();
+      return;
+    }
+    if (node.isClearEnd) {
+      triggerGoodEnd(node);
+      return;
+    }
+    if (node.isKeepOut) {
+      showKeepOut(node);
+      return;
+    }
+    if (node.isBadEnd && (!node.paragraphs || node.paragraphs.length === 0)) {
+      triggerBadEnd(nodeId);
+      return;
+    }
+
+    UIController.switchView('novel');
+    UIController.updateHeaderTabs();
+
+    document.getElementById("sceneTimeBadge").textContent = node.time || "12:00";
+    document.getElementById("sceneCharBadge").textContent = "[" + (node.charName || "") + "]";
+    document.getElementById("sceneTitleBadge").textContent = node.title || "";
+
+    var portThumb = document.getElementById("novelHeaderPortrait");
+    if (portThumb && typeof CHARACTER_IMAGES !== "undefined") {
+      var cKey = (node.char && node.char !== "ALL") ? node.char : state.currentChar;
+      portThumb.src = CHARACTER_IMAGES[cKey] || CHARACTER_IMAGES["A"];
+    }
+
+    currentParagraphs = node.paragraphs || [];
+    currentParagraphIndex = 0;
+
+    // 既読ノードであればスキップボタンを表示
+    var btnSkip = document.getElementById("btnSkipNovel");
+    if (btnSkip) {
+      btnSkip.classList.toggle("hidden", !isAlreadyVisited || (currentParagraphs.length <= 1));
+    }
+
+    var list = document.getElementById("paragraphsList");
+    list.innerHTML = "";
+    document.getElementById("choicesWrapper").classList.add("hidden");
+    document.getElementById("choicesWrapper").innerHTML = "";
+
+    showNextParagraph();
+    TimelineState.syncServer(node.title);
+  }
+
+  function showNextParagraph() {
+    var state = TimelineState.getState();
+    while (currentParagraphIndex < currentParagraphs.length) {
+      var pItem = currentParagraphs[currentParagraphIndex];
+      var pText = (typeof pItem === 'function') ? pItem(state) : pItem;
+      currentParagraphIndex++;
+
+      if (pText && typeof pText === 'string' && pText.trim().length > 0) {
+        AudioEngine.play('tap');
+        var pEl = document.createElement("p");
+        pEl.className = "para-in leading-relaxed";
+        pEl.innerHTML = pText;
+
+        // 428式：真エンド到達済みの場合は「オーガスト卿」TIPSを赤字化
+        if (TimelineState.hasClearedTrueEnd()) {
+          var augustLinks = pEl.querySelectorAll(".tip-link[data-tip='オーガスト卿']");
+          for (var a = 0; a < augustLinks.length; a++) {
+            augustLinks[a].classList.add("tip-link-red");
+          }
+        }
+
+        document.getElementById("paragraphsList").appendChild(pEl);
+
+        var tapZone = document.getElementById("novelTapZone");
+        tapZone.scrollTop = tapZone.scrollHeight;
+
+        // 次以降に表示すべき段落が残っているかを判定
+        var hasMore = false;
+        for (var pi = currentParagraphIndex; pi < currentParagraphs.length; pi++) {
+          var nextItem = currentParagraphs[pi];
+          var nextText = (typeof nextItem === 'function') ? nextItem(state) : nextItem;
+          if (nextText && typeof nextText === 'string' && nextText.trim().length > 0) {
+            hasMore = true;
+            break;
+          }
+        }
+
+        var prompt = document.getElementById("promptNext");
+        if (hasMore) {
+          prompt.classList.remove("hidden");
+        } else {
+          prompt.classList.add("hidden");
+          renderChoices();
+        }
+        return;
+      }
+    }
+
+    // 既に全段落を表示し終えている場合の画面タップ
+    var node = MASTER_DB.nodes[state.currentNodeKey];
+    if (node && node.isBadEnd) {
+      triggerBadEnd(node.id);
+    }
+  }
+
+  function renderChoices() {
+    var state = TimelineState.getState();
+    var node = MASTER_DB.nodes[state.currentNodeKey];
+    if (!node) return;
+
+    var wrapper = document.getElementById("choicesWrapper");
+    wrapper.innerHTML = "";
+    wrapper.classList.remove("hidden");
+
+    // BAD END ノード到達時の破滅結末ボタン（最優先で描画）
+    if (node.isBadEnd) {
+      var beBtn = document.createElement("button");
+      beBtn.className = "w-full text-left p-4 bg-gradient-to-r from-red-950/90 to-neutral-900 hover:from-red-900/90 hover:to-neutral-850 border-2 border-red-500 rounded-xl text-xs sm:text-sm font-black text-red-200 shadow-xl flex items-center justify-between group active:scale-[0.99] transition-all cursor-pointer animate-pulse";
+      beBtn.innerHTML = '<span class="group-hover:text-red-300">💀 破滅の結末へ……</span>'
+        + '<span class="text-red-400 font-mono text-xs font-bold">TERMINATED ▶</span>';
+      beBtn.onclick = function(e) {
+        e.stopPropagation();
+        triggerBadEnd(node.id);
+      };
+      wrapper.appendChild(beBtn);
+
+      var tapZone = document.getElementById("novelTapZone");
+      if (tapZone) tapZone.scrollTop = tapZone.scrollHeight;
+      return;
+    }
+
+    if (!node.choices) return;
+
+    var prog = TimelineState.getHourProgress();
+
+    // 428 アワー終端判定：Hour 1 終端（11:00）
+    if (node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") {
+      if (!prog.hour1.allClear) {
+        var tbcBtn = document.createElement("button");
+        tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group cursor-pointer";
+        tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
+          + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
+        tbcBtn.onclick = function(e) {
+          e.stopPropagation();
+          UIController.showToBeContinued(
+            node.char,
+            1,
+            "第1アワー（10:00〜11:00）を突破しました！",
+            "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
+          );
+        };
+        wrapper.appendChild(tbcBtn);
+        return;
+      } else {
+        // 全員がHour 1を突破した場合：428風予告編バナーを常設
+        var prevBtn = document.createElement("button");
+        prevBtn.className = "w-full text-left p-4 bg-gradient-to-r from-emerald-950/90 via-neutral-900 to-sky-950/90 border-2 border-emerald-400 rounded-xl text-xs sm:text-sm font-black text-emerald-200 shadow-xl flex items-center justify-between group cursor-pointer animate-pulse";
+        prevBtn.innerHTML = '<span>🎬【第1アワー突破！】ここまでのあらすじ ＆ 次章予告編を見る</span>'
+          + '<span class="text-emerald-400 font-mono text-xs">PREVIEW ▶</span>';
+        prevBtn.onclick = function(e) {
+          e.stopPropagation();
+          UIController.showHour1Preview();
+        };
+        wrapper.appendChild(prevBtn);
+
+        // 未閲覧なら初回自動表示
+        if (!state.hour1PreviewSeen) {
+          setTimeout(function() {
+            UIController.showHour1Preview();
+          }, 350);
+        }
+      }
+    }
+
+    // 428 アワー終端判定：Hour 2 終端（11:50）で他キャラが未完了の場合
+    if ((node.id === "A_1150" || node.id === "B_1150" || node.id === "C_1150") && !prog.hour2.allClear) {
+      var tbcBtn2 = document.createElement("button");
+      tbcBtn2.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group";
+      tbcBtn2.innerHTML = '<span>⏳【第2アワー完了】管制室スタンバイ（他キャラ待機）</span>'
+        + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
+      tbcBtn2.onclick = function(e) {
+        e.stopPropagation();
+        UIController.showToBeContinued(
+          node.char,
+          2,
+          "第2アワー（11:00〜12:00）を突破しました！",
+          "管制室に到達し、認証スタンバイに入りました。他の主人公たちをタワーへ導き、トリプル・シンクロを達成してください。"
+        );
+      };
+      wrapper.appendChild(tbcBtn2);
+      return;
+    }
+
+    node.choices.forEach(function(ch) {
+      // 古遺物3つ揃っていない場合はシークレット選択肢を完全非表示
+      if (ch.requiresSecretPieces) {
+        var flags = state.userFlags || [];
+        var hasA = flags.indexOf("PIECE_A") !== -1;
+        var hasB = flags.indexOf("PIECE_B") !== -1;
+        var hasC = flags.indexOf("PIECE_C") !== -1;
+        if (!hasA || !hasB || !hasC) {
+          return;
+        }
+      }
+      // クリア後限定選択肢（古遺物回収イベント）の非表示制御
+      if (ch.requiresClear && !TimelineState.hasClearedOnce()) {
+        return; // 1周目（未クリア時）は表示しない
+      }
+
+      // 選択肢のメタタグ（【…】）を安全に除去
+      var cleanText = ch.text ? ch.text.replace(/^【.*?】\s*/, '') : "";
+
+      // 1. checkSecret
+      if (ch.checkSecret) {
+        var btn = document.createElement("button");
+        btn.className = "w-full text-left p-3.5 bg-amber-900/40 hover:bg-amber-800/60 border border-amber-500 rounded-xl text-xs sm:text-sm font-bold text-amber-100 transition-all flex items-center justify-between group shadow-lg";
+        btn.innerHTML = '<span class="group-hover:text-amber-300 transition-colors">' + cleanText + '</span>'
+          + '<span class="text-amber-400 font-mono text-xs opacity-80 group-hover:opacity-100">結末へ -&gt;</span>';
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          AudioEngine.play('tap');
+          var flags = state.userFlags || [];
+          var hasA = flags.indexOf("PIECE_A") !== -1;
+          var hasB = flags.indexOf("PIECE_B") !== -1;
+          var hasC = flags.indexOf("PIECE_C") !== -1;
+          if (hasA && hasB && hasC) {
+            launchNode("TRUE_SECRET_END");
+          } else {
+            launchNode("NORMAL_CLEAR");
+          }
+        };
+        wrapper.appendChild(btn);
+        return;
+      }
+
+      // 2. checkTripleSync
+      if (ch.checkTripleSync) {
+        var btn = document.createElement("button");
+        btn.className = "w-full text-left p-3.5 bg-emerald-900/40 hover:bg-emerald-800/60 border border-emerald-500 rounded-xl text-xs sm:text-sm font-bold text-emerald-100 transition-all flex items-center justify-between group shadow-lg";
+        btn.innerHTML = '<span class="group-hover:text-emerald-300 transition-colors">' + cleanText + '</span>'
+          + '<span class="text-emerald-400 font-mono text-xs opacity-80 group-hover:opacity-100">同期確認 -&gt;</span>';
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          AudioEngine.play('tap');
+          if (ch.slot) {
+            state.slots[ch.slot] = ch.flagValue || true;
+          }
+          if (ch.setFlags) {
+            ch.setFlags.forEach(function(f) {
+              if (state.userFlags.indexOf(f) === -1) state.userFlags.push(f);
+              state.slots[f] = true;
+            });
+            TimelineState.rebuildFlags();
+          }
+          var flags = state.userFlags || [];
+          var isA = flags.indexOf("A_FREEDOM_DONE") !== -1;
+          var isB = flags.indexOf("B_EQUALITY_DONE") !== -1;
+          var isC = flags.indexOf("C_SOCIAL_DONE") !== -1;
+          if (isA && isB && isC) {
+            launchNode("CLIMAX_HUB");
+          } else {
+            var msg = "【トリプル・シンクロ待機中】\n";
+            if (!isA) msg += "・レンが東管制室へ未到着\n";
+            if (!isB) msg += "・エレナが西管制室へ未到着\n";
+            if (!isC) msg += "・ダニエルが南管制室へ未到着\n";
+            msg += "他の主人公へ切り替えてタワーへ導け！";
+            UIController.showToast(msg);
+            UIController.switchView('auth');
+            UIController.renderTimeBlockStatus();
+          }
+        };
+        wrapper.appendChild(btn);
+        return;
+      }
+
+      // 3. checkJump (KEEP OUT / Multi-branch / Cross-character trigger)
+      if (ch.checkJump) {
+        var btn = document.createElement("button");
+        btn.className = "w-full text-left p-3.5 bg-neutral-900 hover:bg-neutral-850 border border-neutral-750 hover:border-amber-500 rounded-xl text-xs sm:text-sm font-bold text-neutral-100 transition-all flex items-center justify-between group shadow-lg";
+        btn.innerHTML = '<span class="group-hover:text-amber-300 transition-colors">' + cleanText + '</span>'
+          + '<span class="text-amber-400 font-mono text-xs opacity-80 group-hover:opacity-100">調べる -&gt;</span>';
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          AudioEngine.play('tap');
+          if (ch.slot) {
+            state.slots[ch.slot] = ch.flagValue || true;
+          }
+          var cj = ch.checkJump;
+          var actualVal = state.slots[cj.slotKey];
+
+          // A. Multi-branch support
+          if (cj.branches && Array.isArray(cj.branches)) {
+            var matched = false;
+            for (var bi = 0; bi < cj.branches.length; bi++) {
+              var br = cj.branches[bi];
+              if (actualVal === br.value) {
+                matched = true;
+                launchNode(br.next);
+                break;
+              }
+            }
+            if (!matched) {
+              var defNext = cj.defaultNext || cj.onBlock || cj.onPass;
+              launchNode(defNext);
+            }
+            return;
+          }
+
+          // B. Legacy single expected condition
+          if (actualVal === cj.expected) {
+            launchNode(cj.onPass);
+          } else {
+            launchNode(cj.onBlock);
+          }
+        };
+        wrapper.appendChild(btn);
+        return;
+      }
+
+      // 4. lockCondition check
+      var isLocked = false;
+      if (ch.lockCondition && state.userFlags.indexOf(ch.lockCondition) === -1) {
+        isLocked = true;
+      }
+
+      var btn = document.createElement("button");
+      if (isLocked) {
+        var cleanLockedText = (ch.lockedText || "🔒 封印").replace(/^【.*?】\s*/, '');
+        btn.className = "w-full text-left p-3.5 bg-neutral-950 border border-neutral-800 rounded-xl text-xs sm:text-sm font-bold text-neutral-500 cursor-not-allowed flex items-center justify-between shadow opacity-60";
+        btn.innerHTML = '<span>' + cleanLockedText + '</span><span class="text-neutral-600 text-xs">🔒 封印</span>';
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          AudioEngine.play('badend');
+          UIController.showToast("この選択肢は歴史の改変により解禁されます。他のタイムラインを探索してください。");
+        };
+      } else {
+        var isNewUnlocked = ch.lockCondition && state.userFlags.indexOf(ch.lockCondition) !== -1;
+        btn.className = "w-full text-left p-3.5 bg-neutral-900 hover:bg-neutral-850 active:scale-[0.99] border " + (isNewUnlocked ? "border-amber-400 shadow-amber-500/20" : "border-neutral-750 hover:border-amber-500") + " rounded-xl text-xs sm:text-sm font-bold text-neutral-100 transition-all flex items-center justify-between group shadow-lg";
+        btn.innerHTML = '<span class="group-hover:text-amber-300 transition-colors">' + (isNewUnlocked ? '<span class="text-amber-400 font-black mr-1.5">🌟 NEW!</span>' : '') + cleanText + '</span>'
+          + '<span class="text-amber-400 font-mono text-xs opacity-80 group-hover:opacity-100">選択 -&gt;</span>';
+
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          AudioEngine.play('tap');
+          if (ch.action === "restartGame") {
+            // セーブデータ（hasClearedOnce, unlockedEndings, unlockedTips）は保持したまま、
+            // プレイ中のタイムライン進行（slots, currentNodeKey）を初期状態へ戻して再スタート
+            state.currentChar = "A";
+            state.currentNodeKey = "A_1000";
+            state.slots = {};
+            state.userFlags = [];
+            state.visitedNodes = ["A_1000"];
+            TimelineState.rebuildFlags();
+            TimelineState.saveLocal();
+            UIController.showToast("新たな探究の旅が始まります。注意深く歴史の痕跡を探してください。");
+            launchNode("A_1000");
+            return;
+          }
+          if (ch.action === "returnChart" || ch.action === "returnTitle") {
+            UIController.switchView('auth');
+            UIController.renderTimeBlockStatus();
+            return;
+          }
+          if (ch.fx === "flash") UIController.flashScreen();
+          if (ch.fx === "shake") UIController.shakeScreen();
+
+          if (ch.slot) {
+            state.slots[ch.slot] = ch.flagValue || true;
+          }
+          if (ch.setFlags && Array.isArray(ch.setFlags)) {
+            ch.setFlags.forEach(function(f) {
+              if (state.userFlags.indexOf(f) === -1) state.userFlags.push(f);
+              state.slots[f] = true;
+            });
+          }
+          TimelineState.rebuildFlags();
+
+          if (ch.next) {
+            launchNode(ch.next);
+          }
+        };
+      }
+      wrapper.appendChild(btn);
+    });
+  }
+
+  function triggerBadEnd(badEndId) {
+    var state = TimelineState.getState();
+    var node = MASTER_DB.nodes[badEndId];
+    if (!node) return;
+
+    if (node.unlockFlag) {
+      if (state.userFlags.indexOf(node.unlockFlag) === -1) {
+        state.userFlags.push(node.unlockFlag);
+      }
+      state.slots[node.unlockFlag] = true;
+      TimelineState.rebuildFlags();
+    }
+
+    state.unlockedEndings[badEndId] = true;
+    TimelineState.saveLocal();
+
+    // 【428 映画的シネマティック暗転トランジション】
+    var overlay = document.getElementById("vfxOverlay");
+    if (overlay) {
+      // フェーズ1：画面全体が漆黒へ滑らかにフェードアウト（0.5秒）
+      overlay.className = "absolute inset-0 pointer-events-none z-50 bg-black opacity-100 transition-opacity duration-500";
+    }
+
+    // フェーズ2：暗黒の静寂（0.5秒後に裏でDOM切り替え）
+    setTimeout(function() {
+      UIController.switchView('badend');
+
+      document.getElementById("badEndTimeBadge").textContent = node.time || "CHRONICLE";
+      document.getElementById("badEndCharBadge").textContent = "[" + (node.title || "BAD END") + "]";
+      document.getElementById("badEndTitle").textContent = node.title || "BAD END";
+
+      var paraContainer = document.getElementById("badEndParagraphs");
+      paraContainer.innerHTML = '<p class="leading-relaxed">' + (node.desc || "") + '</p>';
+
+      document.getElementById("badEndLesson").textContent = node.hint || "別の選択肢を試せ。";
+
+      var jumpBtn = document.getElementById("btnBadEndJump");
+      jumpBtn.onclick = function() {
+        AudioEngine.play('jump');
+        launchNode(node.jumpTarget || "A_1000");
+      };
+
+      TimelineState.syncServer(node.title);
+
+      // フェーズ3：重低音SE・画面激震・クリムゾンフラッシュでBAD END画面カットイン
+      setTimeout(function() {
+        AudioEngine.play('badend');
+        UIController.shakeScreen();
+        if (overlay) {
+          overlay.className = "absolute inset-0 pointer-events-none z-50 bg-red-600/40 transition-none";
+          setTimeout(function() {
+            overlay.className = "absolute inset-0 pointer-events-none z-50 bg-transparent transition-colors duration-500";
+          }, 120);
+        }
+      }, 150);
+    }, 500);
+  }
+
+  function showKeepOut(koNode) {
+    AudioEngine.play('badend');
+    UIController.switchView('keepout');
+
+    document.getElementById("keepOutReason").textContent = koNode.desc || "これ以上先へ進めない！";
+    document.getElementById("keepOutHint").textContent = koNode.jumpHint || "他の時間軸を調査せよ。";
+
+    var state = TimelineState.getState();
+    var flags = state.userFlags || [];
+
+    var isA = flags.indexOf("A_FREEDOM_DONE") !== -1;
+    var isB = flags.indexOf("B_EQUALITY_DONE") !== -1;
+    var isC = flags.indexOf("C_SOCIAL_DONE") !== -1;
+
+    var syncBoxA = document.getElementById("syncStatusA");
+    var syncTextA = document.getElementById("syncTextA");
+    if (syncBoxA && syncTextA) {
+      syncBoxA.className = "p-2 rounded-lg border " + (isA ? "bg-emerald-950/80 border-emerald-500 text-emerald-300 font-bold" : "bg-neutral-900 border-neutral-700 text-neutral-400");
+      syncTextA.textContent = isA ? "到達済 ✓" : "未到達";
+    }
+
+    var syncBoxB = document.getElementById("syncStatusB");
+    var syncTextB = document.getElementById("syncTextB");
+    if (syncBoxB && syncTextB) {
+      syncBoxB.className = "p-2 rounded-lg border " + (isB ? "bg-sky-950/80 border-sky-500 text-sky-300 font-bold" : "bg-neutral-900 border-neutral-700 text-neutral-400");
+      syncTextB.textContent = isB ? "到達済 ✓" : "未到達";
+    }
+
+    var syncBoxC = document.getElementById("syncStatusC");
+    var syncTextC = document.getElementById("syncTextC");
+    if (syncBoxC && syncTextC) {
+      syncBoxC.className = "p-2 rounded-lg border " + (isC ? "bg-amber-950/80 border-amber-500 text-amber-300 font-bold" : "bg-neutral-900 border-neutral-700 text-neutral-400");
+      syncTextC.textContent = isC ? "到達済 ✓" : "未到達";
+    }
+
+    var jumpBtn = document.getElementById("btnKeepOutJump");
+    jumpBtn.onclick = function() {
+      AudioEngine.play('jump');
+      launchNode(koNode.jumpTarget || "A_1000");
+    };
+
+    TimelineState.syncServer(koNode.title);
+  }
+
+  function triggerGoodEnd(node) {
+    AudioEngine.play('fanfare');
+    TimelineState.markCleared(node.id);
+
+    UIController.switchView('novel');
+    currentParagraphs = node.paragraphs || [];
+    currentParagraphIndex = 0;
+
+    var list = document.getElementById("paragraphsList");
+    list.innerHTML = "";
+    document.getElementById("choicesWrapper").classList.add("hidden");
+    document.getElementById("choicesWrapper").innerHTML = "";
+
+    showNextParagraph();
+    UIController.checkAllClearBadge();
+    TimelineState.syncServer(node.title);
+  }
+
+  function startTrueEndSequence() {
+    AudioEngine.play('fanfare');
+    TimelineState.markCleared("TRUE_SECRET_END");
+    trueEndStep = 0;
+
+    UIController.switchView('trueend');
+
+    document.getElementById("trueEndDramaContainer").classList.add("hidden");
+    document.getElementById("btnCertFromTrue").classList.add("hidden");
+    document.getElementById("btnProceedTrueEnd").classList.remove("hidden");
+    document.getElementById("btnProceedTrueEnd").textContent = "解析を開始する ->";
+    document.getElementById("scanStatusText").textContent =
+      "システム音声：『光学スキャナ上に3つの遺物を確認。画像解析を開始します……』";
+  }
+
+  function advanceTrueEnd() {
+    trueEndStep++;
+    AudioEngine.play('scan');
+
+    var statusText = document.getElementById("scanStatusText");
+    var dramaBox = document.getElementById("trueEndDramaContainer");
+    var actTitle = document.getElementById("trueEndActTitle");
+    var actContent = document.getElementById("trueEndActContent");
+    var btnNext = document.getElementById("btnProceedTrueEnd");
+
+    if (trueEndStep === 1) {
+      document.getElementById("decodeTextA").textContent = "『東 京 都 新 宿 区』";
+      document.getElementById("decodeTextA").className = "font-black text-sm text-emerald-400 tracking-wider";
+      statusText.textContent = "『レンの防弾鉄板：欠損部を古代日本語データベースと照合。旧・日本国首都「東京都新宿区」の道路案内標識と特定！』";
+      btnNext.textContent = "次の遺物を解析 ->";
+    } else if (trueEndStep === 2) {
+      document.getElementById("decodeTextB").textContent = "『日 本 国 憲 法 第 三 章』";
+      document.getElementById("decodeTextB").className = "font-black text-sm text-sky-400 tracking-wider";
+      statusText.textContent = "『エレナの真鍮銘板：旧国家最高法規「日本国憲法 第3章 原本保管庫」の封印銘板と特定！』";
+      btnNext.textContent = "次の遺物を解析 ->";
+    } else if (trueEndStep === 3) {
+      document.getElementById("decodeTextC").textContent = "『厚 生 労 働 省』";
+      document.getElementById("decodeTextC").className = "font-black text-sm text-amber-400 tracking-wider";
+      statusText.textContent = "『ダニエルの救急箱：旧・日本国政府「厚生労働省 災害備蓄用医療箱」の公的刻印と特定！』";
+      btnNext.textContent = "最終判定を下す ->";
+    } else if (trueEndStep === 4) {
+      AudioEngine.play('chime');
+      statusText.textContent = "システム音声：『旧最高法規「日本国憲法」の認証に成功。都市全域の基本行政OSを【主権在民・基本的人権の尊重】へ上書きします。』";
+
+      dramaBox.classList.remove("hidden");
+      actTitle.textContent = "ACT 1 // 条文の返還と人間性の回復";
+      actContent.innerHTML = [
+        '<p class="para-in">端末から噴き上がった黄金の光が、中枢タワーの全モニターを書き換えていく。そこには、支配者たちが80年隠蔽し続けた「人間が人間として生きるための絶対の約束」が並んでいた。</p>',
+        '<div class="p-3 bg-neutral-950/80 border-l-4 border-emerald-500 rounded space-y-1">',
+        '  <div class="text-xs font-black text-emerald-400">『第十三条 すべて国民は、個人として尊重される。』</div>',
+        '  <div class="text-[11px] text-neutral-300">首輪のロックが全スラムで一斉に跳ね飛んだ。レンは首筋の冷たい鉄が外れた感触に息を呑み、拳を握りしめた。「俺たちは、誰かの利益のための歯車や消耗品じゃない。生きてるだけで尊重されるべき人間だったんだ！」</div>',
+        '</div>',
+        '<div class="p-3 bg-neutral-950/80 border-l-4 border-sky-500 rounded space-y-1">',
+        '  <div class="text-xs font-black text-sky-400">『第十四条 すべて国民は、法の下に平等であつて、門地により差別されない。』</div>',
+        '  <div class="text-[11px] text-neutral-300">貴族データベースの特権フラグが消滅していく。エレナは制服から貴族章を引きちぎり、床へ投げ捨てた。「生まれた血筋で命の価値が決まる掟は、今この瞬間に終わったわ。今日から私たちは、ただの同じ人間よ！」</div>',
+        '</div>',
+        '<div class="p-3 bg-neutral-950/80 border-l-4 border-amber-500 rounded space-y-1">',
+        '  <div class="text-xs font-black text-amber-400">『第二十五条 すべて国民は、健康で文化的な最低限度の生活を営む権利を有する。』</div>',
+        '  <div class="text-[11px] text-neutral-300">スラムの送電・送水メーターが全開になり、診療所のモニターが青い光に満たされた。ダニエルは白衣を握りしめ、天を仰いだ。「働けぬ者は飢えて死ねという時代は終わった……！ 人間である限り、社会全体で命を守り合うんだ！」</div>',
+        '</div>'
+      ].join("");
+
+      btnNext.textContent = "奇跡の再会へ（最終幕） ->";
+    } else if (trueEndStep === 6) {
+      AudioEngine.play('fanfare');
+      actTitle.textContent = "ACT 3 // 母と子、そして新世紀へ";
+      actContent.innerHTML = [
+        '<div class="p-3 bg-neutral-950/80 border-l-4 border-emerald-400 rounded space-y-1">',
+        '  <div class="text-xs font-black text-emerald-400">【17年の歳月を超えた絆】</div>',
+        '  <div class="text-[11px] text-neutral-300">タワー地上広場へ降り立った三人の前へ、スラムから駆けつけたマーサが涙を流して歩み寄る。その震える手には、17年間片時も離さず抱きしめ続けていた青い産着の片割れが握られていた。</div>',
+        '</div>',
+        '<p class="para-in text-xs text-neutral-300 leading-relaxed">レンは胸元の擦り切れた青い布を取り出し、母の布とそっと重ね合わせた。17年の断絶を超え、繊維のほつれが寸分違わず噛み合う——命と愛の証だった。「……ただいま、母さん」。溢れる涙を止められない抱擁に、広場中から地鳴りのような歓声と拍手が湧き起こる。</p>',
+        '<p class="para-in text-xs text-neutral-300 leading-relaxed">エレナとダニエルは互いに頷き合い、朝陽に照らされた東京の空を見上げた。人間として生まれた誰もが尊重され、平等に生き、命を守られる世界——新しい日本の歴史が、ここから始まるのだ。</p>'
+      ].join("");
+
+      btnNext.classList.add("hidden");
+      document.getElementById("btnCertFromTrue").classList.remove("hidden");
+    }
+  }
+
+  function switchChar(charId) {
+    var state = TimelineState.getState();
+    var prog = TimelineState.getHourProgress();
+
+    if (charId === "B") {
+      if (state.visitedNodes.indexOf("A_1045_WATERGATE") === -1 && state.visitedNodes.indexOf("A_1100") === -1 && state.visitedNodes.indexOf("B_1000") === -1) {
+        AudioEngine.play('badend');
+        UIController.showToast("電磁ロックに遮られている……。レン編のタイムラインを進め、因果を動かせ。");
+        return;
+      }
+    }
+    if (charId === "C") {
+      if (state.visitedNodes.indexOf("B_1030_OPEN") === -1 && state.visitedNodes.indexOf("B_1100") === -1 && state.visitedNodes.indexOf("C_1000") === -1) {
+        AudioEngine.play('badend');
+        UIController.showToast("地下隔壁が硬く閉ざされている……。未だ因果が交わっていない。他の時間軸を探索せよ。");
+        return;
+      }
+    }
+
+    AudioEngine.play('tap');
+    state.currentChar = charId;
+    UIController.updateHeaderTabs();
+
+    // 428 アワーごとの適切なスタートノード決定
+    if (prog.hour1.allClear) {
+      var hour2Starts = { A: "A_1100", B: "B_1100", C: "C_1100" };
+      launchNode(hour2Starts[charId] || "A_1100");
+    } else {
+      var startNodes = { A: "A_1000", B: "B_1000", C: "C_1000" };
+      launchNode(startNodes[charId] || "A_1000");
+    }
+  }
+
+  function skipToChoices() {
+    AudioEngine.play('jump');
+    var list = document.getElementById("paragraphsList");
+    if (!list) return;
+    list.innerHTML = "";
+    for (var i = 0; i < currentParagraphs.length; i++) {
+      var pEl = document.createElement("p");
+      pEl.className = "para-in leading-relaxed";
+      pEl.innerHTML = currentParagraphs[i];
+
+      // 428式：真エンド到達済みの場合は「オーガスト卿」TIPSを赤字化
+      if (TimelineState.hasClearedTrueEnd()) {
+        var augustLinks = pEl.querySelectorAll(".tip-link[data-tip='オーガスト卿']");
+        for (var a = 0; a < augustLinks.length; a++) {
+          augustLinks[a].classList.add("tip-link-red");
+        }
+      }
+
+      list.appendChild(pEl);
+    }
+    currentParagraphIndex = currentParagraphs.length;
+    var prompt = document.getElementById("promptNext");
+    if (prompt) prompt.classList.add("hidden");
+    var btnSkip = document.getElementById("btnSkipNovel");
+    if (btnSkip) btnSkip.classList.add("hidden");
+    renderChoices();
+    var tapZone = document.getElementById("novelTapZone");
+    if (tapZone) tapZone.scrollTop = tapZone.scrollHeight;
+  }
+
+  return {
+    launchNode: launchNode,
+    showNextParagraph: showNextParagraph,
+    skipToChoices: skipToChoices,
+    switchChar: switchChar,
+    advanceTrueEnd: advanceTrueEnd
+  };
+})();
+
+// DOMContentLoaded & 各種イベントリスナー登録
+document.addEventListener("DOMContentLoaded", function() {
+  TimelineState.loadLocal();
+  UIController.renderTimeBlockStatus();
+  UIController.checkAllClearBadge();
+
+  // キャラクターローンチボタン (A, B, C, CLIMAX)
+  var launchBtns = document.querySelectorAll(".char-launch-btn");
+  launchBtns.forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var targetChar = btn.getAttribute("data-launch");
+      if (targetChar === "CLIMAX") {
+        AudioEngine.play('fanfare');
+        GameEngine.launchNode("CLIMAX_HUB");
+        return;
+      }
+
+      var prog = TimelineState.getHourProgress();
+
+      // 待機中の主人公を押した場合は親切な選択モーダルを開く
+      var isWaitingH1 = (!prog.hour1.allClear && prog.hour1[targetChar]);
+      var isWaitingH2 = (prog.hour1.allClear && !prog.hour2.allClear && prog.hour2[targetChar]);
+      if (isWaitingH1 || isWaitingH2) {
+        AudioEngine.play('tap');
+        UIController.showCharWaitOption(targetChar, isWaitingH1 ? 1 : 2);
+        return;
+      }
+
+      GameEngine.switchChar(targetChar);
+    });
+  });
+
+  // ロックカードタップ時の親切案内
+  var lockB = document.getElementById("lockOverlayB");
+  if (lockB) {
+    lockB.addEventListener("click", function(e) {
+      e.stopPropagation();
+      AudioEngine.play('badend');
+      UIController.showToast("🔒【エレナ編】はレン編の運命交差によりアンロックされます。");
+    });
+  }
+
+  var lockC = document.getElementById("lockOverlayC");
+  if (lockC) {
+    lockC.addEventListener("click", function(e) {
+      e.stopPropagation();
+      AudioEngine.play('badend');
+      UIController.showToast("🔒【ダニエル編】は他の時間軸の因果によってアンロックされます。");
+    });
+  }
+
+  // 画面タップで段落進行
+  var novelTap = document.getElementById("novelTapZone");
+  if (novelTap) {
+    novelTap.addEventListener("click", function() {
+      GameEngine.showNextParagraph();
+    });
+  }
+
+  // ヘッダー切り替えタブ
+  var tabA = document.getElementById("tabCharA");
+  if (tabA) tabA.addEventListener("click", function() { GameEngine.switchChar("A"); });
+  var tabB = document.getElementById("tabCharB");
+  if (tabB) tabB.addEventListener("click", function() { GameEngine.switchChar("B"); });
+  var tabC = document.getElementById("tabCharC");
+  if (tabC) tabC.addEventListener("click", function() { GameEngine.switchChar("C"); });
+
+  // ホーム・チャート・TIPS
+  var btnHome = document.getElementById("btnHome");
+  if (btnHome) {
+    btnHome.addEventListener("click", function() {
+      AudioEngine.play('tap');
+      UIController.switchView('auth');
+      UIController.renderTimeBlockStatus();
+    });
+  }
+
+  var btnChart = document.getElementById("btnChart");
+  if (btnChart) {
+    btnChart.addEventListener("click", function() {
+      UIController.openChart();
+    });
+  }
+
+  var btnCloseChart = document.getElementById("btnCloseChart");
+  if (btnCloseChart) {
+    btnCloseChart.addEventListener("click", function() {
+      UIController.closeChart();
+    });
+  }
+
+  var btnCloseTip = document.getElementById("btnCloseTip");
+  if (btnCloseTip) {
+    btnCloseTip.addEventListener("click", function() {
+      UIController.closeTip();
+    });
+  }
+
+  // TIPSリンク委譲クリック
+  document.addEventListener("click", function(e) {
+    var tipTarget = e.target.closest(".tip-link");
+    if (tipTarget) {
+      e.stopPropagation();
+      var term = tipTarget.getAttribute("data-tip");
+      if (term) UIController.openTip(term);
+    }
+  });
+
+  // TRUE END 進行ボタン
+  var btnProceedTrue = document.getElementById("btnProceedTrueEnd");
+  if (btnProceedTrue) {
+    btnProceedTrue.addEventListener("click", function() {
+      GameEngine.advanceTrueEnd();
+    });
+  }
+
+  // 表彰状ボタン
+  var btnCertTrue = document.getElementById("btnCertFromTrue");
+  if (btnCertTrue) {
+    btnCertTrue.addEventListener("click", function() {
+      CertRenderer.openModal();
+    });
+  }
+
+  var btnCertBanner = document.getElementById("btnCertFromBanner");
+  if (btnCertBanner) {
+    btnCertBanner.addEventListener("click", function() {
+      CertRenderer.openModal();
+    });
+  }
+
+  var btnCertChart = document.getElementById("btnChartCertDownload");
+  if (btnCertChart) {
+    btnCertChart.addEventListener("click", function() {
+      CertRenderer.openModal();
+    });
+  }
+
+  var btnCloseCertTop = document.getElementById("btnCloseCertTop");
+  if (btnCloseCertTop) {
+    btnCloseCertTop.addEventListener("click", function() {
+      CertRenderer.closeModal();
+    });
+  }
+
+  var btnCloseCertBottom = document.getElementById("btnCloseCertBottom");
+  if (btnCloseCertBottom) {
+    btnCloseCertBottom.addEventListener("click", function() {
+      CertRenderer.closeModal();
+    });
+  }
+
+  var btnDownloadPdf = document.getElementById("btnDownloadPdf");
+  if (btnDownloadPdf) {
+    btnDownloadPdf.addEventListener("click", function() {
+      CertRenderer.downloadPdf();
+    });
+  }
+});
+</script>

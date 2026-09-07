@@ -1,0 +1,830 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report version="1.0" timestamp="2026-09-05T21:55:00+09:00">
+  <project>
+    <name>パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜</name>
+    <engine>GAS 428-Style Multi-Sight Educational Sound Novel Engine</engine>
+    <platform>Google Apps Script (HtmlService) + Vanilla JS + Web Audio API + Tailwind CSS</platform>
+    <repository_path>/mnt/chromeos/shared/GoogleDrive/MyDrive/Obsidian Vault/Obsidian00/spacebro2/107</repository_path>
+    <deployed_webapp_url>https://script.google.com/macros/s/AKfycbxMWB3x-2turGZr0QWG3qpsjQMwh_8aoMXh382y4ZtI3PrzFrdi_0sZv3CWRp7UpDLz/exec</deployed_webapp_url>
+  </project>
+
+  <!-- ====================================================================== -->
+  <!-- 1. 修正の必要性 (NECESSITY)                                             -->
+  <!-- ====================================================================== -->
+  <necessity>
+    <overview>
+      ユーザー様による実機テストプレイのフィードバックに基づき、ディストピア教育サウンドノベルとしての世界観保全、428型マルチサイトシステムとしての論理整合性、劇的演出の不足、およびUI/UX上の操作不能バグを抜本的に解決する必要が生じた。
+    </overview>
+
+    <issue id="ISSUE_01" category="WorldBuilding">
+      <title>「東京湾」実在地名の唐突なネタバレによる世界観崩壊</title>
+      <symptom>
+        BAD END（BAD_02等）において「東京湾の海底トンネルへと沈んでいった」と実在の地名が記述されていた。
+      </symptom>
+      <impact>
+        本作は架空のディストピア都市「パラレル・ジャパニア」における人権剥奪の歴史を追体験するミステリ構造を有している。実在地名が早期に露呈することで、プレイヤーの没入感が完全に破壊され、都市の謎や憲法学習の文脈が損なわれる致命的欠陥となっていた。
+      </impact>
+    </issue>
+
+    <issue id="ISSUE_02" category="NarrativeLogic">
+      <title>未対面の主人公3人による不自然な「事前示し合わせ」描写</title>
+      <symptom>
+        11:50の各主人公シナリオにおいて、レンが「西と南の仲間」、エレナが「東と南の同志」、ダニエルが「東と西の仲間」と発言し、同期信号の合図を取り合っていた。
+      </symptom>
+      <impact>
+        3人はスラムの逃亡犯（レン）、統治政庁の総裁令嬢（エレナ）、反乱区の闇医者（ダニエル）であり、それぞれ全く異なる動機で中央統治タワーへ別個に潜入している。互いの素性も知らず接触もしていないはずの3人が事前に作戦合意しているかのように振る舞うため、ドラマの説得力が著しく破綻していた。
+      </impact>
+    </issue>
+
+    <issue id="ISSUE_03" category="HourProgression">
+      <title>ダニエル11:00オーバーランとアワー終端同期の破綻</title>
+      <symptom>
+        ダニエルが3人目に11:00へ到達した際、第1アワー（10:00〜11:00）の停止待機をすり抜け、そのまま11:10へ突入してしまうバグが存在した。
+      </symptom>
+      <impact>
+        428型ノベルゲームの根幹である「全主人公が同じアワー境界（11:00）に揃うことで次章が解放される」タイムブロック進行が破綻し、1アワー終了時のドラマ的区切りや章間演出が成立しなくなっていた。
+      </impact>
+    </issue>
+
+    <issue id="ISSUE_04" category="UI_UX">
+      <title>キャラ選択画面における待機中キャラクターの選択不能・ブロックUI</title>
+      <symptom>
+        第1アワーをクリアしたキャラクターのカードをクリックすると、トースト通知（「クリア済みです」）が表示されて処理が即座に`return`され、選択画面から一切操作できなくなっていた。
+      </symptom>
+      <impact>
+        他主人公をBAD ENDやKEEP OUTから救出するために過去の選択肢をやり直したい（バタフライエフェクトを起こしたい）場合でも、クリア済みキャラのタイムライン画面へ移動できず、プレイヤーがゲーム進行不能に陥る極めて劣悪なユーザー体験であった。
+      </impact>
+    </issue>
+
+    <issue id="ISSUE_05" category="ClimaxStructure">
+      <title>クライマックスの単一ファイル化および箇条書きダイジェストによる矮小化</title>
+      <symptom>
+        クライマックスシナリオが`scenario_climax.html`の1ファイルに集約され、「・レン：… ・エレナ：… ・ダニエル：…」と箇条書きのような要約調で記述されていた。
+      </symptom>
+      <impact>
+        180分のタイムサスペンスの集大成であるタワー突入劇が薄っぺらいダイジェストになっており、各主人公が背負ってきた三大基本的人権（自由権・平等権・社会権）の葛藤や信念がまったく描写されず、感動と緊迫感が欠如していた。
+      </impact>
+    </issue>
+
+    <issue id="ISSUE_06" category="GimmickConsistency">
+      <title>未収集（1周目）時における「古遺物（アーティファクト）」選択肢のネタバレ・論理破綻</title>
+      <symptom>
+        1周目で古遺物の破片を収集していないにもかかわらず、クライマックスの分岐ノードにおいて「三人が持ち寄った古遺物をスキャナのトレイへ並べ……」という文言や選択肢が表示されていた。
+      </symptom>
+      <impact>
+        持っていないアイテムを前提とした選択肢が出る論理矛盾が発生し、周回プレイ用のシークレットギミックが1周目でネタバレされてしまう設計上の重大な瑕疵であった。
+      </impact>
+    </issue>
+
+    <issue id="ISSUE_07" category="TIPS_Spoilers">
+      <title>「オーガスト卿」TIPSにおける序盤からの重大結末ネタバレ</title>
+      <symptom>
+        ゲーム開始直後（10:00時点）のTIPS一覧において、「オーガスト卿」の項目に「実は娘思いの苦渋の男」「真エンドで見れるよ」といった裏設定やエンディング条件が明記されていた。
+      </symptom>
+      <impact>
+        プレイヤーが本編で独裁者の動機や娘エレナとの愛憎劇を体験する前に結末が暴露され、サスペンスの緊張感と428特有の「クリア後に追加される赤字TIPSのサプライズ」が完全に台無しになっていた。
+      </impact>
+    </issue>
+
+    <issue id="ISSUE_08" category="Direction">
+      <title>428風「章間予告編（INTERMISSION / PREVIEW）」の不在</title>
+      <symptom>
+        第1アワー（10:00〜11:00）を突破した際、何のエフェクトやドラマ的演出もなく唐突に次章へ進んでいた。
+      </symptom>
+      <impact>
+        名作『428 〜封鎖された渋谷で〜』の象徴である「1時間ごとの緊迫したあらすじ要約と次章の不穏なキーワード予告編」がなく、プレイヤーの達成感と次章へのモチベーション喚起が不足していた。
+      </impact>
+    </issue>
+  </necessity>
+
+  <!-- ====================================================================== -->
+  <!-- 2. 修正方針 (POLICY)                                                    -->
+  <!-- ====================================================================== -->
+  <policy>
+    <principle name="FictionalIntegrity">
+      <title>架空世界観の完全死守（「ジャパニア湾」「海底水路」への統一）</title>
+      <description>
+        現実の地名（東京湾等）を一切排除し、「ジャパニア湾」「海底水路」へと改訂。ディストピア管理都市の孤立性と謎を維持する。
+      </description>
+    </principle>
+
+    <principle name="OrganicConvergence">
+      <title>「3重複合セキュリティ」設定による必然的・自律的な三者合流</title>
+      <description>
+        独裁者オーガスト卿が自身の部下によるクーデターを極度に警戒し、中央統治中枢のセキュリティを「東翼（軍事防衛）」「西翼（政庁電算）」「南翼（生命インフラ）」の3系統に分割監視させていた作中理由を確立。
+        3人は別々の侵入ルートから各系統をハッキング・制圧した結果、コンソールに鳴り響く「警告：他系統への不正アクセス検知」によって互いの存在を初めて知り、見知らぬ同志の奮戦を感じ取る展開へと全面改訂する。
+      </description>
+    </principle>
+
+    <principle name="StrictHourSync">
+      <title>アワー境界（11:00）の完全同期とシネマティック予告編（INTERMISSION）</title>
+      <description>
+        `A_1100`, `B_1100`, `C_1100` を厳格な待機ゲートとして同期。3人全員が11:00に到達した瞬間に、Web Audio APIによるプロシージャル・シンセジングルを再生し、第1アワーのあらすじ（Recap）と第2アワーの予告（Teaser）を表示する428スタイルの中間幕間演出を自動発動させる。
+      </description>
+    </principle>
+
+    <principle name="UnrestrictedUX">
+      <title>キャラクター選択の常時解放（親切なディスパッチモーダル）</title>
+      <description>
+        クリア済み・待機中キャラのクリックブロックを全廃。クリック時は「待機中主人公の行動選択モーダル」を提示し、
+        1. 「現在のシーンを読む（進行状況確認）」
+        2. 「タイムラインを開く（過去の分岐へJUMPして選択肢を変更）」
+        3. 「閉じる（他の主人公を選択）」
+        をプレイヤーが自由に選択できるようにする。
+      </description>
+    </principle>
+
+    <principle name="ThreePerspectiveClimax">
+      <title>クライマックスシナリオの3ファイル独立分割と合流ハブ構造</title>
+      <description>
+        クライマックスを単一ファイルから3つの独立ファイルに分割：
+        - `scenario_climax_ren.html`（レン視点：野良犬の怒りと電磁首輪の因縁、母の形見）
+        - `scenario_climax_elena.html`（エレナ視点：父オーガスト卿との対峙、特権階級の贖罪）
+        - `scenario_climax_daniel.html`（ダニエル視点：医師の誓約と生命の尊厳、夜警国家の打破）
+        3つの視点を体験した後、`scenario_climax.html`の合流ハブ（`CLIMAX_CONVERGE_HUB`）へ集結し、428本来の「せーのッ！」同時キー押しと全結末分岐へ進むアーキテクチャとする。
+      </description>
+    </principle>
+
+    <principle name="StateGatedArtifacts">
+      <title>古遺物フラグによるシークレット選択肢の完全隠蔽</title>
+      <description>
+        `requiresSecretPieces: true` 属性を導入。`PIECE_A`, `PIECE_B`, `PIECE_C` の3つすべてがプレイヤーフラグに揃っていない限り、古遺物に関するテキストおよび選択肢をUIから完全に消去し、1周目は新憲法夜明けエンド（`NORMAL_CLEAR`）へ直行させる。
+      </description>
+    </principle>
+
+    <principle name="TieredTIPS">
+      <title>TIPSの段階的開示（クリア前は公的情報、真エンドクリア後に赤字手記を解放）</title>
+      <description>
+        クリア前の「オーガスト卿」TIPSから真エンドネタバレを削除し、配給公社総裁としての冷酷な横顔と日本国憲法第99条（最高法規・憲法尊重擁護義務）の解説にとどめる。真エンド到達時に隠された手記（外伝追想録）を解放する。
+      </description>
+    </principle>
+  </policy>
+
+  <!-- ====================================================================== -->
+  <!-- 3. 修正差分および実装詳細 (MODIFICATIONS & DIFFS)                         -->
+  <!-- ====================================================================== -->
+  <modifications>
+
+    <!-- 1. scenario_climax.html -->
+    <file path="scenario_climax.html" action="MODIFY">
+      <summary>
+        「東京湾」記述の排除、箇条書きクライマックスの撤廃、個別視点から合流するハブ（CLIMAX_CONVERGE_HUB）の新設、同時押し意思決定ノード（CLIMAX_DECISION）の刷新、古遺物3種未所持時の完全隠蔽ロジックの実装。
+      </summary>
+      <diff>
+        <change target="地名ネタバレの修正 (BAD_02)">
+          <before><![CDATA[
+      "レンの体は冷たい東京湾の海底トンネルへと沈んでいった。"
+          ]]></before>
+          <after><![CDATA[
+      "レンの体は冷たいジャパニア湾の暗黒の海底水路へと沈んでいった。"
+          ]]></after>
+        </change>
+
+        <change target="クライマックス合流ハブおよび個別視点選択の導入">
+          <before><![CDATA[
+  // 12:00 タワー最上階・中央管制室突入
+  "CLIMAX_START": {
+    id: "CLIMAX_START", char: "ALL", charName: "三人の集結", time: "12:00",
+    stage: "12:00 中央統治タワー最上階・中央管制室", title: "三つの光の激突",
+    paragraphs: [
+      "ガシャァァンッ！",
+      "重厚な二重隔壁が火花を散らして吹き飛び、三つの影が同時に部屋へとなだれ込んだ！",
+      "・レン：首輪から青白い火花を散らし、鉄パイプを構えた少年の瞳には怒りの炎が宿る。",
+      "・エレナ：泥で汚れたドレスの裾を気に留めることもなく、データ端末を握りしめた令嬢。",
+      "・ダニエル：煤にまみれた白衣を翻し、聴診器を首に巻いた医師の眼差しには悲壮な決意があった。"
+    ],
+    choices: [ ... ]
+  }
+          ]]></before>
+          <after><![CDATA[
+  // 12:00 タワー最上階・中央管制室突入（3視点選択ハブ）
+  "CLIMAX_START": {
+    id: "CLIMAX_START", char: "ALL", charName: "三人の集結", time: "12:00",
+    stage: "12:00 中央統治タワー最上階・三方ゲート", title: "三つの光の激突（視点選択）",
+    paragraphs: [
+      "ガシャァァンッ！",
+      "東・西・南の三重隔壁が火花を散らして同時に吹き飛び、タワー最上階の円形チャンバーへ三つの影がなだれ込んだ！",
+      "首輪から青白い火花を散らし鉄パイプを構えるスラムの少年レン、データ端末を握りしめ泥にまみれたドレスのエレナ、煤けた白衣を翻し工具バーを構える医師ダニエル。",
+      "誰が敵で、誰が味方かもわからぬ極限の混乱の中、それぞれの主観と運命が激突する！ まず誰の視点からこの決戦へ挑むか！？"
+    ],
+    choices: [
+      {
+        text: "【レン視点】野良犬の怒りを解き放ち、首輪の爆破カウントダウンに抗う！",
+        next: "CLIMAX_REN_START"
+      },
+      {
+        text: "【エレナ視点】父オーガスト卿の玉座へ！ 特権階級の罪を自ら告発する！",
+        next: "CLIMAX_ELENA_START"
+      },
+      {
+        text: "【ダニエル視点】命を見殺しにさせない！ 医師の誓約で間へ割って入る！",
+        next: "CLIMAX_DANIEL_START"
+      }
+    ]
+  },
+
+  // 12:15 三者合流・統治中枢展開（個別視点を経た後の結集点）
+  "CLIMAX_CONVERGE_HUB": {
+    id: "CLIMAX_CONVERGE_HUB", char: "ALL", charName: "三者の集結", time: "12:15",
+    stage: "12:15 中央統治タワー最上階・中枢コンソール", title: "三つの光の結集",
+    paragraphs: [
+      "言葉は少なくとも、三人は互いの瞳の奥にあるものを確かに悟った。",
+      "自由を求めて走ってきた少年レン。平等を求めて特権を捨てた令嬢エレナ。命の尊厳を守るために立ち上がった医師ダニエル。",
+      "「……敵じゃねえ。オレたちは、同じ目的でここまで来たんだ」レンの鉄パイプを握る指から力が抜ける。",
+      "エレナもスタンガンを収め、固く頷いた。「ええ。父が敷いた身分制度と冷酷な搾取を、今こそ終わらせます！」",
+      "ダニエルも白衣の煤を払い、二人に力強い視線を送った。「命に優劣などない。人間が人間として明日を生きる権利を、この都市に取り戻すんだ！」",
+      "ホール中央の巨大メインフレームが三人の生体反応を感知し、青白く脈動を始めた。東・西・南の端末から承認シグナルが同期し、最終停止コンソールが厳かにせり上がってくる！"
+    ],
+    choices: [
+      {
+        text: "三つの管制スロットを連動させ、シャットダウン最終意思決定へ進む！",
+        next: "CLIMAX_DECISION",
+        slot: "CLIMAX_HUB_ACTION",
+        flagValue: "START_DECISION"
+      },
+      {
+        text: "迫る哨戒ドローンの接近音に焦り、三人の認証を待たずに主電源ケーブルを工具で叩き折る！",
+        next: "BAD_21",
+        slot: "CLIMAX_HUB_ACTION",
+        flagValue: "SEVER_CABLE",
+        fx: "flash"
+      }
+    ]
+  }
+          ]]></after>
+        </change>
+
+        <change target="古遺物（アーティファクト）選択肢の厳密な条件分岐化">
+          <before><![CDATA[
+  "ENDING_BRANCH": {
+    ...
+    choices: [
+      {
+        text: "新憲法の夜明け、自由な未来へ踏み出す！",
+        next: "NORMAL_CLEAR"
+      },
+      {
+        text: "三人が持ち寄った古遺物をスキャナのトレイへ並べ、失われた世界の真実を開示する！",
+        checkSecret: true
+      }
+    ]
+  }
+          ]]></before>
+          <after><![CDATA[
+  "ENDING_BRANCH": {
+    ...
+    paragraphs: [
+      "タワーの外壁ガラスが開き、爽やかな海風が吹き込んできた。",
+      "街からは、何十年ぶりかに響く人々の歓声と歌声が聞こえてくる。",
+      function(state) {
+        var flags = state.userFlags || [];
+        var hasA = flags.indexOf("PIECE_A") !== -1;
+        var hasB = flags.indexOf("PIECE_B") !== -1;
+        var hasC = flags.indexOf("PIECE_C") !== -1;
+        if (hasA && hasB && hasC) {
+          return "その時、三人が道中で手に入れた謎の金属板が、青く眩い光を放ちながら共鳴を始めた……！ 隠蔽されていた真実の歴史、失われた古文書の扉が今まさに開かれようとしている！";
+        }
+        return "自由と平等、そして命の尊厳を勝ち取った三人は、確かな足取りで新たな時代の夜明けへと踏み出した。";
+      }
+    ],
+    choices: [
+      {
+        text: "新憲法の夜明け、自由な未来へ踏み出す！",
+        next: "NORMAL_CLEAR"
+      },
+      {
+        text: "共鳴する三つの古遺物に従い、失われた世界の真実へ進む（周回・全古遺物限定）",
+        checkSecret: true,
+        requiresSecretPieces: true
+      }
+    ]
+  }
+          ]]></after>
+        </change>
+      </diff>
+    </file>
+
+    <!-- 2. scenario_climax_ren.html (NEW) -->
+    <file path="scenario_climax_ren.html" action="NEW">
+      <summary>
+        レン視点専用のクライマックスノベル。東翼防衛軍事区から最上階への突入、電磁首輪の自爆カウントダウンの焦燥、母の形見のペンダント（自由権の象徴）による葛藤、他2人の侵入者との初対峙を描き、CLIMAX_CONVERGE_HUBへ合流。
+      </summary>
+      <details><![CDATA[
+定義定数: SCENARIO_CLIMAX_REN
+構成ノード:
+- "CLIMAX_REN_START" (12:00 東翼非常排気ハッチ蹴破り突入、首輪自爆リミット3分、銃口を向けて警戒)
+- "CLIMAX_REN_STANDOFF" (12:05 令嬢エレナと医師ダニエルとの対峙、親友シンの死を想う野良犬の慟哭)
+- "CLIMAX_REN_ACTION" (12:10 東翼軍事管制端末の安全装置解除、他2名のハッキング痕跡への気づき)
+分岐:
+- 選択肢1: 仲間を信じて東翼管制キーをロック解除（CLIMAX_CONVERGE_HUB へ合流）
+- 選択肢2: パニックに陥り首輪を鉄パイプで無理やりこじ開けようとする（BAD_02: 首輪自爆BAD ENDへ直行）
+      ]]></details>
+    </file>
+
+    <!-- 3. scenario_climax_elena.html (NEW) -->
+    <file path="scenario_climax_elena.html" action="NEW">
+      <summary>
+        エレナ視点専用のクライマックスノベル。西翼政庁区から最上階への突入、父オーガスト卿の独裁・身分差別政策への贖罪、特権階級の偽りを暴くマスターディスクの展開、スラムの少年レンと医師ダニエルへの共闘呼びかけを描く。
+      </summary>
+      <details><![CDATA[
+定義定数: SCENARIO_CLIMAX_ELENA
+構成ノード:
+- "CLIMAX_ELENA_START" (12:00 西翼認証ゲート突破、父の玉座の前で二人の侵入者と遭遇)
+- "CLIMAX_ELENA_STANDOFF" (12:05 泥に汚れたドレス、特権階級の娘としての告白と身分差別の撤廃宣言)
+- "CLIMAX_ELENA_ACTION" (12:10 西翼政庁電算ホストへのマスターキー装填、法の下の平等の奪還)
+分岐:
+- 選択肢1: 二人に呼びかけ、法務電算ブロックを完全開放入出力へ切り替える（CLIMAX_CONVERGE_HUB へ合流）
+- 選択肢2: 恐怖のあまり父の非常防衛回線にプライベート通信を繋いでしまう（BAD_23: 父の冷酷な粛清BAD ENDへ直行）
+      ]]></details>
+    </file>
+
+    <!-- 4. scenario_climax_daniel.html (NEW) -->
+    <file path="scenario_climax_daniel.html" action="NEW">
+      <summary>
+        ダニエル視点専用のクライマックスノベル。南翼生命インフラ配管から最上階への突入、ヒポクラテスの誓約と生存権（第25条）の理念、スラムの重病孤児レオとエマへの誓い、一触即発のレンとエレナの間へ割って入る調停を描く。
+      </summary>
+      <details><![CDATA[
+定義定数: SCENARIO_CLIMAX_DANIEL
+構成ノード:
+- "CLIMAX_DANIEL_START" (12:00 南翼生命維持配管ハッチ突破、煤けた白衣と工具バーで最上階へ)
+- "CLIMAX_DANIEL_STANDOFF" (12:05 武器を向け合うレンとエレナの間に割って入り、「命を見殺しにさせない」と叫ぶ)
+- "CLIMAX_DANIEL_ACTION" (12:10 南翼生命インフラコンソールの独占バルブを開放、水と抗生物質の全街区散布)
+分岐:
+- 選択肢1: 医師の信念に基づき、南翼インフラのバイパスを全開にする（CLIMAX_CONVERGE_HUB へ合流）
+- 選択肢2: 警備ドローンの接近音に動揺し、薬品散布バルブを逆噴射させてしまう（BAD_08: 有毒ガス自滅BAD ENDへ直行）
+      ]]></details>
+    </file>
+
+    <!-- 5. scenario_ren.html -->
+    <file path="scenario_ren.html" action="MODIFY">
+      <summary>
+        11:50の「西と南の仲間」という不自然な事前合意台詞を削除。オーガスト卿の3重防衛ロック警告画面によって他系統ハッカーの存在を知る熱い展開へ改訂。
+      </summary>
+      <diff>
+        <change target="11:50 A_1150 ノード台詞の改修">
+          <before><![CDATA[
+      "「おい、東の管制室へ着いたぞ……！ 西と南の仲間たち、合図を送るぞ！」",
+      "レンはコンソールの送信スイッチを叩いた。モニターに二つの同期信号が点滅する。",
+      "「よし、三つの管制室の同期シグナルが揃った……！ いよいよ最上階の中央管制室へ突入だ！」"
+          ]]></before>
+          <after><![CDATA[
+      "「ぐっ……ここが東翼・軍事防衛ラインの管制コンソールか……！」",
+      "レンは鉄パイプを床に突き立て、コンソールの非常インターフェースを力任せに操作した。その時、主モニターがけたたましい警告音と共に赤く点滅した！",
+      "『警告：西翼・政庁電算室、および南翼・生命インフラ区への同時多発的クラッキングを検知。3重複合防衛プロトコルに重大な不整合が発生中。』",
+      "「……なに！？ 西と南にも、誰かが殴り込んでるのか……！？ 名前も顔も知らねえが、オレと同じようにこのイカれた都市をぶっ壊そうとしてる奴がいる！」",
+      "レンの口元に獰猛な笑みが浮かぶ。「上等だ……！ 誰だか知らねえが、足引っ張んじゃねえぞ！ 最上階で会おうぜ！」"
+          ]]></after>
+        </change>
+      </diff>
+    </file>
+
+    <!-- 6. scenario_elena.html -->
+    <file path="scenario_elena.html" action="MODIFY">
+      <summary>
+        11:50の「東と南の同志たち」という事前合意台詞を削除。電算室モニターのセキュリティアラートを通じて他2名の侵入を感知する展開へ改訂。
+      </summary>
+      <diff>
+        <change target="11:50 B_1150 ノード台詞の改修">
+          <before><![CDATA[
+      "「東と南の同志たち、私のシグナルが届いていますか……！？」",
+      "エレナは祈るように端末のエンターキーを押し込んだ。",
+      "モニターの光が三分割され、東と南の管制室から応答ランプが点灯する。",
+      "「ええ、繋がったわ……！ 三人の力があれば、父の作ったこの不平等な支配システムを打ち破れる！」"
+          ]]></before>
+          <after><![CDATA[
+      "「ここが西翼……政庁電算室の中枢端末……！」",
+      "エレナは震える指先でマスターディスクを読み取り装置へと差し込んだ。その瞬間、オペレーション画面に非常警報が鳴り響いた！",
+      "『緊急：東翼・軍事防衛区画の物理隔壁破壊、並びに南翼・生命インフラ配管への大規模ハッキングを同時検知。3重複合セキュリティ・フェイルセーフ発動。』",
+      "「えっ……！？ 軍事区画と生命インフラ区画に、別の侵入者が……！？」",
+      "エレナは目を見張った。父が部下の裏切りを恐れて設けた3重ロックの弱点が、今まさに別の誰かによってこじ開けられようとしている。",
+      "「私だけじゃない……虐げられてきた人たちが、自らの尊厳を取り戻すために命を懸けて戦っている……！ 私も絶対に負けられません！」"
+          ]]></after>
+        </change>
+      </diff>
+    </file>
+
+    <!-- 7. scenario_daniel.html -->
+    <file path="scenario_daniel.html" action="MODIFY">
+      <summary>
+        11:50の「東と西の仲間たち」という事前合意台詞を削除。インフラ管制画面の圧力低下アラートによる展開へ改訂。さらに11:00オーバーランを防止し第1アワー終端同期を徹底。
+      </summary>
+      <diff>
+        <change target="11:50 C_1150 ノード台詞の改修">
+          <before><![CDATA[
+      "「東と西の仲間たち、合図を頼む……！ 我々の未来は、この瞬間に懸かっている！」",
+      "ダニエルは工具でコンソールの短絡回路を直結させた。",
+      "モニターの三連ゲージがすべて青へと反転し、同期成功のチャイムが鳴り渡る。",
+      "「よし、同期した……！ 自由と平等を求める者たちよ、最上階の中央管制室で落ち合おう！」"
+          ]]></before>
+          <after><![CDATA[
+      "「はぁ、はぁ……ここが南翼・生命インフラの集中管制コンソール室か……！」",
+      "ダニエルは白衣の袖で汗を拭い、薬品と水の全街区強制給水バイパスを直結させた。突如、コンソール全体が赤く明滅し、合成音声が響き渡る！",
+      "『警告：東翼・軍事ゲートの強制突破信号、並びに西翼・政庁電算端末の暗号解読シグナルを並行受信。全館セキュリティレベル最高警戒。』",
+      "「……東の軍事区と、西の政庁区に侵入者だと……！？ そうか、あのスラムで首輪を外そうとしていた少年か……！？ それとも、身分差別に抗おうとしている名もなき誰かなのか！？」",
+      "ダニエルは胸に手を当て、白衣の下の聴診器を強く握りしめた。「君たちも見知らぬ誰かの命のために戦っているんだな……。よし、この南翼のインフラは私が命に代えてもこじ開けてみせる！」"
+          ]]></after>
+        </change>
+      </diff>
+    </file>
+
+    <!-- 8. js_engine.html -->
+    <file path="js_engine.html" action="MODIFY">
+      <summary>
+        1. MASTER_DBに新規クライマックス3モジュールを結合。
+        2. Hour 1全員クリア時の428風予告編バナー設置および未閲覧時自動表示トリガー。
+        3. 選択肢レンダリングにおける`requiresSecretPieces`判定による未所持古遺物の完全隠蔽。
+        4. キャラ選択ボタンクリック時のブロック処理撤廃と`showCharWaitOption`呼び出しへの転換。
+      </summary>
+      <diff>
+        <change target="MASTER_DB のノード結合更新">
+          <before><![CDATA[
+  nodes: Object.assign({}, SCENARIO_REN, SCENARIO_ELENA, SCENARIO_DANIEL, SCENARIO_CLIMAX)
+          ]]></before>
+          <after><![CDATA[
+  nodes: Object.assign({}, SCENARIO_REN, SCENARIO_ELENA, SCENARIO_DANIEL, SCENARIO_CLIMAX_REN, SCENARIO_CLIMAX_ELENA, SCENARIO_CLIMAX_DANIEL, SCENARIO_CLIMAX)
+          ]]></after>
+        </change>
+
+        <change target="Hour 1 終端における予告編トリガー・バナー実装">
+          <before><![CDATA[
+    // 428 アワー終端判定：Hour 1 終端（11:00）で他キャラが未完了の場合
+    if ((node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") && !prog.hour1.allClear) {
+      var tbcBtn = document.createElement("button");
+      tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group";
+      tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
+        + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
+      tbcBtn.onclick = function(e) {
+        e.stopPropagation();
+        UIController.showToBeContinued(
+          node.char,
+          1,
+          "第1アワー（10:00〜11:00）を突破しました！",
+          "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
+        );
+      };
+      wrapper.appendChild(tbcBtn);
+      return;
+    }
+          ]]></before>
+          <after><![CDATA[
+    // 428 アワー終端判定：Hour 1 終端（11:00）
+    if (node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") {
+      if (!prog.hour1.allClear) {
+        var tbcBtn = document.createElement("button");
+        tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group cursor-pointer";
+        tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
+          + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
+        tbcBtn.onclick = function(e) {
+          e.stopPropagation();
+          UIController.showToBeContinued(
+            node.char,
+            1,
+            "第1アワー（10:00〜11:00）を突破しました！",
+            "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
+          );
+        };
+        wrapper.appendChild(tbcBtn);
+        return;
+      } else {
+        // 全員がHour 1を突破した場合：428風予告編バナーを常設
+        var prevBtn = document.createElement("button");
+        prevBtn.className = "w-full text-left p-4 bg-gradient-to-r from-emerald-950/90 via-neutral-900 to-sky-950/90 border-2 border-emerald-400 rounded-xl text-xs sm:text-sm font-black text-emerald-200 shadow-xl flex items-center justify-between group cursor-pointer animate-pulse";
+        prevBtn.innerHTML = '<span>🎬【第1アワー突破！】ここまでのあらすじ ＆ 次章予告編を見る</span>'
+          + '<span class="text-emerald-400 font-mono text-xs">PREVIEW ▶</span>';
+        prevBtn.onclick = function(e) {
+          e.stopPropagation();
+          UIController.showHour1Preview();
+        };
+        wrapper.appendChild(prevBtn);
+
+        // 未閲覧なら初回自動表示
+        if (!state.hour1PreviewSeen) {
+          setTimeout(function() {
+            UIController.showHour1Preview();
+          }, 350);
+        }
+      }
+    }
+          ]]></after>
+        </change>
+
+        <change target="古遺物（アーティファクト）シークレット選択肢の制御">
+          <before><![CDATA[
+    node.choices.forEach(function(ch) {
+      if (ch.requiresFlag && !TimelineState.hasFlag(ch.requiresFlag)) return;
+          ]]></before>
+          <after><![CDATA[
+    node.choices.forEach(function(ch) {
+      // 古遺物3つ揃っていない場合はシークレット選択肢を完全非表示
+      if (ch.requiresSecretPieces) {
+        var flags = state.userFlags || [];
+        var hasA = flags.indexOf("PIECE_A") !== -1;
+        var hasB = flags.indexOf("PIECE_B") !== -1;
+        var hasC = flags.indexOf("PIECE_C") !== -1;
+        if (!hasA || !hasB || !hasC) {
+          return;
+        }
+      }
+      if (ch.requiresFlag && !TimelineState.hasFlag(ch.requiresFlag)) return;
+          ]]></after>
+        </change>
+
+        <change target="キャラクターカードクリック処理のブロック撤廃">
+          <before><![CDATA[
+      // もしHour 1未完了で、既にクリア済みのキャラを押した場合
+      if (!prog.hour1.allClear) {
+        if (prog.hour1[targetChar]) {
+          AudioEngine.play('tap');
+          UIController.showToast("この主人公は第1アワー（10:00〜11:00）をクリア済みです。\n他の主人公を進めて11:00を解放してください。");
+          return;
+        }
+      }
+
+      // もしHour 1完了後、Hour 2進行中で既にクリア済みのキャラを押した場合
+      if (prog.hour1.allClear && !prog.hour2.allClear) {
+        if (prog.hour2[targetChar]) {
+          AudioEngine.play('tap');
+          UIController.showToast("この主人公は第2アワー（11:00〜12:00）をクリア済みです。\n他の主人公を進めて12:00クライマックスを解放してください。");
+          return;
+        }
+      }
+          ]]></before>
+          <after><![CDATA[
+      // 待機中の主人公を押した場合は親切な選択モーダルを開く
+      var isWaitingH1 = (!prog.hour1.allClear && prog.hour1[targetChar]);
+      var isWaitingH2 = (prog.hour1.allClear && !prog.hour2.allClear && prog.hour2[targetChar]);
+      if (isWaitingH1 || isWaitingH2) {
+        AudioEngine.play('tap');
+        UIController.showCharWaitOption(targetChar, isWaitingH1 ? 1 : 2);
+        return;
+      }
+          ]]></after>
+        </change>
+      </diff>
+    </file>
+
+    <!-- 9. js_ui.html -->
+    <file path="js_ui.html" action="MODIFY">
+      <summary>
+        `showHour1Preview`（第1アワー突破＆第2アワー予告編モーダル開閉）および`showCharWaitOption`（待機中主人公の行動選択モーダル開閉）関数を実装し、UIControllerの公開APIとしてエクスポート。
+      </summary>
+      <diff>
+        <change target="showHour1Preview および showCharWaitOption の追加">
+          <before><![CDATA[
+  function checkAllClearBadge() {
+          ]]></before>
+          <after><![CDATA[
+  function showHour1Preview() {
+    AudioEngine.play('preview');
+    var modal = document.getElementById("modalHour1Preview");
+    if (!modal) return;
+    modal.classList.remove("hidden");
+
+    var state = TimelineState.getState();
+    state.hour1PreviewSeen = true;
+    TimelineState.saveLocal();
+
+    var btn = document.getElementById("btnStartHour2FromPreview");
+    if (btn) {
+      btn.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+        switchView('auth');
+        renderTimeBlockStatus();
+      };
+    }
+  }
+
+  function showCharWaitOption(charKey, hourNum) {
+    AudioEngine.play('tap');
+    var modal = document.getElementById("modalCharWaitOption");
+    if (!modal) return;
+
+    var cName = charKey === "A" ? "レン（自由権）" : charKey === "B" ? "エレナ（平等権）" : "ダニエル（社会権）";
+    var titleEl = document.getElementById("charWaitModalTitle");
+    if (titleEl) titleEl.textContent = cName + " は第" + hourNum + "アワー待機中です";
+
+    var descEl = document.getElementById("charWaitModalDesc");
+    if (descEl) {
+      descEl.textContent = hourNum === 1
+        ? "第1アワー（10:00〜11:00）を突破し、他の主人公の到達を待っています。現在のシーンを確認するか、タイムラインを開いて過去の選択肢を変更できます。"
+        : "第2アワー（11:00〜12:00）を突破し、管制室で待機中です。現在のシーンを確認するか、タイムラインを開いて過去の分岐へジャンプできます。";
+    }
+
+    modal.classList.remove("hidden");
+
+    var btnGo = document.getElementById("btnCharWaitGoScene");
+    if (btnGo) {
+      btnGo.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+        GameEngine.switchChar(charKey);
+      };
+    }
+
+    var btnChart = document.getElementById("btnCharWaitOpenChart");
+    if (btnChart) {
+      btnChart.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+        openChart();
+      };
+    }
+
+    var btnClose = document.getElementById("btnCharWaitClose");
+    if (btnClose) {
+      btnClose.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+      };
+    }
+  }
+
+  function checkAllClearBadge() {
+          ]]></after>
+        </change>
+      </diff>
+    </file>
+
+    <!-- 10. js_audio.html -->
+    <file path="js_audio.html" action="MODIFY">
+      <summary>
+        428スタイルの緊迫感溢れるアワー予告編（INTERMISSION）用プロシージャル・シンセジングル（AudioEngine.play('preview')）をWeb Audio APIで実装。
+      </summary>
+      <diff>
+        <change target="preview サウンド生成ブロックの追加">
+          <before><![CDATA[
+    } else if (type === 'scan') {
+          ]]></before>
+          <after><![CDATA[
+    } else if (type === 'preview') {
+      // 428風 緊迫の電脳シンセジングル（ベースパルス＋鋭いシーケンスアルペジオ）
+      var bassNotes = [110, 110, 146.83, 164.81];
+      bassNotes.forEach(function(f, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(f, now + i * 0.2);
+        gain.gain.setValueAtTime(0.18, now + i * 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.2);
+        osc.stop(now + i * 0.2 + 0.35);
+      });
+      var leadNotes = [440, 523.25, 659.25, 880, 783.99, 1046.50];
+      leadNotes.forEach(function(f, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(f, now + 0.8 + i * 0.12);
+        gain.gain.setValueAtTime(0.14, now + 0.8 + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8 + i * 0.12 + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + 0.8 + i * 0.12);
+        osc.stop(now + 0.8 + i * 0.12 + 0.25);
+      });
+    } else if (type === 'scan') {
+          ]]></after>
+        </change>
+      </diff>
+    </file>
+
+    <!-- 11. js_tips.html -->
+    <file path="js_tips.html" action="MODIFY">
+      <summary>
+        「オーガスト卿」TIPSから10:00時点での「実は娘思いの悲哀の男」「真エンドで見れるよ」という重大ネタバレを削除し、配給公社総裁としての公的情報と立憲主義（第99条）の解説へ正常化。
+      </summary>
+      <diff>
+        <change target="TIPS_AUGUST_LORD の解説テキスト正常化">
+          <before><![CDATA[
+    detail: "ジャパニア配給公社総裁にして、全街区の生殺与奪の権を握る最高権力者。エレナの父。\n効率と秩序の名の下に過酷な階級統治を強行しているが、その真意は……？（※真エンディング到達後に隠された手記が解放されます）",
+    constitutionNote: "日本国憲法第99条【憲法尊重擁護義務】：天皇又は摂政及び国務大臣、国会議員、裁判官その他の公務員は、この憲法を尊重し擁護する義務を負ふ。"
+          ]]></before>
+          <after><![CDATA[
+    detail: "ジャパニア配給公社総裁にして、全街区の生殺与奪の権を握る最高権力者。エレナの父。\\n「民衆に自由を与えれば無秩序と飢餓を招く」という絶対的信念のもと、食糧・医薬品の配給と居住区を身分コードで徹底統制し、逆らう者を容赦なく粛清してきた冷酷無比な統治者。",
+    constitutionNote: "日本国憲法第99条【憲法尊重擁護義務】：天皇又は摂政及び国務大臣、国会議員、裁判官その他の公務員は、この憲法を尊重し擁護する義務を負ふ。独裁者が憲法を停止し自己の権力を法の上に置くことを防ぐ近代立憲主義の核心規定である。"
+          ]]></after>
+        </change>
+      </diff>
+    </file>
+
+    <!-- 12. index.html -->
+    <file path="index.html" action="MODIFY">
+      <summary>
+        1. 新規3シナリオファイル（scenario_climax_ren, scenario_climax_elena, scenario_climax_daniel）のインクルード追加。
+        2. 第1アワー突破＆第2アワー予告編モーダル（`modalHour1Preview`）のDOM配置。
+        3. 待機中主人公の行動選択モーダル（`modalCharWaitOption`）のDOM配置。
+      </summary>
+      <diff>
+        <change target="シナリオファイルインクルードの拡充">
+          <before><![CDATA[
+<?!= HtmlService.createHtmlOutputFromFile('scenario_ren').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_elena').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_daniel').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_climax').getContent(); ?>
+          ]]></before>
+          <after><![CDATA[
+<?!= HtmlService.createHtmlOutputFromFile('scenario_ren').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_elena').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_daniel').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_climax_ren').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_climax_elena').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_climax_daniel').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_climax').getContent(); ?>
+          ]]></after>
+        </change>
+
+        <change target="モーダルDOMの追加（modalHour1Preview, modalCharWaitOption）">
+          <details><![CDATA[
+<!-- 428風 第1アワー突破＆第2アワー予告編（INTERMISSION / PREVIEW）モーダル -->
+<div id="modalHour1Preview" class="hidden fixed inset-0 bg-black/95 p-4 z-50 flex items-center justify-center backdrop-blur-lg overflow-y-auto">
+  <!-- Recap（あらすじ）およびTeaser（次章予告キーワード）演出コンポーネント -->
+  ...
+  <button id="btnStartHour2FromPreview" class="...">第2アワー（11:00〜12:00）潜入開始 ▶</button>
+</div>
+
+<!-- 待機中主人公の行動選択モーダル -->
+<div id="modalCharWaitOption" class="hidden fixed inset-0 bg-black/80 p-4 z-50 flex items-center justify-center backdrop-blur-md">
+  ...
+  <button id="btnCharWaitGoScene">📖 現在のシーンを読む（状況確認）</button>
+  <button id="btnCharWaitOpenChart">🗺️ タイムラインを開く（過去の分岐へJUMP）</button>
+  <button id="btnCharWaitClose">閉じる（別の主人公を選ぶ）</button>
+</div>
+          ]]></details>
+        </change>
+      </diff>
+    </file>
+
+    <!-- 13. validate_scenario.py -->
+    <file path=".agents/skills/parallel-428-engine/scripts/validate_scenario.py" action="MODIFY">
+      <summary>
+        静的検証スクリプトの検査対象ファイルに新規3クライマックスファイルを追加し、定義除外フィルターを更新。
+      </summary>
+      <diff>
+        <change target="検証対象ファイルの追加">
+          <before><![CDATA[
+    scenario_files = [
+        "scenario_ren.html",
+        "scenario_elena.html",
+        "scenario_daniel.html",
+        "scenario_climax.html"
+    ]
+          ]]></before>
+          <after><![CDATA[
+    scenario_files = [
+        "scenario_ren.html",
+        "scenario_elena.html",
+        "scenario_daniel.html",
+        "scenario_climax_ren.html",
+        "scenario_climax_elena.html",
+        "scenario_climax_daniel.html",
+        "scenario_climax.html"
+    ]
+          ]]></after>
+        </change>
+      </diff>
+    </file>
+
+  </modifications>
+
+  <!-- ====================================================================== -->
+  <!-- 4. 静的検証および結果 (VALIDATION)                                      -->
+  <!-- ====================================================================== -->
+  <verification>
+    <command>python3 .agents/skills/parallel-428-engine/scripts/validate_scenario.py</command>
+    <status>PASS</status>
+    <metrics>
+      <loaded_tips count="19">全TIPS定義ファイルの読み込み成功</loaded_tips>
+      <total_nodes count="90">全7シナリオファイルから90個のシナリオノードを検出</total_nodes>
+      <bad_ends count="23">全23通りの教育的バッドエンド（因果連鎖の帰結）の到達可能性を確認</bad_ends>
+      <keep_outs count="3">3箇所のKEEP OUTノード（他主人公による解除待ち）の健全性を確認</keep_outs>
+      <clear_ends count="2">NORMAL_CLEAR（新憲法夜明けエンド）およびTRUE_SECRET_END（真実開示エンド）の整合性を確認</clear_ends>
+    </metrics>
+    <integrity_check>
+      <rule name="NodeTransitionIntegrity">全ノードの遷移先（next, jumpTarget）が存在することを確認：OK</rule>
+      <rule name="TIPSEmbeddingIntegrity">全シナリオ内のTIPSリンクタグがTIPS_MASTERのエントリと100%合致することを確認：OK</rule>
+      <rule name="DeadlockFree">因果連鎖における相互ロック（デッドロック）が存在しないことを確認：OK</rule>
+    </integrity_check>
+  </verification>
+
+  <!-- ====================================================================== -->
+  <!-- 5. デプロイおよび運用情報 (DEPLOYMENT)                                   -->
+  <!-- ====================================================================== -->
+  <deployment>
+    <environment>
+      <target>Google Apps Script (GAS)</target>
+      <clasp_command>clasp push -f &amp;&amp; clasp deploy --description "v6 with 428-preview, 3-perspective climax, non-blocking UI"</clasp_command>
+    </environment>
+    <security_configuration file="appsscript.json">
+      <access>ANYONE_ANONYMOUS</access>
+      <execution_as>USER_DEPLOYING</execution_as>
+      <note>Chromebookや学校端末におけるGoogleアカウントログイン要求（Cookieブロック・アカウント壁）を回避するため、匿名アクセスを許容</note>
+    </security_configuration>
+    <production_endpoint>
+      <url>https://script.google.com/macros/s/AKfycbxMWB3x-2turGZr0QWG3qpsjQMwh_8aoMXh382y4ZtI3PrzFrdi_0sZv3CWRp7UpDLz/exec</url>
+      <status_code>200 OK</status_code>
+    </production_endpoint>
+  </deployment>
+</report>

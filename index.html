@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<?!= HtmlService.createHtmlOutputFromFile('css').getContent(); ?>
+</head>
+<body class="app-viewport h-screen w-screen overflow-hidden flex flex-col justify-between p-2 sm:p-4 lg:p-6 relative font-sans-jp bg-neutral-950">
+
+<div id="vfxOverlay" class="absolute inset-0 pointer-events-none z-50 transition-colors duration-300"></div>
+
+<!-- ヘッダーバー -->
+<header class="flex justify-between items-center z-20 border-b border-neutral-800 pb-2 px-1">
+  <div class="flex items-center gap-2 sm:gap-3">
+    <div id="btnLogoHome" class="flex items-center gap-1.5 cursor-pointer">
+      <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+      <span class="font-black text-xs sm:text-sm tracking-widest text-neutral-100 uppercase">PARALLEL: 428</span>
+    </div>
+
+    <!-- 3主人公並行切り替えタブ -->
+    <div id="charTabContainer" class="hidden flex items-center gap-1 bg-neutral-900/95 p-1 rounded-xl border border-neutral-800 text-xs">
+      <button id="tabCharA" data-char="A" class="char-tab px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 text-emerald-400 bg-neutral-800 border border-emerald-500">
+        <span>レン</span><span class="text-[10px] opacity-80">(自由)</span>
+      </button>
+      <button id="tabCharB" data-char="B" class="char-tab px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 text-neutral-400 hover:bg-neutral-800">
+        <span>エレナ</span><span class="text-[10px] opacity-80">(平等)</span>
+      </button>
+      <button id="tabCharC" data-char="C" class="char-tab px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 text-neutral-400 hover:bg-neutral-800">
+        <span>ダニエル</span><span class="text-[10px] opacity-80">(社会)</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-1.5 sm:gap-2">
+    <!-- TIPS・判例図鑑アーカイブボタン -->
+    <button id="btnTipsArchive" class="text-xs px-2.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-sky-300 rounded-lg border border-sky-900/60 flex items-center gap-1 transition-all" title="公民TIPS・判例図鑑アーカイブ">
+      <span>📖</span><span class="hidden sm:inline">判例図鑑</span>
+    </button>
+    <!-- BAD END 図鑑アーカイブボタン -->
+    <button id="btnBadEndArchive" class="text-xs px-2.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-rose-300 rounded-lg border border-rose-900/60 flex items-center gap-1 transition-all" title="全23大 BAD END 図鑑アーカイブ">
+      <span>💀</span><span class="hidden sm:inline">BAD図鑑</span>(<span id="headerBadEndCount">0</span>/23)
+    </button>
+    <button id="btnAudioToggle" class="text-xs px-2 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 rounded-lg border border-neutral-800 flex items-center gap-1 transition-all" title="音声音量切替">
+      <span id="audioIcon">🔊</span>
+    </button>
+    <div id="saveIndicator" class="text-[11px] text-neutral-400 hidden sm:flex items-center gap-1 font-mono bg-neutral-900/80 px-2 py-1 rounded-lg border border-neutral-800">
+      <span>☁️</span><span id="saveStatus">待機中</span>
+    </div>
+    <button id="btnChart" class="hidden text-xs px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg border border-neutral-700 flex items-center gap-1 transition-all">
+      <span>🔀</span><span class="hidden sm:inline">時間軸図鑑</span>
+    </button>
+    <button id="btnHome" class="hidden text-xs px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg border border-neutral-700 transition-all">
+      🏠
+    </button>
+  </div>
+</header>
+
+<!-- メインコンテナ (マルチデバイス適応レイアウト) -->
+<main class="flex-1 flex flex-col justify-center max-w-3xl lg:max-w-4xl main-container-adaptive mx-auto w-full my-auto z-10 py-1 sm:py-3">
+
+  <!-- 1. スタート＆認証・主人公選択ビュー -->
+  <div id="viewAuth" class="text-center space-y-4 max-h-[88vh] auth-screen-height overflow-y-auto pr-1">
+    <div class="space-y-1">
+      <div class="text-[11px] font-black tracking-widest text-red-500 uppercase">Constitutional Timeline Chronicle</div>
+      <h1 class="text-3xl sm:text-5xl font-black tracking-widest text-neutral-100 leading-tight">
+        パラレル・ジャパニア<br>
+        <span class="text-amber-500 text-2xl sm:text-4xl">〜失われた人権の180分〜</span>
+      </h1>
+      <p class="text-xs sm:text-sm text-neutral-400 pt-1">
+        自由・平等・社会。奪われた基本的人権を取り戻す、本格428型タイムライン群像劇。
+      </p>
+    </div>
+
+    <!-- 新規 / 継続 タブ -->
+    <div class="flex border-b border-neutral-800 max-w-md mx-auto">
+      <button id="tabModeNew" class="flex-1 py-2.5 text-xs sm:text-sm font-black border-b-2 border-amber-500 text-amber-400">
+        🌸 さいしょから（新規登録）
+      </button>
+      <button id="tabModeCont" class="flex-1 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-transparent text-neutral-500 hover:text-neutral-300">
+        🔄 つづきから（パスコード復元）
+      </button>
+    </div>
+
+    <!-- 新規ボックス -->
+    <div id="boxNewGame" class="bg-neutral-900/90 border border-neutral-800 p-5 rounded-2xl shadow-2xl text-left max-w-md mx-auto space-y-3.5">
+      <div>
+        <label class="text-xs font-black text-neutral-300 block mb-1">プレイヤー名（カタカナ・フルネーム）</label>
+        <input id="inputNewKatakana" type="text" placeholder="例: ササキ タロウ" class="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-500 transition-all font-bold">
+        <p class="text-[11px] text-neutral-400 mt-1">※ 入力した名前に4桁の暗証パスコードが自動発行されます。</p>
+      </div>
+      <button id="btnSubmitNew" class="w-full py-3.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-neutral-950 font-black rounded-xl text-sm shadow-xl transition-all active:scale-[0.99] flex justify-center items-center gap-2">
+        <span>パスコードを発行してタイムラインへ突入</span>
+      </button>
+    </div>
+
+    <!-- 継続ボックス -->
+    <div id="boxContGame" class="hidden bg-neutral-900/90 border border-neutral-800 p-5 rounded-2xl shadow-2xl text-left max-w-md mx-auto space-y-3">
+      <div>
+        <label class="text-xs font-black text-neutral-300 block mb-1">登録名（カタカナ・フルネーム）</label>
+        <input id="inputLoadKatakana" type="text" placeholder="例: ササキ タロウ" class="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-500 transition-all font-bold">
+      </div>
+      <div>
+        <label class="text-xs font-black text-neutral-300 block mb-1">発行された4桁パスコード</label>
+        <input id="inputLoadPasscode" type="password" maxlength="4" placeholder="例: 4821" class="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-3 text-sm text-white font-mono tracking-widest focus:outline-none focus:border-amber-500 transition-all">
+      </div>
+      <button id="btnSubmitLoad" class="w-full py-3.5 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-neutral-950 font-black rounded-xl text-sm shadow-xl transition-all active:scale-[0.99] flex justify-center items-center gap-2">
+        <span>タイムライン記録を復元して再開</span>
+      </button>
+    </div>
+
+    <!-- 主人公選択パネル（ログイン後） -->
+    <div id="boxCharSelect" class="hidden cyber-grid-bg border border-neutral-800/90 p-5 sm:p-7 rounded-2xl shadow-2xl max-w-2xl mx-auto space-y-4 text-left relative backdrop-blur-md">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-neutral-800/80 pb-3">
+        <div>
+          <div class="text-[9px] sm:text-[10px] text-neutral-400 uppercase font-tech tracking-widest flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+            <span>AUTHORIZED INVESTIGATOR</span>
+          </div>
+          <div class="text-sm sm:text-base font-black text-amber-300 font-hud mt-0.5 flex items-center gap-2">
+            <span id="displayLoginName"></span>
+            <span class="text-[10px] font-mono text-neutral-400 bg-neutral-950/80 border border-neutral-800 px-2 py-0.5 rounded">ID: <span id="displayLoginPass" class="text-amber-300 font-bold"></span></span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-[11px] font-mono">
+          <button id="btnTipsArchiveTitle" class="px-2.5 py-1 rounded-lg bg-sky-950/60 hover:bg-sky-900 border border-sky-600/40 text-sky-300 flex items-center gap-1 shadow-sm cursor-pointer transition-colors" title="公民TIPS・判例図鑑アーカイブを開く">
+            <span>💡</span><span>TIPS:</span><strong id="headerTipsCount" class="text-white">0</strong><span>/18</span>
+          </button>
+          <button id="btnBadEndArchiveTitle" class="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-600/40 text-rose-300 flex items-center gap-1 shadow-sm cursor-pointer transition-colors" title="全23大 BAD END 図鑑アーカイブを開く">
+            <span>💀</span><span>BAD:</span><strong id="bannerBadEndCount" class="text-white">0</strong><span>/23</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- クリア後 煽りバナー（一度クリアした探究者への挑戦状） -->
+      <div id="bannerClearedOnceTeaser" style="display: none;" class="p-3.5 bg-neutral-900/90 border border-neutral-750 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div class="space-y-0.5">
+          <div class="text-[10px] font-mono text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
+            <span>CHRONICLE STATUS // 1周目クリア済</span>
+          </div>
+          <div class="text-xs sm:text-sm font-bold text-neutral-200 font-hud">
+            「――君は、真のストーリーを見ることができるか？」
+          </div>
+          <div class="text-[11px] text-neutral-400">
+            各時間軸の選択肢に、真実へ至る道が静かに拓かれています。注意深くログを追い、歴史を再探究してください。
+          </div>
+        </div>
+      </div>
+
+      <!-- 全結末解放バナー -->
+      <div id="bannerAllClearHeader" style="display: none;" class="p-4 bg-gradient-to-r from-amber-950 via-neutral-900 to-amber-950 border border-amber-400 rounded-xl gold-glow flex justify-between items-center shadow-2xl">
+        <div>
+          <div class="text-[10px] font-black text-amber-300 font-tech tracking-wider">★ ALL CHRONICLES COMPLETED ★</div>
+          <div class="text-xs sm:text-sm font-black text-white font-hud">全結末・三大基本的人権の調和を完全解明！</div>
+        </div>
+        <button id="btnCertFromBanner" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-neutral-950 text-xs font-black rounded-lg shadow-lg font-hud active:scale-95 transition-all">
+          🏆 表彰状を受け取る
+        </button>
+      </div>
+
+      <!-- 428シネマティック タイムブロック・コマンドセンター -->
+      <div class="p-4 bg-gradient-to-b from-neutral-900/90 to-neutral-950/90 border border-neutral-750/70 rounded-2xl shadow-2xl space-y-3 relative overflow-hidden backdrop-blur-sm">
+        <div class="absolute -right-6 -top-6 opacity-5 text-8xl font-black font-tech text-amber-400 select-none pointer-events-none">428</div>
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-800 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-mono font-bold">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-live"></span>
+              <span class="font-tech">10:00:00 LIVE SYNC</span>
+            </span>
+            <span class="text-xs font-black text-neutral-200 font-hud">超時空・因果管制オペレーション</span>
+          </div>
+          <span id="currentHourLabel" class="text-xs font-bold text-amber-300 font-mono bg-neutral-950 px-3 py-1 rounded-lg border border-neutral-800 shadow-inner">
+            第1アワー（10:00 - 11:00）進行中
+          </span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 sm:gap-3 text-center font-mono">
+          <div id="hourBlock1" class="p-2 sm:p-2.5 rounded-xl border bg-amber-950/40 border-amber-500 text-amber-200 transition-all shadow-lg">
+            <div class="text-[9px] sm:text-[10px] opacity-70 tracking-widest uppercase font-tech">HOUR 01</div>
+            <div class="font-black text-xs sm:text-sm mt-0.5 font-mono">10:00 - 11:00</div>
+            <div id="hourBlockStatus1" class="text-[10px] font-bold text-amber-400 mt-0.5">進行中</div>
+          </div>
+          <div id="hourBlock2" class="p-2 sm:p-2.5 rounded-xl border bg-neutral-950 border-neutral-800 text-neutral-500 transition-all">
+            <div class="text-[9px] sm:text-[10px] opacity-70 tracking-widest uppercase font-tech">HOUR 02</div>
+            <div class="font-black text-xs sm:text-sm mt-0.5 font-mono">11:00 - 12:00</div>
+            <div id="hourBlockStatus2" class="text-[10px] font-bold text-neutral-600 mt-0.5">🔒 全員H1クリアで解放</div>
+          </div>
+          <div id="hourBlock3" class="p-2 sm:p-2.5 rounded-xl border bg-neutral-950 border-neutral-800 text-neutral-500 transition-all">
+            <div class="text-[9px] sm:text-[10px] opacity-70 tracking-widest uppercase font-tech">CLIMAX</div>
+            <div class="font-black text-xs sm:text-sm mt-0.5 font-mono">12:00 - 12:30</div>
+            <div id="hourBlockStatus3" class="text-[10px] font-bold text-neutral-600 mt-0.5">🔒 全員H2クリアで解放</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-1">
+        <p class="text-xs sm:text-sm text-neutral-200 font-black font-hud flex items-center gap-1.5">
+          <span>👥</span><span>視点（主人公）を選択してタイムラインを開始：</span>
+        </p>
+        <span class="text-[11px] text-amber-400/90 font-mono flex items-center gap-1">
+          <span>⚡</span><span class="font-tech text-[10px] tracking-wider">3 CAUSAL THREADS INTERTWINED</span>
+        </span>
+      </div>
+
+      <div class="space-y-4">
+        
+        <!-- 主人公A: レン（自由権） -->
+        <div id="cardCharA" class="relative group">
+          <button data-launch="A" class="char-launch-btn char-card-glow glow-emerald w-full p-4 sm:p-5 bg-gradient-to-r from-emerald-950/70 via-neutral-950 to-neutral-950 hover:from-emerald-950/90 hover:to-neutral-900 border-2 border-emerald-500/60 hover:border-emerald-400 text-left rounded-2xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl group cursor-pointer">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+              <div class="relative shrink-0">
+                <img id="charCardImgA" src="" alt="レン" class="w-24 h-28 sm:w-32 sm:h-36 rounded-xl object-cover border-2 border-emerald-400/80 shadow-2xl group-hover:scale-[1.03] transition-transform duration-300">
+                <span class="absolute bottom-1 right-1 bg-emerald-950/95 text-emerald-300 text-[9px] font-tech font-black px-1.5 py-0.5 rounded border border-emerald-500/50">ACT-A</span>
+              </div>
+              <div class="space-y-1.5 flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-emerald-500 text-neutral-950 shadow-md font-hud">【主人公A：自由権】</span>
+                  <span id="badgeCharA" class="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-950/90 px-2 py-0.5 rounded border border-emerald-500/40">10:00 進行可能</span>
+                </div>
+                <div class="font-black text-lg sm:text-xl text-white group-hover:text-emerald-300 transition-colors font-hud">レン 〜スラムの脱走少年〜</div>
+                
+                <!-- 名セリフ引用 -->
+                <div class="quote-box text-emerald-300/90 text-xs sm:text-[13px] font-story leading-snug">
+                  「首輪を外せ。俺の命と行き先は誰にも命令させない」
+                </div>
+
+                <div class="text-xs text-neutral-300 leading-relaxed line-clamp-1 font-hud pt-0.5">誰にも縛られず生きる自由のため、首の電磁首輪を割り地下軍需工場から脱走する。</div>
+                <div class="text-[10px] sm:text-[11px] text-emerald-400 font-mono flex items-center gap-1.5">
+                  <span>📜</span><span>身体の自由 / 居住・移転の自由（憲法第18・22条）</span>
+                </div>
+              </div>
+            </div>
+            <div class="shrink-0 flex sm:flex-col justify-end items-end w-full sm:w-auto">
+              <span id="btnLabelCharA" class="w-full sm:w-auto text-center px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-black text-xs sm:text-sm rounded-xl shadow-lg flex items-center justify-center gap-1.5 group-hover:scale-105 group-hover:shadow-emerald-500/40 transition-all font-hud">
+                <span>潜入開始</span><span class="text-xs">▶</span>
+              </span>
+            </div>
+          </button>
+        </div>
+
+        <!-- 主人公B: エレナ（平等権） -->
+        <div id="cardCharB" class="relative group">
+          <div id="lockOverlayB" class="absolute inset-0 bg-neutral-950/92 backdrop-blur-md z-10 flex items-center justify-between p-4 sm:p-5 rounded-2xl border-2 border-neutral-800 transition-all cursor-pointer hover:border-sky-500/60 group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-neutral-900 border border-sky-500/40 flex items-center justify-center text-2xl shadow-inner group-hover:scale-105 transition-transform">
+                🔒
+              </div>
+              <div class="space-y-0.5">
+                <div class="text-xs font-black text-sky-400 tracking-wider font-tech uppercase flex items-center gap-2">
+                  <span>LOCKED // ELENA PROTOCOL</span>
+                  <span class="text-[9px] px-1.5 py-0.5 bg-sky-950 text-sky-300 rounded border border-sky-700/50">SIGNAL PENDING</span>
+                </div>
+                <div class="text-xs sm:text-sm text-neutral-200 font-bold font-hud">時間軸未接続：レン編の行動により運命が交差した時に解禁</div>
+                <div class="text-[11px] text-sky-300/80 font-mono flex items-center gap-1">
+                  <span>💡</span><span>KEY: レン編 10:45【水門の選択】で回路接続</span>
+                </div>
+              </div>
+            </div>
+            <span class="text-xs font-mono font-bold text-sky-400 border border-sky-800 bg-sky-950/80 px-3 py-1.5 rounded-xl shrink-0 group-hover:bg-sky-900 transition-colors">封印中</span>
+          </div>
+          <button data-launch="B" class="char-launch-btn char-card-glow glow-sky w-full p-4 sm:p-5 bg-gradient-to-r from-sky-950/70 via-neutral-950 to-neutral-950 hover:from-sky-950/90 hover:to-neutral-900 border-2 border-sky-500/60 hover:border-sky-400 text-left rounded-2xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl group cursor-pointer">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+              <div class="relative shrink-0">
+                <img id="charCardImgB" src="" alt="エレナ" class="w-24 h-28 sm:w-32 sm:h-36 rounded-xl object-cover border-2 border-sky-400/80 shadow-2xl group-hover:scale-[1.03] transition-transform duration-300">
+                <span class="absolute bottom-1 right-1 bg-sky-950/95 text-sky-300 text-[9px] font-tech font-black px-1.5 py-0.5 rounded border border-sky-500/50">ACT-B</span>
+              </div>
+              <div class="space-y-1.5 flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-sky-500 text-neutral-950 shadow-md font-hud">【主人公B：平等権】</span>
+                  <span id="badgeCharB" class="text-[10px] font-mono font-bold text-sky-300 bg-sky-950/90 px-2 py-0.5 rounded border border-sky-500/40">10:00 進行可能</span>
+                </div>
+                <div class="font-black text-lg sm:text-xl text-white group-hover:text-sky-300 transition-colors font-hud">エレナ 〜特権街の令嬢〜</div>
+                
+                <!-- 名セリフ引用 -->
+                <div class="quote-box text-sky-300/90 text-xs sm:text-[13px] font-story leading-snug">
+                  「生まれの身分で人を分ける世界なんて、私が壊す」
+                </div>
+
+                <div class="text-xs text-neutral-300 leading-relaxed line-clamp-1 font-hud pt-0.5">身分・血統による支配を拒絶し、地下市民との平等を求めて抗議デモの先頭へ立つ。</div>
+                <div class="text-[10px] sm:text-[11px] text-sky-400 font-mono flex items-center gap-1.5">
+                  <span>📜</span><span>法の下の平等 / 貴族制度の否認（憲法第14条）</span>
+                </div>
+              </div>
+            </div>
+            <div class="shrink-0 flex sm:flex-col justify-end items-end w-full sm:w-auto">
+              <span id="btnLabelCharB" class="w-full sm:w-auto text-center px-5 py-2.5 bg-sky-500 hover:bg-sky-400 text-neutral-950 font-black text-xs sm:text-sm rounded-xl shadow-lg flex items-center justify-center gap-1.5 group-hover:scale-105 group-hover:shadow-sky-500/40 transition-all font-hud">
+                <span>潜入開始</span><span class="text-xs">▶</span>
+              </span>
+            </div>
+          </button>
+        </div>
+
+        <!-- 主人公C: ダニエル（社会権） -->
+        <div id="cardCharC" class="relative group">
+          <div id="lockOverlayC" class="absolute inset-0 bg-neutral-950/92 backdrop-blur-md z-10 flex items-center justify-between p-4 sm:p-5 rounded-2xl border-2 border-neutral-800 transition-all cursor-pointer hover:border-amber-500/60 group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-neutral-900 border border-amber-500/40 flex items-center justify-center text-2xl shadow-inner group-hover:scale-105 transition-transform">
+                🔒
+              </div>
+              <div class="space-y-0.5">
+                <div class="text-xs font-black text-amber-400 tracking-wider font-tech uppercase flex items-center gap-2">
+                  <span>LOCKED // DANIEL PROTOCOL</span>
+                  <span class="text-[9px] px-1.5 py-0.5 bg-amber-950 text-amber-300 rounded border border-amber-700/50">CAUSALITY UNKNOWN</span>
+                </div>
+                <div class="text-xs sm:text-sm text-neutral-200 font-bold font-hud">？？？？？（因果未確定：地下診療所の電源・水路を探索せよ）</div>
+                <div class="text-[11px] text-amber-300/80 font-mono flex items-center gap-1">
+                  <span>💡</span><span>KEY: レン・エレナの時間軸を進めて生命線を繋げ</span>
+                </div>
+              </div>
+            </div>
+            <span class="text-xs font-mono font-bold text-amber-400 border border-amber-800 bg-amber-950/80 px-3 py-1.5 rounded-xl shrink-0 group-hover:bg-amber-900 transition-colors">封印中</span>
+          </div>
+          <button data-launch="C" class="char-launch-btn char-card-glow glow-amber w-full p-4 sm:p-5 bg-gradient-to-r from-amber-950/70 via-neutral-950 to-neutral-950 hover:from-amber-950/90 hover:to-neutral-900 border-2 border-amber-500/60 hover:border-amber-400 text-left rounded-2xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl group cursor-pointer">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+              <div class="relative shrink-0">
+                <img id="charCardImgC" src="" alt="ダニエル" class="w-24 h-28 sm:w-32 sm:h-36 rounded-xl object-cover border-2 border-amber-400/80 shadow-2xl group-hover:scale-[1.03] transition-transform duration-300">
+                <span class="absolute bottom-1 right-1 bg-amber-950/95 text-amber-300 text-[9px] font-tech font-black px-1.5 py-0.5 rounded border border-amber-500/50">ACT-C</span>
+              </div>
+              <div class="space-y-1.5 flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-500 text-neutral-950 shadow-md font-hud">【主人公C：社会権】</span>
+                  <span id="badgeCharC" class="text-[10px] font-mono font-bold text-amber-300 bg-amber-950/90 px-2 py-0.5 rounded border border-amber-500/40">10:00 進行可能</span>
+                </div>
+                <div class="font-black text-lg sm:text-xl text-white group-hover:text-amber-300 transition-colors font-hud">ダニエル 〜地下診療所の医師〜</div>
+                
+                <!-- 名セリフ引用 -->
+                <div class="quote-box text-amber-300/90 text-xs sm:text-[13px] font-story leading-snug">
+                  「人間らしく生きる権利を諦めるな。一人たりとも見捨てない」
+                </div>
+
+                <div class="text-xs text-neutral-300 leading-relaxed line-clamp-1 font-hud pt-0.5">自由と平等だけでは生きられない。命と健康を守る尊厳をかけて診療所を守る。</div>
+                <div class="text-[10px] sm:text-[11px] text-amber-400 font-mono flex items-center gap-1.5">
+                  <span>📜</span><span>生存権 / 勤労の権利（憲法第25・27条）</span>
+                </div>
+              </div>
+            </div>
+            <div class="shrink-0 flex sm:flex-col justify-end items-end w-full sm:w-auto">
+              <span id="btnLabelCharC" class="w-full sm:w-auto text-center px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-xs sm:text-sm rounded-xl shadow-lg flex items-center justify-center gap-1.5 group-hover:scale-105 group-hover:shadow-amber-500/40 transition-all font-hud">
+                <span>診療開始</span><span class="text-xs">▶</span>
+              </span>
+            </div>
+          </button>
+        </div>
+
+        <!-- 特別解放：12:00 クライマックス（3人合同編）カード -->
+        <div id="cardClimax" style="display: none;" class="relative group">
+          <button data-launch="CLIMAX" class="char-launch-btn climax-sync-aura w-full p-4 sm:p-5 bg-gradient-to-r from-amber-950/90 via-neutral-950 to-neutral-950 hover:from-amber-900/90 hover:to-neutral-900 border-2 border-amber-400 text-left rounded-2xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xl gold-glow group cursor-pointer">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+              <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-emerald-400 via-sky-400 to-amber-400 p-0.5 shrink-0 flex items-center justify-center shadow-2xl">
+                <div class="w-full h-full bg-neutral-950 rounded-xl flex flex-col items-center justify-center text-center p-2">
+                  <span class="text-3xl sm:text-4xl animate-bounce">✨</span>
+                  <span class="text-[10px] font-black text-amber-300 font-tech uppercase mt-1">3 SHIFTS SYNC</span>
+                </div>
+              </div>
+              <div class="space-y-1.5 flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-[10px] sm:text-xs font-black px-3 py-1 rounded-full bg-amber-400 text-neutral-950 font-tech shadow-lg">★ FINAL CHAPTER：12:00 CLIMAX</span>
+                  <span class="text-[10px] font-tech text-amber-300 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/50">TRIPLE SYNCHRONIZED</span>
+                </div>
+                <div class="font-black text-lg sm:text-2xl text-white group-hover:text-amber-300 transition-colors font-hud">運命の頂上 〜三大基本的人権の調和〜</div>
+                <div class="text-xs sm:text-sm text-neutral-200 leading-relaxed line-clamp-2 font-hud">レン・エレナ・ダニエルが集結。タワー最上階で3つの古遺物が真実の日本国憲法を解読する！</div>
+              </div>
+            </div>
+            <div class="shrink-0 flex sm:flex-col justify-end items-end w-full sm:w-auto">
+              <span class="w-full sm:w-auto text-center px-6 py-3 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-neutral-950 font-black text-xs sm:text-sm rounded-xl shadow-2xl flex items-center justify-center gap-2 group-hover:scale-105 transition-all font-hud">
+                <span>最終決戦突入</span><span class="text-sm">▶</span>
+              </span>
+            </div>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. サウンドノベルビュー -->
+  <div id="viewNovel" class="hidden flex flex-col justify-between novel-screen-height h-[76vh] bg-neutral-950/95 p-4 sm:p-7 rounded-2xl border border-neutral-800 shadow-2xl relative">
+    <div id="novelTapZone" class="flex-1 overflow-y-auto pr-2 space-y-4 text-base sm:text-lg leading-relaxed text-neutral-200 cursor-pointer">
+      <div class="flex justify-between items-center border-b border-neutral-800 pb-2">
+        <div class="flex items-center gap-2">
+          <img id="novelHeaderPortrait" src="" alt="主人公" class="w-6 h-6 rounded-full object-cover border border-neutral-700">
+          <span id="sceneTimeBadge" class="text-xs font-black tracking-wider text-amber-400 font-mono bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">10:00</span>
+          <span id="sceneCharBadge" class="text-xs font-bold text-neutral-300"></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div id="sceneTitleBadge" class="text-xs sm:text-sm font-black text-neutral-300 truncate max-w-[190px] sm:max-w-[260px]"></div>
+          <button id="btnSkipNovel" class="hidden text-xs px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg border border-amber-500/50 flex items-center gap-1 font-mono font-bold active:scale-95 transition-all cursor-pointer" title="既読シーンを選択肢まで早送り">
+            <span>⏩</span><span>SKIP</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="paragraphsList" class="space-y-3.5 pt-2"></div>
+
+      <div id="promptNext" class="hidden text-right pt-2">
+        <span class="blink-indicator inline-block text-amber-400 text-xs sm:text-sm font-black">▼ タップして次へ</span>
+      </div>
+    </div>
+
+    <div id="choicesWrapper" class="hidden mt-3 pt-3 border-t border-neutral-800 flex flex-col gap-2"></div>
+  </div>
+
+  <!-- 3. KEEP OUT ビュー（トリプル・シンクロゲート対応） -->
+  <div id="viewKeepOut" class="hidden novel-screen-height h-[76vh] bg-neutral-950 rounded-2xl border-4 border-red-700 shadow-2xl flex flex-col justify-between p-5 sm:p-6 relative overflow-hidden text-center">
+    <div class="keep-out-stripe h-6 w-full absolute top-0 left-0"></div>
+    <div class="keep-out-stripe h-6 w-full absolute bottom-0 left-0"></div>
+
+    <div class="my-auto space-y-3.5 z-10 max-w-lg mx-auto w-full">
+      <div class="text-4xl sm:text-5xl font-black text-red-500 tracking-widest uppercase">KEEP OUT</div>
+      <div class="text-xs font-mono text-red-400 tracking-wider">これ以上、この時間軸を進めることはできない！</div>
+
+      <!-- 同期ゲートステータスボックス -->
+      <div id="syncGateStatusBox" class="p-3 bg-black/80 border border-red-800/80 rounded-xl space-y-2">
+        <div class="text-[10px] font-mono text-red-400 font-bold uppercase tracking-wider">TIMELINE SYNCHRONIZATION STATUS (11:30 GATES)</div>
+        <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+          <div id="syncStatusA" class="p-2 rounded-lg border bg-neutral-900 border-neutral-700 text-neutral-400">
+            <div class="text-[10px]">A: レン</div>
+            <div id="syncTextA" class="font-bold mt-0.5 text-[11px]">未到達</div>
+          </div>
+          <div id="syncStatusB" class="p-2 rounded-lg border bg-neutral-900 border-neutral-700 text-neutral-400">
+            <div class="text-[10px]">B: エレナ</div>
+            <div id="syncTextB" class="font-bold mt-0.5 text-[11px]">未到達</div>
+          </div>
+          <div id="syncStatusC" class="p-2 rounded-lg border bg-neutral-900 border-neutral-700 text-neutral-400">
+            <div class="text-[10px]">C: ダニエル</div>
+            <div id="syncTextC" class="font-bold mt-0.5 text-[11px]">未到達</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="p-3.5 bg-red-950/40 border border-red-800/80 rounded-xl text-left space-y-1.5">
+        <div class="text-xs text-neutral-200 font-bold" id="keepOutReason"></div>
+        <div class="text-xs text-amber-400 font-bold pt-1.5 border-t border-red-900/60 flex items-start gap-1">
+          <span>💡</span><span id="keepOutHint"></span>
+        </div>
+      </div>
+
+      <button id="btnKeepOutJump" class="w-full py-3.5 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-neutral-950 font-black rounded-xl text-sm shadow-xl flex items-center justify-center gap-2 active:scale-[0.99] transition-all">
+        <span id="keepOutJumpLabel">対象主人公の時間軸へ JUMP -&gt;</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. BAD END ビュー -->
+  <div id="viewBadEnd" class="hidden novel-screen-height h-[76vh] bg-neutral-950 rounded-2xl border-4 border-neutral-800 shadow-2xl flex flex-col justify-between p-5 sm:p-7 relative overflow-y-auto">
+    <div class="text-center space-y-1">
+      <div class="flex justify-between items-center border-b border-neutral-800 pb-2 mb-2">
+        <div class="flex items-center gap-2">
+          <span id="badEndTimeBadge" class="text-xs font-black tracking-wider text-red-400 font-mono bg-neutral-900 px-2 py-0.5 rounded border border-red-900">10:20</span>
+          <span id="badEndCharBadge" class="text-xs font-bold text-neutral-300">[エレナ（平等権）]</span>
+        </div>
+        <div class="text-xs font-black tracking-widest text-red-500 uppercase font-mono">CHRONICLE TERMINATED</div>
+      </div>
+      <h2 id="badEndTitle" class="text-xl sm:text-2xl font-black text-neutral-100"></h2>
+    </div>
+
+    <div class="space-y-4 my-auto py-2">
+      <div id="badEndParagraphs" class="space-y-2 text-sm sm:text-base text-neutral-300 bg-neutral-900/80 p-4 rounded-xl border border-neutral-800"></div>
+
+      <div class="p-4 bg-amber-950/30 border border-amber-800/60 rounded-xl text-left">
+        <div class="text-xs font-black text-amber-400 flex items-center gap-1">
+          <span>📜</span><span>現代社会・公民科の視点から学ぶ原因</span>
+        </div>
+        <p id="badEndLesson" class="text-xs text-neutral-300 leading-relaxed mt-1.5"></p>
+      </div>
+    </div>
+
+    <button id="btnBadEndJump" class="w-full py-3.5 bg-gradient-to-r from-neutral-700 to-neutral-600 hover:from-neutral-600 hover:to-neutral-500 text-white font-black rounded-xl text-sm shadow-xl flex items-center justify-center gap-2 active:scale-[0.99] transition-all">
+      <span>原因となった時間軸へ JUMP -&gt;</span>
+    </button>
+  </div>
+
+  <!-- 5. TRUE SECRET END ビュー（光学スキャン＆4幕構成エピローグ） -->
+  <div id="viewTrueEnd" class="hidden novel-screen-height h-[76vh] bg-neutral-950 rounded-2xl border-2 border-sky-500 shadow-2xl flex flex-col justify-between p-4 sm:p-6 relative overflow-hidden">
+    <div class="scanner-beam"></div>
+
+    <div class="flex justify-between items-center border-b border-neutral-800 pb-2 z-10">
+      <div class="text-xs font-mono text-sky-400 font-black tracking-widest">TURING SAFEGUARD // CONSTITUTIONAL OCR</div>
+      <div class="text-xs text-amber-400 font-bold">★ TRUE SECRET END</div>
+    </div>
+
+    <div id="scanConsole" class="my-auto space-y-3.5 z-10 overflow-y-auto pr-1">
+      <div id="scanStatusText" class="text-xs sm:text-sm font-mono text-neutral-200 leading-relaxed bg-neutral-900/90 p-3.5 rounded-xl border border-neutral-800">
+        システム音声：『光学スキャナ上に3つの遺物を確認。画像解析を開始します……』
+      </div>
+
+      <div id="decodeCardsGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-xs">
+        <div class="p-3 bg-neutral-900 border border-emerald-800 rounded-xl space-y-1">
+          <div class="text-[10px] text-emerald-400 font-bold">【レンの胸を守った青い鉄板】</div>
+          <div id="decodeTextA" class="font-black text-sm text-neutral-400 font-mono tracking-widest">幾何学パターン展開中...</div>
+        </div>
+        <div class="p-3 bg-neutral-900 border border-sky-800 rounded-xl space-y-1">
+          <div class="text-[10px] text-sky-400 font-bold">【エレナの真鍮銘板】</div>
+          <div id="decodeTextB" class="font-black text-sm text-neutral-400 font-mono tracking-widest">幾何学パターン展開中...</div>
+        </div>
+        <div class="p-3 bg-neutral-900 border border-amber-800 rounded-xl space-y-1">
+          <div class="text-[10px] text-amber-400 font-bold">【ダニエルが背負った救急木箱】</div>
+          <div id="decodeTextC" class="font-black text-sm text-neutral-400 font-mono tracking-widest">幾何学パターン展開中...</div>
+        </div>
+      </div>
+
+      <div id="trueEndDramaContainer" class="hidden p-4 bg-neutral-900/95 border border-amber-500/70 rounded-xl text-left space-y-2.5 text-xs sm:text-sm text-neutral-200 leading-relaxed">
+        <div id="trueEndActTitle" class="text-xs font-black text-amber-400 uppercase tracking-widest border-b border-neutral-800 pb-1"></div>
+        <div id="trueEndActContent" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <div class="z-10 pt-2 flex gap-2">
+      <button id="btnProceedTrueEnd" class="flex-1 py-3.5 bg-gradient-to-r from-sky-500 to-amber-500 hover:from-sky-400 hover:to-amber-400 text-neutral-950 font-black rounded-xl text-xs sm:text-sm shadow-xl active:scale-[0.99] transition-all">
+        次へ進める -&gt;
+      </button>
+      <button id="btnCertFromTrue" style="display: none;" class="px-5 py-3.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black rounded-xl text-xs sm:text-sm shadow-xl flex items-center justify-center gap-1.5">
+        <span>🏆</span><span>特別表彰状（主権者認定証）を発行</span>
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<!-- 428風 第1アワー突破＆第2アワー予告編（INTERMISSION / PREVIEW）モーダル -->
+<div id="modalHour1Preview" class="hidden fixed inset-0 bg-black/95 p-4 z-50 flex items-center justify-center backdrop-blur-lg overflow-y-auto">
+  <div class="bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-2 border-emerald-500 p-6 sm:p-8 rounded-3xl shadow-[0_0_50px_rgba(16,185,129,0.3)] max-w-2xl w-full space-y-6 text-center relative overflow-hidden my-auto">
+    <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black font-mono text-emerald-400 select-none">428</div>
+    
+    <div class="space-y-2">
+      <div class="text-[11px] font-mono font-black text-emerald-400 tracking-widest uppercase bg-emerald-950/90 px-4 py-1.5 rounded-full border border-emerald-500/50 inline-block animate-pulse">
+        ✦ HOUR 1 CLEARED // NEXT HOUR PREVIEW ✦
+      </div>
+      <h3 class="text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-white to-sky-300 tracking-wider font-mono">
+        10:00 〜 11:00 BREAKTHROUGH
+      </h3>
+      <p class="text-xs text-neutral-400 font-mono">三者の運命が交錯し、物語は中央統治タワー潜入の刻へ</p>
+    </div>
+
+    <!-- ここまでのあらすじ（Recap） -->
+    <div class="p-4 bg-neutral-950/90 border border-neutral-800 rounded-2xl text-left space-y-3">
+      <div class="text-xs font-black text-amber-400 flex items-center gap-1.5 border-b border-neutral-800 pb-1.5">
+        <span>📜</span><span>第1アワーのあらすじ（10:00〜11:00）</span>
+      </div>
+      <div class="space-y-2 text-xs leading-relaxed text-neutral-300">
+        <div><strong class="text-emerald-400">【レン（自由権）】</strong>首輪の電磁自爆カウントダウンの中、治安警察の包囲網をかいくぐり、暗黒の地下水路を突破して地上スラム出口へと脱出を果たした。</div>
+        <div><strong class="text-sky-400">【エレナ（平等権）】</strong>偽りの特権身分IDを踏み砕き、母の自由な信念を胸に、父オーガスト卿の歪んだ階級支配に抗うためスラム境界の中立広場へ身を投じた。</div>
+        <div><strong class="text-amber-400">【ダニエル（社会権）】</strong>医薬品配給を打ち切られた地下診療所を守るため、丸腰の白衣で武装警備隊の銃口の前に立ち塞がり、労働者たちと共に命の防壁を死守した。</div>
+      </div>
+    </div>
+
+    <!-- 第2アワー予告編（Teaser） -->
+    <div class="p-4 bg-gradient-to-r from-emerald-950/50 via-neutral-950 to-sky-950/50 border border-emerald-500/40 rounded-2xl text-left space-y-3">
+      <div class="text-xs font-black text-emerald-300 flex items-center gap-1.5 border-b border-emerald-900/50 pb-1.5">
+        <span>🎬</span><span>第2アワー予告：中央統治タワーへの侵入（11:00〜12:00）</span>
+      </div>
+      <p class="text-xs sm:text-sm text-neutral-200 leading-relaxed font-story">
+        スラムの混乱に乗じ、三つの影は雲を衝く『中央統治タワー』の深奥へ向かう。<br>
+        だがタワー中枢を阻むのは、オーガスト卿が敷いた冷酷な三重セキュリティ——<br>
+        <span class="text-emerald-300 font-bold">【東翼：軍事防衛】</span>、<span class="text-sky-300 font-bold">【西翼：政庁電算】</span>、<span class="text-amber-300 font-bold">【南翼：生命インフラ】</span>。<br>
+        互いの正体を知らぬ三人は、それぞれの信念を懸けてタワーの要衝を攻め落とせるか！？
+      </p>
+      <div class="flex flex-wrap gap-2 pt-1">
+        <span class="text-[10px] font-mono font-bold bg-neutral-900 border border-neutral-700 px-2 py-0.5 rounded text-neutral-300"># 内部潜入</span>
+        <span class="text-[10px] font-mono font-bold bg-neutral-900 border border-neutral-700 px-2 py-0.5 rounded text-neutral-300"># 三重ロック</span>
+        <span class="text-[10px] font-mono font-bold bg-neutral-900 border border-neutral-700 px-2 py-0.5 rounded text-neutral-300"># 見知らぬ同志</span>
+        <span class="text-[10px] font-mono font-bold bg-neutral-900 border border-neutral-700 px-2 py-0.5 rounded text-neutral-300"># 運命の頂上</span>
+      </div>
+    </div>
+
+    <button id="btnStartHour2FromPreview" class="w-full py-4 bg-gradient-to-r from-emerald-500 via-teal-400 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-neutral-950 font-black rounded-2xl text-sm sm:text-base shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer">
+      <span>第2アワー（11:00〜12:00）潜入開始 ▶</span>
+    </button>
+  </div>
+</div>
+
+<!-- 待機中主人公の自由な行動選択モーダル -->
+<div id="modalCharWaitOption" class="hidden fixed inset-0 bg-black/90 p-4 z-50 flex items-center justify-center backdrop-blur-md">
+  <div class="bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-700 p-5 sm:p-7 rounded-3xl shadow-2xl max-w-sm w-full space-y-4 text-center">
+    <div id="charWaitModalBadge" class="text-[11px] font-mono font-bold text-amber-400 bg-amber-950/80 px-3 py-1 rounded-full border border-amber-500/40 inline-block">
+      時間帯待機中
+    </div>
+    <h4 id="charWaitModalTitle" class="text-lg font-black text-white"></h4>
+    <p id="charWaitModalDesc" class="text-xs text-neutral-300 leading-relaxed"></p>
+
+    <div class="space-y-2 pt-2">
+      <button id="btnCharWaitGoScene" class="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+        <span>📖 現在のシーンを読む（状況確認）</span>
+      </button>
+      <button id="btnCharWaitOpenChart" class="w-full py-2.5 bg-sky-900/60 hover:bg-sky-800/80 text-sky-200 border border-sky-600/50 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+        <span>🗺️ タイムラインを開く（過去の分岐へJUMP）</span>
+      </button>
+      <button id="btnCharWaitClose" class="w-full py-2 bg-neutral-900 hover:bg-neutral-850 text-neutral-400 font-medium rounded-xl text-xs transition-all cursor-pointer">
+        <span>閉じる（別の主人公を選ぶ）</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 428風 TO BE CONTINUED... モーダル -->
+<div id="modalToBeContinued" class="hidden fixed inset-0 bg-black/95 p-4 z-50 flex items-center justify-center backdrop-blur-md">
+  <div class="bg-gradient-to-b from-neutral-900 to-neutral-950 border-2 border-amber-500 p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-5 text-center relative overflow-hidden">
+    <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black font-mono text-amber-400 select-none">428</div>
+    
+    <div class="space-y-1">
+      <div class="text-[11px] font-mono font-black text-amber-400 tracking-widest uppercase bg-amber-950/80 px-3 py-1 rounded-full border border-amber-500/40 inline-block">
+        TIME BLOCK COMPLETED
+      </div>
+      <h3 class="text-2xl sm:text-3xl font-black text-white tracking-wider font-mono mt-2">
+        TO BE CONTINUED...
+      </h3>
+    </div>
+
+    <div class="p-4 bg-neutral-950/90 border border-neutral-800 rounded-2xl text-left space-y-2">
+      <div id="tbcCharTitle" class="text-sm sm:text-base font-black text-amber-300"></div>
+      <p id="tbcMessage" class="text-xs sm:text-sm text-neutral-300 leading-relaxed"></p>
+      <div id="tbcNextHint" class="text-xs font-bold text-amber-400 pt-2 border-t border-neutral-800 flex items-start gap-1.5">
+        <span>💡</span><span>他の主人公のタイムラインを進め、次の時間帯（Hour）の封鎖を解除せよ！</span>
+      </div>
+    </div>
+
+    <button id="btnTbcReturnSelect" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black rounded-xl text-sm shadow-xl flex items-center justify-center gap-2 active:scale-[0.99] transition-all">
+      <span>タイムライン・シナリオ選択画面へ -&gt;</span>
+    </button>
+  </div>
+</div>
+
+<!-- 428式 フルスクリーン TIPS 逆照射モーダル -->
+<div id="modalTip" class="hidden fixed inset-0 tip-modal-overlay p-4 sm:p-6 z-50 flex items-center justify-center">
+  <div class="tip-book-container max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl">
+    <div class="tip-book-header p-4 sm:p-5 flex justify-between items-start">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-sky-500 text-neutral-950 font-hud tracking-wide">
+            💡 日本国憲法の知恵・判例解説
+          </span>
+          <span id="tipCategoryBadge" class="text-[10px] font-mono text-sky-300 bg-sky-950/80 px-2 py-0.5 rounded border border-sky-600/40"></span>
+        </div>
+        <h3 id="tipTermTitle" class="text-xl sm:text-2xl font-black text-sky-300 font-hud tracking-wide"></h3>
+        <div id="tipLawName" class="text-xs sm:text-sm text-neutral-400 font-mono flex items-center gap-1.5">
+          <span>📜</span><span id="tipLawText"></span>
+        </div>
+      </div>
+      <button id="btnCloseTip" class="text-neutral-400 hover:text-white px-3 py-1.5 bg-neutral-800/80 hover:bg-neutral-700 rounded-xl text-xs font-bold transition-all border border-neutral-700">
+        ✕ 閉じる (ESC)
+      </button>
+    </div>
+    <div id="tipBodyScroll" class="p-5 sm:p-7 overflow-y-auto space-y-4 text-sm sm:text-base leading-relaxed text-neutral-200 font-sans-jp">
+      <div id="tipDescription" class="leading-relaxed space-y-3"></div>
+    </div>
+    <div class="p-3 bg-neutral-950/80 border-t border-neutral-800 text-center">
+      <button id="btnFooterCloseTip" class="w-full sm:w-auto px-8 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-xs sm:text-sm rounded-xl transition-all shadow-lg">
+        物語に戻る
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 公民TIPS・判例図鑑アーカイブモーダル -->
+<div id="modalTipsArchive" class="hidden fixed inset-0 tip-modal-overlay p-3 sm:p-6 z-50 flex items-center justify-center">
+  <div class="bg-neutral-900 border-2 border-sky-500/70 max-w-4xl w-full h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+    <!-- ヘッダー -->
+    <div class="p-4 sm:p-5 border-b border-neutral-800 bg-neutral-950/90 flex justify-between items-center">
+      <div>
+        <div class="text-[10px] text-sky-400 font-mono font-black uppercase tracking-wider">CONSTITUTIONAL ARCHIVE</div>
+        <h2 class="text-lg sm:text-xl font-black text-white font-hud flex items-center gap-2">
+          <span>📜</span><span>公民TIPS・判例図鑑アーカイブ</span>
+          <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-sky-950 border border-sky-600/40 text-sky-300">
+            <span id="archiveUnlockedCount">0</span> / <span id="archiveTotalCount">18</span> 解明
+          </span>
+        </h2>
+      </div>
+      <button id="btnCloseTipsArchive" class="text-xs px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl border border-neutral-700">✕ 閉じる (ESC)</button>
+    </div>
+
+    <!-- 検索バー -->
+    <div class="px-4 py-2 bg-neutral-950/70 border-b border-neutral-800">
+      <input id="archiveSearchInput" type="search" placeholder="🔍 条文番号・判例名・権利名で検索（例: 14条、尊属殺、薬事法、生存権）" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-sky-500 font-hud">
+    </div>
+
+    <!-- フィルタタブ -->
+    <div class="flex items-center gap-2 p-3 bg-neutral-950 border-b border-neutral-800 text-xs overflow-x-auto">
+      <button class="filter-pill active px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300" data-filter="all">すべて</button>
+      <button class="filter-pill px-3 py-1 rounded-lg border border-neutral-700 text-neutral-400 hover:text-white" data-filter="freedom">自由権</button>
+      <button class="filter-pill px-3 py-1 rounded-lg border border-neutral-700 text-neutral-400 hover:text-white" data-filter="equality">平等権</button>
+      <button class="filter-pill px-3 py-1 rounded-lg border border-neutral-700 text-neutral-400 hover:text-white" data-filter="social">社会権</button>
+      <button class="filter-pill px-3 py-1 rounded-lg border border-neutral-700 text-neutral-400 hover:text-white" data-filter="precedent">重要判例</button>
+    </div>
+
+    <!-- アーカイブグリッド -->
+    <div id="archiveCardsGrid" class="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <!-- 動的レンダリング -->
+    </div>
+  </div>
+</div>
+
+<!-- 全23大 BAD END 図鑑アーカイブモーダル -->
+<div id="modalBadEndArchive" class="hidden fixed inset-0 tip-modal-overlay p-3 sm:p-6 z-50 flex items-center justify-center">
+  <div class="bg-neutral-900 border-2 border-rose-500/70 max-w-4xl w-full h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+    <!-- ヘッダー -->
+    <div class="p-4 sm:p-5 border-b border-neutral-800 bg-neutral-950/90 flex justify-between items-center">
+      <div>
+        <div class="text-[10px] text-rose-400 font-mono font-black uppercase tracking-wider">CAUSALITY DISASTER ARCHIVE</div>
+        <h2 class="text-lg sm:text-xl font-black text-white font-hud flex items-center gap-2">
+          <span>💀</span><span>全23大 BAD END 図鑑アーカイブ</span>
+          <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-rose-950 border border-rose-600/40 text-rose-300">
+            <span id="badEndArchiveUnlockedCount">0</span> / 23 解明
+          </span>
+        </h2>
+      </div>
+      <button id="btnCloseBadEndArchive" class="text-xs px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl border border-neutral-700">✕ 閉じる (ESC)</button>
+    </div>
+
+    <!-- 検索バー -->
+    <div class="px-4 py-2 bg-neutral-950/70 border-b border-neutral-800">
+      <input id="archiveBadEndSearchInput" type="search" placeholder="🔍 結末タイトル・番号・解説・ヒントで検索（例: 暴走、処刑、BAD_06、隔離）" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-rose-500 font-hud">
+    </div>
+
+    <!-- フィルタタブ -->
+    <div class="flex items-center gap-2 p-3 bg-neutral-950 border-b border-neutral-800 text-xs overflow-x-auto">
+      <button class="bad-filter-pill active px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300" data-filter="all">すべて (23)</button>
+      <button class="bad-filter-pill px-3 py-1 rounded-lg border border-neutral-700 text-neutral-400 hover:text-white" data-filter="A">レン編 (7)</button>
+      <button class="bad-filter-pill px-3 py-1 rounded-lg border border-neutral-700 text-neutral-400 hover:text-white" data-filter="B">エレナ編 (4)</button>
+      <button class="bad-filter-pill px-3 py-1 rounded-lg border border-neutral-700 text-neutral-400 hover:text-white" data-filter="C">ダニエル編 (4)</button>
+      <button class="bad-filter-pill px-3 py-1 rounded-lg border border-neutral-700 text-neutral-400 hover:text-white" data-filter="ALL">クライマックス (8)</button>
+    </div>
+
+    <!-- アーカイブグリッド -->
+    <div id="badEndCardsGrid" class="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <!-- 動的レンダリング -->
+    </div>
+  </div>
+</div>
+
+<!-- パスコードモーダル -->
+<div id="modalPasscodeNotice" class="hidden fixed inset-0 bg-black/95 p-4 z-50 flex items-center justify-center">
+  <div class="bg-neutral-900 border-2 border-amber-500 p-6 rounded-2xl shadow-2xl max-w-sm w-full space-y-4 text-center">
+    <div class="text-amber-400 text-4xl">🔑</div>
+    <div>
+      <h3 class="text-lg font-black text-white">4桁パスコードを発行しました</h3>
+      <p class="text-xs text-neutral-400 mt-1">次回、別端末から再開する際に使用します。<br>メモ帳やノートに控えておいてください。</p>
+    </div>
+
+    <div class="p-4 bg-neutral-950 border border-neutral-700 rounded-xl">
+      <div class="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">YOUR SECRET PASSCODE</div>
+      <div id="modalIssuedPasscode" class="text-3xl font-mono font-black text-amber-400 tracking-widest my-1"></div>
+      <div id="passDisplayName" class="text-xs text-neutral-300"></div>
+    </div>
+
+    <button id="btnClosePassNotice" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black rounded-xl text-sm shadow-lg transition-all">
+      控えた！タイムラインを開始する -&gt;
+    </button>
+  </div>
+</div>
+
+<!-- 時間軸図鑑モーダル -->
+<div id="modalTimelineChart" class="hidden fixed inset-0 bg-black/95 p-3 sm:p-6 z-50 overflow-y-auto flex flex-col max-w-4xl mx-auto my-auto h-[92vh] rounded-2xl border border-neutral-800">
+  <div class="flex justify-between items-center mb-3 border-b border-neutral-800 pb-2.5">
+    <div>
+      <h2 class="text-base sm:text-lg font-black text-amber-400 flex items-center gap-1.5">
+        <span>🔀</span><span>タイムライン時間軸図鑑</span>
+      </h2>
+      <p class="text-[11px] text-neutral-400">通過したシーンをタップすると、その過去の時間へ直接JUMPできます。</p>
+    </div>
+    <button id="btnCloseChart" class="text-neutral-400 hover:text-white text-xs px-3 py-1 bg-neutral-800 rounded-lg">✕ 閉じる</button>
+  </div>
+
+  <div class="mb-3 p-3 bg-neutral-900 border border-neutral-750 rounded-xl flex justify-between items-center text-xs">
+    <div>
+      <span class="text-neutral-400">結末の解明状況：</span>
+      <strong id="chartProgressText" class="text-amber-400 font-mono text-sm ml-1">0 / 6 結末</strong>
+    </div>
+    <button id="btnChartCertDownload" style="display: none;" class="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-[11px] font-black rounded shadow">
+      🏆 表彰状を発行
+    </button>
+  </div>
+
+  <div id="chartColumns" class="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1 overflow-y-auto pr-1">
+    <div class="bg-neutral-950 border border-emerald-900/60 rounded-xl p-3 flex flex-col gap-2">
+      <div class="text-xs font-black text-emerald-400 border-b border-emerald-900 pb-1 flex justify-between">
+        <span>A: レン</span><span>自由権</span>
+      </div>
+      <div id="columnNodesA" class="space-y-2"></div>
+    </div>
+    <div class="bg-neutral-950 border border-sky-900/60 rounded-xl p-3 flex flex-col gap-2">
+      <div class="text-xs font-black text-sky-400 border-b border-sky-900 pb-1 flex justify-between">
+        <span>B: エレナ</span><span>平等権</span>
+      </div>
+      <div id="columnNodesB" class="space-y-2"></div>
+    </div>
+    <div class="bg-neutral-950 border border-amber-900/60 rounded-xl p-3 flex flex-col gap-2">
+      <div class="text-xs font-black text-amber-400 border-b border-amber-900 pb-1 flex justify-between">
+        <span>C: ダニエル</span><span>社会権</span>
+      </div>
+      <div id="columnNodesC" class="space-y-2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 表彰状モーダル -->
+<div id="modalCertificate" class="hidden fixed inset-0 bg-black/95 p-3 sm:p-6 z-50 flex flex-col items-center justify-center overflow-y-auto">
+  <div class="max-w-2xl w-full space-y-3.5 text-center">
+    <div class="flex justify-between items-center px-1">
+      <div class="text-left">
+        <span id="certGradeBadge" class="text-xs font-black text-amber-400 tracking-widest uppercase">CONSTITUTIONAL MASTER</span>
+        <h3 id="certMainTitle" class="text-xl font-black text-white">人権調和 表彰状</h3>
+      </div>
+      <button id="btnCloseCertTop" class="text-xs px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg">✕ 閉じる</button>
+    </div>
+
+    <div class="border-2 border-amber-600 rounded-xl overflow-hidden shadow-2xl bg-amber-50">
+      <canvas id="canvasCert" width="1600" height="1131" class="w-full h-auto block"></canvas>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 pt-1">
+      <button id="btnDownloadPdf" class="flex-1 py-3.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-sm rounded-xl shadow-xl flex items-center justify-center gap-2">
+        <span>📄</span><span>表彰状をPDFで保存する</span>
+      </button>
+      <button id="btnCloseCertBottom" class="px-6 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold text-sm rounded-xl">
+        閉じる
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ホーム戻り確認モーダル -->
+<div id="modalConfirmHome" class="hidden fixed inset-0 bg-black/90 p-4 z-50 flex items-center justify-center">
+  <div class="bg-neutral-900 border border-neutral-700 p-5 rounded-2xl max-w-sm w-full space-y-3 text-center">
+    <h4 class="text-base font-black text-white">タイトル画面へ戻りますか？</h4>
+    <p class="text-xs text-neutral-400">現在のタイムライン進捗と解放した結末は自動的に保存されています。</p>
+    <div class="flex gap-2 pt-2">
+      <button id="btnExecHome" class="flex-1 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs">はい、戻る</button>
+      <button id="btnCancelHome" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl text-xs">続ける</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 分割された各モジュールをGASテンプレート方式でインクルード -->
+<?!= HtmlService.createHtmlOutputFromFile('js_assets').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('js_tips').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_ren').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_elena').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_daniel').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_climax_ren').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_climax_elena').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_climax_daniel').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_climax').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('js_audio').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('js_state').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('js_ui').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('js_engine').getContent(); ?>
+
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  TimelineState.loadLocal();
+  UIController.renderTimeBlockStatus();
+  UIController.checkAllClearBadge();
+
+  // Populate portraits in cards
+  if (typeof CHARACTER_IMAGES !== "undefined") {
+    var imgA = document.getElementById("charCardImgA");
+    var imgB = document.getElementById("charCardImgB");
+    var imgC = document.getElementById("charCardImgC");
+    if (imgA) imgA.src = CHARACTER_IMAGES.A;
+    if (imgB) imgB.src = CHARACTER_IMAGES.B;
+    if (imgC) imgC.src = CHARACTER_IMAGES.C;
+  }
+
+  // ロゴ・ホーム押下で確認モーダル
+  var handleHomeClick = function() {
+    AudioEngine.play('tap');
+    var modal = document.getElementById("modalConfirmHome");
+    if (modal) modal.classList.remove("hidden");
+    else {
+      UIController.switchView('auth');
+      displayCharSelect();
+    }
+  };
+  var btnLogo = document.getElementById("btnLogoHome");
+  if (btnLogo) btnLogo.onclick = handleHomeClick;
+  var btnHome = document.getElementById("btnHome");
+  if (btnHome) btnHome.onclick = handleHomeClick;
+
+  var btnExecHome = document.getElementById("btnExecHome");
+  if (btnExecHome) {
+    btnExecHome.onclick = function() {
+      AudioEngine.play('tap');
+      var modal = document.getElementById("modalConfirmHome");
+      if (modal) modal.classList.add("hidden");
+      UIController.switchView('auth');
+      displayCharSelect();
+    };
+  }
+  var btnCancelHome = document.getElementById("btnCancelHome");
+  if (btnCancelHome) {
+    btnCancelHome.onclick = function() {
+      AudioEngine.play('tap');
+      var modal = document.getElementById("modalConfirmHome");
+      if (modal) modal.classList.add("hidden");
+    };
+  }
+
+  // 音声切替
+  var btnAudio = document.getElementById("btnAudioToggle");
+  if (btnAudio) {
+    btnAudio.onclick = function() {
+      AudioEngine.toggleMute();
+    };
+  }
+
+  // 新規登録
+  var btnSubmitNew = document.getElementById("btnSubmitNew");
+  if (btnSubmitNew) {
+    btnSubmitNew.onclick = function() {
+      AudioEngine.play('tap');
+      var name = document.getElementById("inputNewKatakana").value.trim();
+      if (!name) {
+        UIController.showToast("カタカナでお名前を入力してください。");
+        return;
+      }
+
+      var pass = String(Math.floor(1000 + Math.random() * 9000));
+      var state = TimelineState.getState();
+      state.studentName = name;
+      state.passcode = pass;
+      state.currentNodeKey = "A_1000";
+      state.currentChar = "A";
+      state.slots = {};
+      state.userFlags = [];
+      state.visitedNodes = ["A_1000"];
+      state.unlockedEndings = {};
+      TimelineState.saveLocal();
+
+      if (typeof google !== "undefined" && google.script && google.script.run) {
+        google.script.run.registerStudent(name);
+      }
+
+      var passEl = document.getElementById("modalIssuedPasscode");
+      if (passEl) passEl.textContent = pass;
+      var nameEl = document.getElementById("passDisplayName");
+      if (nameEl) nameEl.textContent = "登録名: " + name;
+
+      var modal = document.getElementById("modalPasscodeNotice");
+      if (modal) modal.classList.remove("hidden");
+    };
+  }
+
+  var btnCloseNotice = document.getElementById("btnClosePassNotice");
+  if (btnCloseNotice) {
+    btnCloseNotice.onclick = function() {
+      AudioEngine.play('tap');
+      var modal = document.getElementById("modalPasscodeNotice");
+      if (modal) modal.classList.add("hidden");
+      displayCharSelect();
+    };
+  }
+
+  // 継続ロード
+  var btnSubmitLoad = document.getElementById("btnSubmitLoad");
+  if (btnSubmitLoad) {
+    btnSubmitLoad.onclick = function() {
+      AudioEngine.play('tap');
+      var nameInput = document.getElementById("inputLoadKatakana").value.trim();
+      var passInput = document.getElementById("inputLoadPasscode").value.trim();
+
+      if (!nameInput || !passInput) {
+        UIController.showToast("登録名と4桁パスコードを入力してください。");
+        return;
+      }
+
+      var indicator = document.getElementById("saveStatus");
+      if (indicator) indicator.textContent = "復元中...";
+
+      if (typeof google !== "undefined" && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res && res.status === "success") {
+              var d = res.data;
+              var state = TimelineState.getState();
+              state.studentName = d.studentName;
+              state.passcode = d.passcode;
+              state.currentNodeKey = d.lastNodeKey;
+              state.slots = JSON.parse(d.slotsJSON || "{}");
+              state.userFlags = JSON.parse(d.userFlagsJSON || "[]");
+              TimelineState.rebuildFlags();
+              state.visitedNodes = JSON.parse(d.visitedNodesJSON || "[]");
+              state.unlockedEndings = JSON.parse(d.unlockedEndingsJSON || "{}");
+              TimelineState.saveLocal();
+              UIController.showToast("記録を復元しました！");
+              displayCharSelect();
+            } else {
+              UIController.showToast("名前またはパスコードが一致しません。");
+            }
+          })
+          .withFailureHandler(function() {
+            fallbackLocalAuth(nameInput, passInput);
+          })
+          .loadStudentProgress(nameInput, passInput);
+      } else {
+        fallbackLocalAuth(nameInput, passInput);
+      }
+    };
+  }
+
+  function fallbackLocalAuth(nameInput, passInput) {
+    TimelineState.loadLocal();
+    var state = TimelineState.getState();
+    if (state.studentName === nameInput && state.passcode === passInput) {
+      UIController.showToast("ローカル記録から復元しました！");
+      displayCharSelect();
+    } else {
+      UIController.showToast("照合できませんでした。名前とパスコードをご確認ください。");
+    }
+  }
+
+  function displayCharSelect() {
+    var boxNew = document.getElementById("boxNewGame");
+    if (boxNew) boxNew.classList.add("hidden");
+    var boxCont = document.getElementById("boxContGame");
+    if (boxCont) boxCont.classList.add("hidden");
+    var boxChar = document.getElementById("boxCharSelect");
+    if (boxChar) boxChar.classList.remove("hidden");
+
+    var state = TimelineState.getState();
+    var dispName = document.getElementById("displayLoginName");
+    if (dispName) dispName.textContent = state.studentName || "未登録";
+    var dispPass = document.getElementById("displayLoginPass");
+    if (dispPass) dispPass.textContent = state.passcode || "----";
+    UIController.renderTimeBlockStatus();
+    UIController.checkAllClearBadge();
+
+    // ロックオーバーレイ制御
+    var overlayB = document.getElementById("lockOverlayB");
+    var overlayC = document.getElementById("lockOverlayC");
+    if (overlayB) {
+      if (state.visitedNodes.indexOf("A_1045_WATERGATE") !== -1 || state.visitedNodes.indexOf("A_1100") !== -1 || state.visitedNodes.indexOf("B_1000") !== -1) {
+        overlayB.classList.add("hidden");
+      } else {
+        overlayB.classList.remove("hidden");
+      }
+    }
+    if (overlayC) {
+      if (state.visitedNodes.indexOf("B_1030_OPEN") !== -1 || state.visitedNodes.indexOf("B_1100") !== -1 || state.visitedNodes.indexOf("C_1000") !== -1) {
+        overlayC.classList.add("hidden");
+      } else {
+        overlayC.classList.remove("hidden");
+      }
+    }
+  }
+
+  // 時間軸図鑑
+  var btnChart = document.getElementById("btnChart");
+  if (btnChart) btnChart.onclick = UIController.openChart;
+  var btnCloseChart = document.getElementById("btnCloseChart");
+  if (btnCloseChart) btnCloseChart.onclick = UIController.closeChart;
+
+
+
+  // TIPS・判例図鑑アーカイブ
+  var btnTipsArchive = document.getElementById("btnTipsArchive");
+  if (btnTipsArchive) btnTipsArchive.onclick = UIController.openTipsArchive;
+  var btnTipsArchiveTitle = document.getElementById("btnTipsArchiveTitle");
+  if (btnTipsArchiveTitle) btnTipsArchiveTitle.onclick = UIController.openTipsArchive;
+  var btnCloseTipsArchive = document.getElementById("btnCloseTipsArchive");
+  if (btnCloseTipsArchive) btnCloseTipsArchive.onclick = UIController.closeTipsArchive;
+
+  // BAD END 図鑑アーカイブ
+  var btnBadEndArchive = document.getElementById("btnBadEndArchive");
+  if (btnBadEndArchive) btnBadEndArchive.onclick = UIController.openBadEndArchive;
+  var btnBadEndArchiveTitle = document.getElementById("btnBadEndArchiveTitle");
+  if (btnBadEndArchiveTitle) btnBadEndArchiveTitle.onclick = UIController.openBadEndArchive;
+  var btnCloseBadEndArchive = document.getElementById("btnCloseBadEndArchive");
+  if (btnCloseBadEndArchive) btnCloseBadEndArchive.onclick = UIController.closeBadEndArchive;
+
+  // TIPSポップアップ閉じる
+  var btnCloseTip = document.getElementById("btnCloseTip");
+  if (btnCloseTip) btnCloseTip.onclick = UIController.closeTip;
+  var btnFooterCloseTip = document.getElementById("btnFooterCloseTip");
+  if (btnFooterCloseTip) btnFooterCloseTip.onclick = UIController.closeTip;
+
+  // ノベル既読早送り（SKIP）ボタン
+  var btnSkip = document.getElementById("btnSkipNovel");
+  if (btnSkip) {
+    btnSkip.onclick = function(e) {
+      e.stopPropagation();
+      GameEngine.skipToChoices();
+    };
+  }
+
+  // TIPSアーカイブ フィルターボタン＆検索入力
+  var filterButtons = document.querySelectorAll("#modalTipsArchive .filter-pill");
+  filterButtons.forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      AudioEngine.play('tap');
+      filterButtons.forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      var searchInput = document.getElementById("archiveSearchInput");
+      var q = searchInput ? searchInput.value.trim() : "";
+      UIController.renderTipsArchiveModal(btn.getAttribute("data-filter"), q);
+    });
+  });
+
+  var archiveSearchInput = document.getElementById("archiveSearchInput");
+  if (archiveSearchInput) {
+    archiveSearchInput.addEventListener("input", function(e) {
+      var activeFilterBtn = document.querySelector("#modalTipsArchive .filter-pill.active");
+      var currentCat = activeFilterBtn ? activeFilterBtn.getAttribute("data-filter") : "all";
+      UIController.renderTipsArchiveModal(currentCat, e.target.value.trim());
+    });
+  }
+
+  // BAD END アーカイブ フィルターボタン＆検索入力
+  var badFilterButtons = document.querySelectorAll("#modalBadEndArchive .bad-filter-pill");
+  badFilterButtons.forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      AudioEngine.play('tap');
+      badFilterButtons.forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      var searchInput = document.getElementById("archiveBadEndSearchInput");
+      var q = searchInput ? searchInput.value.trim() : "";
+      UIController.renderBadEndArchiveModal(btn.getAttribute("data-filter"), q);
+    });
+  });
+
+  var archiveBadEndSearchInput = document.getElementById("archiveBadEndSearchInput");
+  if (archiveBadEndSearchInput) {
+    archiveBadEndSearchInput.addEventListener("input", function(e) {
+      var activeFilterBtn = document.querySelector("#modalBadEndArchive .bad-filter-pill.active");
+      var currentCat = activeFilterBtn ? activeFilterBtn.getAttribute("data-filter") : "all";
+      UIController.renderBadEndArchiveModal(currentCat, e.target.value.trim());
+    });
+  }
+
+  // モーダル外側（バックドロップ）クリックで閉じる
+  var modalTipEl = document.getElementById("modalTip");
+  if (modalTipEl) {
+    modalTipEl.addEventListener("click", function(e) {
+      if (e.target === modalTipEl) UIController.closeTip();
+    });
+  }
+  var modalArchiveEl = document.getElementById("modalTipsArchive");
+  if (modalArchiveEl) {
+    modalArchiveEl.addEventListener("click", function(e) {
+      if (e.target === modalArchiveEl) UIController.closeTipsArchive();
+    });
+  }
+  var modalBadEndArchiveEl = document.getElementById("modalBadEndArchive");
+  if (modalBadEndArchiveEl) {
+    modalBadEndArchiveEl.addEventListener("click", function(e) {
+      if (e.target === modalBadEndArchiveEl) UIController.closeBadEndArchive();
+    });
+  }
+
+  // ESCキーで開いているモーダルを閉じる
+  window.addEventListener("keydown", function(e) {
+    if (e.key === "Escape" || e.keyCode === 27) {
+      var modalTip = document.getElementById("modalTip");
+      if (modalTip && !modalTip.classList.contains("hidden")) {
+        UIController.closeTip();
+        return;
+      }
+      var modalArchive = document.getElementById("modalTipsArchive");
+      if (modalArchive && !modalArchive.classList.contains("hidden")) {
+        UIController.closeTipsArchive();
+        return;
+      }
+      var modalBadEnd = document.getElementById("modalBadEndArchive");
+      if (modalBadEnd && !modalBadEnd.classList.contains("hidden")) {
+        UIController.closeBadEndArchive();
+        return;
+      }
+      var modalChart = document.getElementById("modalTimelineChart");
+      if (modalChart && !modalChart.classList.contains("hidden")) {
+        UIController.closeChart();
+        return;
+      }
+      var modalCert = document.getElementById("modalCertificate");
+      if (modalCert && !modalCert.classList.contains("hidden")) {
+        CertRenderer.closeModal();
+        return;
+      }
+    }
+  });
+
+  // モード切替タブ
+  var tabModeNew = document.getElementById("tabModeNew");
+  if (tabModeNew) {
+    tabModeNew.onclick = function() {
+      AudioEngine.play('tap');
+      tabModeNew.className = "flex-1 py-2.5 text-xs sm:text-sm font-black border-b-2 border-amber-500 text-amber-400";
+      var tabModeCont = document.getElementById("tabModeCont");
+      if (tabModeCont) tabModeCont.className = "flex-1 py-2.5 text-xs sm:text-sm font-bold border-b border-neutral-800 text-neutral-400";
+      var boxNew = document.getElementById("boxNewGame");
+      if (boxNew) boxNew.classList.remove("hidden");
+      var boxCont = document.getElementById("boxContGame");
+      if (boxCont) boxCont.classList.add("hidden");
+    };
+  }
+  var tabModeCont = document.getElementById("tabModeCont");
+  if (tabModeCont) {
+    tabModeCont.onclick = function() {
+      AudioEngine.play('tap');
+      tabModeCont.className = "flex-1 py-2.5 text-xs sm:text-sm font-black border-b-2 border-amber-500 text-amber-400";
+      var tabModeNew = document.getElementById("tabModeNew");
+      if (tabModeNew) tabModeNew.className = "flex-1 py-2.5 text-xs sm:text-sm font-bold border-b border-neutral-800 text-neutral-400";
+      var boxCont = document.getElementById("boxContGame");
+      if (boxCont) boxCont.classList.remove("hidden");
+      var boxNew = document.getElementById("boxNewGame");
+      if (boxNew) boxNew.classList.add("hidden");
+    };
+  }
+
+  // 既存セーブがあれば入力補助
+  var state = TimelineState.getState();
+  if (state.studentName && state.passcode) {
+    var katakanaField = document.getElementById("inputLoadKatakana");
+    var passcodeField = document.getElementById("inputLoadPasscode");
+    if (katakanaField) katakanaField.value = state.studentName;
+    if (passcodeField) passcodeField.value = state.passcode;
+  }
+});
+</script>
+
+</body>
+</html>
