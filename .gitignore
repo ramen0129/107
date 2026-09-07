@@ -1,0 +1,5 @@
+.clasp.json
+.clasp.json.bak
+.clasp.old.json
+.clasp-local.json
+*.secret.*

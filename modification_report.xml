@@ -4,8 +4,8 @@
     <name>パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜</name>
     <engine>GAS 428-Style Multi-Sight Educational Sound Novel Engine</engine>
     <platform>Google Apps Script (HtmlService) + Vanilla JS + Web Audio API + Tailwind CSS</platform>
-    <repository_path>/mnt/chromeos/shared/GoogleDrive/MyDrive/Obsidian Vault/Obsidian00/spacebro2/107</repository_path>
-    <deployed_webapp_url>https://script.google.com/macros/s/AKfycbxMWB3x-2turGZr0QWG3qpsjQMwh_8aoMXh382y4ZtI3PrzFrdi_0sZv3CWRp7UpDLz/exec</deployed_webapp_url>
+    <repository_path>github.com/ramen0129/107</repository_path>
+    <deployed_webapp_url>REDACTED_DEPLOYMENT_URL</deployed_webapp_url>
   </project>
 
   <!-- ====================================================================== -->
@@ -823,7 +823,7 @@
       <note>Chromebookや学校端末におけるGoogleアカウントログイン要求（Cookieブロック・アカウント壁）を回避するため、匿名アクセスを許容</note>
     </security_configuration>
     <production_endpoint>
-      <url>https://script.google.com/macros/s/AKfycbxMWB3x-2turGZr0QWG3qpsjQMwh_8aoMXh382y4ZtI3PrzFrdi_0sZv3CWRp7UpDLz/exec</url>
+      <url>REDACTED_DEPLOYMENT_URL</url>
       <status_code>200 OK</status_code>
     </production_endpoint>
   </deployment>
