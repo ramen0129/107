@@ -91,6 +91,32 @@ var AudioEngine = (function() {
         osc.start(now + i * 0.1);
         osc.stop(now + i * 0.1 + 0.38);
       });
+    } else if (type === 'preview') {
+      var bassNotes = [110, 110, 146.83, 164.81];
+      bassNotes.forEach(function(frequency, i) {
+        var bass = ctx.createOscillator();
+        var bassGain = ctx.createGain();
+        bass.type = "sawtooth";
+        bass.frequency.setValueAtTime(frequency, now + i * 0.2);
+        bassGain.gain.setValueAtTime(0.18, now + i * 0.2);
+        bassGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.35);
+        bass.connect(bassGain);
+        bassGain.connect(ctx.destination);
+        bass.start(now + i * 0.2);
+        bass.stop(now + i * 0.2 + 0.35);
+      });
+      [440, 523.25, 659.25, 880, 783.99, 1046.5].forEach(function(frequency, i) {
+        var lead = ctx.createOscillator();
+        var leadGain = ctx.createGain();
+        lead.type = "square";
+        lead.frequency.setValueAtTime(frequency, now + 0.8 + i * 0.12);
+        leadGain.gain.setValueAtTime(0.14, now + 0.8 + i * 0.12);
+        leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8 + i * 0.12 + 0.25);
+        lead.connect(leadGain);
+        leadGain.connect(ctx.destination);
+        lead.start(now + 0.8 + i * 0.12);
+        lead.stop(now + 0.8 + i * 0.12 + 0.25);
+      });
     } else if (type === 'scan') {
       var osc = ctx.createOscillator();
       var gain = ctx.createGain();

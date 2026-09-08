@@ -687,6 +687,64 @@ var UIController = (function() {
     }
   }
 
+  function showHour1Preview() {
+    var modal = document.getElementById("modalHour1Preview");
+    if (!modal) return;
+    AudioEngine.play('preview');
+    TimelineState.getState().hour1PreviewSeen = true;
+    TimelineState.saveLocal();
+    modal.classList.remove("hidden");
+
+    var startButton = document.getElementById("btnStartHour2FromPreview");
+    if (startButton) {
+      startButton.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+        switchView('auth');
+        renderTimeBlockStatus();
+      };
+    }
+  }
+
+  function showCharWaitOption(charKey, hourNum) {
+    var modal = document.getElementById("modalCharWaitOption");
+    if (!modal) return;
+    var charName = charKey === "A" ? "レン（自由権）" : charKey === "B" ? "エレナ（平等権）" : "ダニエル（社会権）";
+    var title = document.getElementById("charWaitModalTitle");
+    var description = document.getElementById("charWaitModalDesc");
+    if (title) title.textContent = charName + "は第" + hourNum + "アワー待機中";
+    if (description) {
+      description.textContent = hourNum === 1
+        ? "この時間帯は完了しています。現在の場面を再読するか、タイムラインから過去の分岐へJUMPできます。"
+        : "管制室で待機中です。現在の場面を再読するか、タイムラインから過去の分岐へJUMPできます。";
+    }
+    modal.classList.remove("hidden");
+
+    var sceneButton = document.getElementById("btnCharWaitGoScene");
+    if (sceneButton) {
+      sceneButton.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+        GameEngine.switchChar(charKey);
+      };
+    }
+    var chartButton = document.getElementById("btnCharWaitOpenChart");
+    if (chartButton) {
+      chartButton.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+        openChart();
+      };
+    }
+    var closeButton = document.getElementById("btnCharWaitClose");
+    if (closeButton) {
+      closeButton.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+      };
+    }
+  }
+
   function checkAllClearBadge() {
     var state = TimelineState.getState();
     var count = Object.keys(state.unlockedEndings).length;
@@ -715,6 +773,8 @@ var UIController = (function() {
     renderBadEndArchiveModal: renderBadEndArchiveModal,
     renderTimeBlockStatus: renderTimeBlockStatus,
     showToBeContinued: showToBeContinued,
+    showHour1Preview: showHour1Preview,
+    showCharWaitOption: showCharWaitOption,
     checkAllClearBadge: checkAllClearBadge
   };
 })();

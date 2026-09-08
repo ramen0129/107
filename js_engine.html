@@ -183,22 +183,38 @@ var GameEngine = (function() {
 
     var prog = TimelineState.getHourProgress();
 
-    // 428 アワー終端判定：Hour 1 終端（11:00）で他キャラが未完了の場合
-    if ((node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") && !prog.hour1.allClear) {
-      var tbcBtn = document.createElement("button");
-      tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group";
-      tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
-        + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
-      tbcBtn.onclick = function(e) {
+    // 428 アワー終端判定：Hour 1 終端（11:00）
+    if (node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") {
+      if (!prog.hour1.allClear) {
+        var tbcBtn = document.createElement("button");
+        tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group";
+        tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
+          + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
+        tbcBtn.onclick = function(e) {
+          e.stopPropagation();
+          UIController.showToBeContinued(
+            node.char,
+            1,
+            "第1アワー（10:00〜11:00）を突破しました！",
+            "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
+          );
+        };
+        wrapper.appendChild(tbcBtn);
+        return;
+      }
+
+      var previewBtn = document.createElement("button");
+      previewBtn.className = "w-full text-left p-4 bg-gradient-to-r from-emerald-950/90 via-neutral-900 to-sky-950/90 border-2 border-emerald-400 rounded-xl text-xs sm:text-sm font-black text-emerald-200 shadow-xl flex items-center justify-between group cursor-pointer";
+      previewBtn.innerHTML = '<span>🎬 第1アワー突破：ここまでの記録と次章予告を見る</span>'
+        + '<span class="text-emerald-400 font-mono text-xs">PREVIEW ▶</span>';
+      previewBtn.onclick = function(e) {
         e.stopPropagation();
-        UIController.showToBeContinued(
-          node.char,
-          1,
-          "第1アワー（10:00〜11:00）を突破しました！",
-          "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
-        );
+        UIController.showHour1Preview();
       };
-      wrapper.appendChild(tbcBtn);
+      wrapper.appendChild(previewBtn);
+      if (!state.hour1PreviewSeen) {
+        setTimeout(function() { UIController.showHour1Preview(); }, 350);
+      }
       return;
     }
 
@@ -222,6 +238,14 @@ var GameEngine = (function() {
     }
 
     node.choices.forEach(function(ch) {
+      if (ch.requiresSecretPieces) {
+        var secretFlags = state.userFlags || [];
+        var hasAllSecretPieces = ["PIECE_A", "PIECE_B", "PIECE_C"].every(function(flag) {
+          return secretFlags.indexOf(flag) !== -1;
+        });
+        if (!hasAllSecretPieces) return;
+      }
+
       // クリア後限定選択肢（古遺物回収イベント）の非表示制御
       if (ch.requiresClear && !TimelineState.hasClearedOnce()) {
         return; // 1周目（未クリア時）は表示しない
@@ -695,22 +719,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
       var prog = TimelineState.getHourProgress();
 
-      // もしHour 1未完了で、既にクリア済みのキャラを押した場合
-      if (!prog.hour1.allClear) {
-        if (prog.hour1[targetChar]) {
-          AudioEngine.play('tap');
-          UIController.showToast("この主人公は第1アワー（10:00〜11:00）をクリア済みです。\n他の主人公を進めて11:00を解放してください。");
-          return;
-        }
-      }
-
-      // もしHour 1完了後、Hour 2進行中で既にクリア済みのキャラを押した場合
-      if (prog.hour1.allClear && !prog.hour2.allClear) {
-        if (prog.hour2[targetChar]) {
-          AudioEngine.play('tap');
-          UIController.showToast("この主人公は第2アワー（11:00〜12:00）をクリア済みです。\n他の主人公を進めて12:00クライマックスを解放してください。");
-          return;
-        }
+      var isWaitingH1 = !prog.hour1.allClear && prog.hour1[targetChar];
+      var isWaitingH2 = prog.hour1.allClear && !prog.hour2.allClear && prog.hour2[targetChar];
+      if (isWaitingH1 || isWaitingH2) {
+        AudioEngine.play('tap');
+        UIController.showCharWaitOption(targetChar, isWaitingH1 ? 1 : 2);
+        return;
       }
 
       GameEngine.switchChar(targetChar);

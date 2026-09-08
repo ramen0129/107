@@ -813,6 +813,36 @@
   </div>
 </div>
 
+<!-- 第1アワー突破後の章間予告 -->
+<div id="modalHour1Preview" class="hidden fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/95 p-4 backdrop-blur-lg">
+  <div class="w-full max-w-xl space-y-5 rounded-2xl border-2 border-emerald-500/80 bg-neutral-900 p-6 shadow-2xl">
+    <div class="text-center">
+      <div class="font-tech text-xs font-black tracking-[0.24em] text-emerald-400">INTERMISSION // HOUR 02</div>
+      <h2 class="mt-2 text-xl font-black text-white">第1アワー突破</h2>
+    </div>
+    <div class="space-y-3 border-y border-emerald-900/70 py-4 text-sm leading-relaxed text-neutral-200">
+      <p>三つの時間軸で起きた小さな決断が、別の場所の生死と進路を変え始めている。</p>
+      <p>次の一時間、三人は中央統治タワーへ近づく。互いの顔も名も知らぬまま、都市を縛る中枢へ。</p>
+    </div>
+    <button id="btnStartHour2FromPreview" class="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-sky-500 px-4 py-3 text-sm font-black text-neutral-950 shadow-lg transition-transform active:scale-[0.99]">
+      第2アワーへ進む ▶
+    </button>
+  </div>
+</div>
+
+<!-- 待機中の主人公を再訪するための選択 -->
+<div id="modalCharWaitOption" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
+  <div class="w-full max-w-md space-y-4 rounded-2xl border border-amber-500/50 bg-neutral-900 p-6 shadow-2xl">
+    <h3 id="charWaitModalTitle" class="text-center text-base font-black text-amber-400"></h3>
+    <p id="charWaitModalDesc" class="text-sm leading-relaxed text-neutral-300"></p>
+    <div class="space-y-2 pt-2">
+      <button id="btnCharWaitGoScene" class="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-black text-neutral-950">現在の場面を再読する</button>
+      <button id="btnCharWaitOpenChart" class="w-full rounded-xl border border-sky-500/60 bg-sky-950/50 px-4 py-3 text-sm font-bold text-sky-200">タイムラインを開いて過去へJUMPする</button>
+      <button id="btnCharWaitClose" class="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-3 text-sm font-bold text-neutral-300">戻る</button>
+    </div>
+  </div>
+</div>
+
 <!-- 分割された各モジュールをGASテンプレート方式でインクルード -->
 <?!= HtmlService.createHtmlOutputFromFile('js_assets').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('js_tips').getContent(); ?>

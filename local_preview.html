@@ -985,6 +985,20 @@
       <button id="btnCloseTipsArchive" class="text-xs px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl border border-neutral-700">✕ 閉じる (ESC)</button>
     </div>
 
+    <!-- 全TIPS解明時：憲法マスター検定クイズ挑戦バナー -->
+    <div id="bannerTipsQuizChallenge" class="hidden mx-4 my-2 p-3 rounded-2xl bg-gradient-to-r from-amber-950/80 via-neutral-900 to-amber-950/80 border-2 border-amber-500/80 flex items-center justify-between shadow-xl">
+      <div class="flex items-center gap-3">
+        <div class="text-3xl">🎓</div>
+        <div>
+          <div class="text-[10px] text-amber-400 font-mono font-bold tracking-wider uppercase">ALL TIPS UNLOCKED!</div>
+          <div class="text-xs sm:text-sm font-black text-amber-200 font-hud">全人権TIPS完全解明！ 憲法マスター検定クイズが解放されました</div>
+        </div>
+      </div>
+      <button id="btnStartTipsQuiz" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-xs rounded-xl shadow-lg transition-transform active:scale-95 cursor-pointer font-hud flex items-center gap-1.5 shrink-0">
+        <span>検定に挑戦する</span><span>▶</span>
+      </button>
+    </div>
+
     <!-- 検索バー -->
     <div class="px-4 py-2 bg-neutral-950/70 border-b border-neutral-800">
       <input id="archiveSearchInput" type="search" placeholder="🔍 条文番号・判例名・権利名で検索（例: 14条、尊属殺、薬事法、生存権）" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-sky-500 font-hud">
@@ -1148,6 +1162,70 @@
 </div>
 
 
+
+<!-- 憲法マスター検定クイズモーダル -->
+<div id="modalQuiz" class="hidden fixed inset-0 tip-modal-overlay p-3 sm:p-6 z-50 flex items-center justify-center">
+  <div class="bg-neutral-900 border-2 border-amber-500/80 max-w-xl w-full rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+    <!-- ヘッダー -->
+    <div class="p-4 sm:p-5 border-b border-neutral-800 bg-neutral-950/90 flex justify-between items-center">
+      <div class="flex items-center gap-2.5">
+        <span class="text-2xl">🎓</span>
+        <div>
+          <div class="text-[10px] text-amber-400 font-mono font-bold tracking-wider uppercase">CONSTITUTIONAL CERTIFICATION QUIZ</div>
+          <h3 class="text-base sm:text-lg font-black text-white font-hud">日本国憲法マスター検定</h3>
+        </div>
+      </div>
+      <button id="btnCloseQuiz" class="text-xs px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl border border-neutral-700 cursor-pointer">✕ 中断する</button>
+    </div>
+
+    <!-- 問題表示エリア -->
+    <div class="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto">
+      <div class="flex items-center justify-between text-xs font-mono text-neutral-400 border-b border-neutral-800 pb-2">
+        <span>第 <span id="quizCurrentIndex">1</span> 問 / 全 3 問</span>
+        <span id="quizCategoryBadge" class="px-2 py-0.5 rounded text-[10px] bg-amber-950 border border-amber-600/40 text-amber-300">自由権</span>
+      </div>
+      <div id="quizQuestionText" class="text-sm sm:text-base font-bold text-neutral-100 font-story leading-relaxed">
+        <!-- 動的表示 -->
+      </div>
+      <div id="quizChoicesContainer" class="space-y-2.5 pt-2">
+        <!-- 動的選択肢ボタン -->
+      </div>
+      <div id="quizFeedbackBox" class="hidden p-3.5 rounded-xl border text-xs font-hud space-y-1">
+        <!-- 正解/不正解フィードバック -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 第1アワー突破後の章間予告 -->
+<div id="modalHour1Preview" class="hidden fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/95 p-4 backdrop-blur-lg">
+  <div class="w-full max-w-xl space-y-5 rounded-2xl border-2 border-emerald-500/80 bg-neutral-900 p-6 shadow-2xl">
+    <div class="text-center">
+      <div class="font-tech text-xs font-black tracking-[0.24em] text-emerald-400">INTERMISSION // HOUR 02</div>
+      <h2 class="mt-2 text-xl font-black text-white">第1アワー突破</h2>
+    </div>
+    <div class="space-y-3 border-y border-emerald-900/70 py-4 text-sm leading-relaxed text-neutral-200">
+      <p>三つの時間軸で起きた小さな決断が、別の場所の生死と進路を変え始めている。</p>
+      <p>次の一時間、三人は中央統治タワーへ近づく。互いの顔も名も知らぬまま、都市を縛る中枢へ。</p>
+    </div>
+    <button id="btnStartHour2FromPreview" class="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-sky-500 px-4 py-3 text-sm font-black text-neutral-950 shadow-lg transition-transform active:scale-[0.99]">
+      第2アワーへ進む ▶
+    </button>
+  </div>
+</div>
+
+<!-- 待機中の主人公を再訪するための選択 -->
+<div id="modalCharWaitOption" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
+  <div class="w-full max-w-md space-y-4 rounded-2xl border border-amber-500/50 bg-neutral-900 p-6 shadow-2xl">
+    <h3 id="charWaitModalTitle" class="text-center text-base font-black text-amber-400"></h3>
+    <p id="charWaitModalDesc" class="text-sm leading-relaxed text-neutral-300"></p>
+    <div class="space-y-2 pt-2">
+      <button id="btnCharWaitGoScene" class="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-black text-neutral-950">現在の場面を再読する</button>
+      <button id="btnCharWaitOpenChart" class="w-full rounded-xl border border-sky-500/60 bg-sky-950/50 px-4 py-3 text-sm font-bold text-sky-200">タイムラインを開いて過去へJUMPする</button>
+      <button id="btnCharWaitClose" class="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-3 text-sm font-bold text-neutral-300">戻る</button>
+    </div>
+  </div>
+</div>
 
 <!-- 分割された各モジュールをGASテンプレート方式でインクルード -->
 <script>
@@ -1413,7 +1491,7 @@ const SCENARIO_REN = {
     ],
     choices: [
       {
-        text: "胸騒ぎを覚えながらも、地下水路の水門へ先を急ぐ！",
+        text: "胸元の真鍮ペンダントを握って呼吸を整え、地下水路の水門へ先を急ぐ！",
         next: "A_1045_WATERGATE",
         slot: "A_1030",
         flagValue: "A_RUSH_GATE"
@@ -1466,11 +1544,15 @@ const SCENARIO_REN = {
       "地上へ抜ける唯一の脱出ルート、地下水路の放水門にたどり着いた。",
       "だが、目の前には分厚い鉄格子の防潮水門が固く閉ざされている！ 手動ではビクともしない。",
       "コンクリートの閉ざされた空間が、首輪の檻を思い出させて息苦しくなる。閉所恐怖の冷や汗が背中を伝う。",
+      "排水パイプの隙間へ肩を差し込んだ瞬間、足裏にかすかな震えが走った。壁の向こうを巡る水圧の脈が、数秒ごとに強くなる。",
+      "「待て……この振動、次の波で管が鳴る。今もぐったら、押し戻されて潰される」オレは反射的に身を引いた。直後、パイプの口から濁った水が唸りを上げて噴き出し、鉄格子を揺らした。",
       "「頼む、開いてくれ……！ この水門の操作盤は、地上——特権支配地区の管理棟にあるはずだ！」"
     ],
     choices: [
       {
         text: "閉ざされた水門の制御レバーを力任せに引いてみる",
+        slot: "A_1045_METHOD",
+        flagValue: "A_PULL_LEVER",
         checkJump: {
           slotKey: "B_1030",
           branches: [
@@ -1481,7 +1563,9 @@ const SCENARIO_REN = {
         }
       },
       {
-        text: "水門脇の排水パイプの隙間から脱出できないか強行突破を試みる",
+        text: "噴き出す濁流の波間を読み、水門脇の排水パイプの隙間へ身を滑り込ませる",
+        slot: "A_1045_METHOD",
+        flagValue: "A_PIPE_ESCAPE",
         checkJump: {
           slotKey: "B_1030",
           branches: [
@@ -1513,6 +1597,14 @@ const SCENARIO_REN = {
       "「嘘だろ……！？ 誰かが地上から開けてくれたのか！？」",
       "水門をくぐり抜けると、冷たい地下の淀んだ空気から一転、生暖かい風が頬を撫でた。",
       "見上げれば、雲を貫く巨大な「中央統治タワー」が威圧的にそびえ立っている。親友シンの命を奪った元凶が、あの中にいる。",
+      function(state) {
+        if (state.slots && state.slots['A_1045_METHOD'] === 'A_PULL_LEVER') {
+          return "水門のレバーを引き切った掌には、錆びた鉄の感触がまだ残っていた。誰かが遠隔で応じてくれたのだと、オレは開いた水路を振り返る。";
+        } else if (state.slots && state.slots['A_1045_METHOD'] === 'A_PIPE_ESCAPE') {
+          return "排水パイプに肩を擦られた痛みが残る。狭い隙間を抜けようとした執念まで、開いた水門が無駄にはしなかった。";
+        }
+        return null;
+      },
       function(state) {
         if (state.slots && state.slots['C_1045'] === 'C_PODIUM_ROAR') {
           return "ふと耳を澄ませば、遠く谷底のスラムから、何百人もの怒号が地鳴りのように響いてくる——「生きさせろ！」「水を寄越せ！」。コンクリートの峡谷を震わせて這い上がってくるその叫びに、オレの奥歯がギリッと鳴った。<br>「……みんな戦ってるんだ。オレ一人の逃走じゃねえ。下層の街全体が、生きるために牙を剥いてるんだ！」";
@@ -1548,11 +1640,19 @@ const SCENARIO_REN = {
       "中央タワーの外周は、赤外線センサーと武装ドローンの二重三重の包囲網で固められていた。",
       "強行突破すれば、一瞬で蜂の巣にされるのは目に見えている。",
       "広場には仲間たちの姿も見えたが、全員の首に電磁首輪が冷たく光っている。オレ一人だけが逃げて自由になっても意味がない。",
-      "拾った警備無線からは焦燥した警備兵の怒号が漏れ、あるいは首に巻いた滅菌包帯が火照った傷口の痛みをわずかに和らげてくれる。だが、誰かが内部のセキュリティコードを書き換えて、あの首輪を一斉に解除してくれなければ……！"
+      "拾った警備無線からは焦燥した警備兵の怒号が漏れ、あるいは首に巻いた滅菌包帯が火照った傷口の痛みをわずかに和らげてくれる。だが、誰かが内部のセキュリティコードを書き換えて、あの首輪を一斉に解除してくれなければ……！",
+      function(state) {
+        if (state.slots && state.slots['A_1100'] === 'A_HIGHWAY') {
+          return "拾った無線には、警備兵が交わす断片的な巡回指示が流れている。耳で掴んだわずかな綻びを頼りに、オレは検問の配置を見極めた。";
+        } else if (state.slots && state.slots['A_1100'] === 'A_ROOFTOP') {
+          return "包帯の下で脈打つ傷が、非常階段を登った選択を思い出させる。痛みを抑えられる今なら、次の一歩に集中できる。";
+        }
+        return null;
+      }
     ],
     choices: [
       {
-        text: "センサーの照射周期をじっと監視し、死角を探る",
+        text: "胸元の真鍮ペンダントを握って呼吸を整え、センサーの照射周期から死角を探る",
         slot: "A_1105",
         flagValue: "A_TIMING",
         checkJump: {
@@ -1581,7 +1681,8 @@ const SCENARIO_REN = {
     id: "A_1105_TIMING", char: "A", charName: "レン（自由権）", time: "11:05",
     stage: "11:05 中央タワー直下検問", title: "照射周期の死角",
     paragraphs: [
-      "オレは瓦礫の陰に身を伏せ、コンクリートの冷気に額を押し当てながら、脈打つ心音に合わせて赤外線レーザーの旋回周期をじっと数えた。",
+      "オレは瓦礫の陰に身を伏せ、胸元の真鍮ペンダントを握った。指先に馴染んだ冷たさへ意識を落とし、荒い呼吸が収まるのを待つ。",
+      "コンクリートの冷気に額を押し当てながら、脈打つ心音に合わせて赤外線レーザーの旋回周期をじっと数えた。",
       "ドクン……ドクン……耳元で脈動が跳ねる。三秒、二秒、一秒……ドローンが東へ首を振るコンマ数秒、地表の走査線が途切れる死角がある！",
       "「今だ……！」全身の筋肉をバネのように緊張させ、低姿勢でアスファルトを蹴り出そうとしたまさにその瞬間——！"
     ],
@@ -1646,6 +1747,8 @@ const SCENARIO_REN = {
     choices: [
       {
         text: "放送室のメインコンソールに直接飛び込み、マイクを握る！",
+        slot: "A_1125_METHOD",
+        flagValue: "A_GRAB_MIC",
         checkJump: {
           slotKey: "B_1115",
           branches: [
@@ -1656,6 +1759,8 @@ const SCENARIO_REN = {
       },
       {
         text: "配電盤の外部端子にショートピンを挿し、特区全域の画面を強制同期する！",
+        slot: "A_1125_METHOD",
+        flagValue: "A_SYNC_SCREENS",
         checkJump: {
           slotKey: "B_1115",
           branches: [
@@ -1673,11 +1778,21 @@ const SCENARIO_REN = {
     stage: "11:30 放送室前通路", title: "街頭ビジョンの静寂",
     paragraphs: [
       "放送機器の主電源が立ち上がった。窓の外を見下ろすと、スラム街の広場が見える。",
-      "市民たちが立ち上がっているか、それとも恐怖に屈して息を潜めているか……！"
+      "市民たちが立ち上がっているか、それとも恐怖に屈して息を潜めているか……！",
+      function(state) {
+        if (state.slots && state.slots['A_1125_METHOD'] === 'A_GRAB_MIC') {
+          return "マイクを掴んだ指先から、金属の冷たさが伝わる。まず声を届けると決めた以上、もう黙り込む余地はない。";
+        } else if (state.slots && state.slots['A_1125_METHOD'] === 'A_SYNC_SCREENS') {
+          return "同期ランプが一つずつ緑に変わる。街のどこにいる連中にも、同じ映像を見せるための準備は整った。";
+        }
+        return null;
+      }
     ],
     choices: [
       {
         text: "コンソールのマイクをオンにし、全画面へ映像を流す！",
+        slot: "A_1130_PREP",
+        flagValue: "A_START_BROADCAST",
         checkJump: {
           slotKey: "C_1110",
           branches: [
@@ -1688,6 +1803,8 @@ const SCENARIO_REN = {
       },
       {
         text: "深呼吸をして、市民へ向けたメッセージの調整を行う！",
+        slot: "A_1130_PREP",
+        flagValue: "A_TUNE_MESSAGE",
         checkJump: {
           slotKey: "C_1110",
           branches: [
@@ -1706,7 +1823,15 @@ const SCENARIO_REN = {
     paragraphs: [
       "親友シンは、自由を求めて逃げようとし、首輪の爆発で命を落とした。最期に遺した言葉は『レン、生きろ……オレたちの声を響かせろ』だった。",
       "胸元の万年筆が熱を帯びる。自分の胸の内にある思いを、<span class='tip-link' data-tip='表現の自由'>真実を言葉にして叫ぶこと</span>こそが、家畜のように黙らされてきたオレたちが人間を取り戻す唯一の力だ！",
-      "特権地区とスラムのすべての巨大スクリーンに、レンの姿が映し出された。全市民の視線が一斉に注がれる。"
+      "特権地区とスラムのすべての巨大スクリーンに、レンの姿が映し出された。全市民の視線が一斉に注がれる。",
+      function(state) {
+        if (state.slots && state.slots['A_1130_PREP'] === 'A_START_BROADCAST') {
+          return "ためらいを振り払うように、オレは先に送信キーを叩いた。割れたスピーカーから漏れた息遣いまで、街へ届いていく。";
+        } else if (state.slots && state.slots['A_1130_PREP'] === 'A_TUNE_MESSAGE') {
+          return "一度だけ目を閉じ、言葉を選び直した。怒りに飲まれず、届く言葉にするためだ。";
+        }
+        return null;
+      }
     ],
     choices: [
       {
@@ -1739,6 +1864,8 @@ const SCENARIO_REN = {
     choices: [
       {
         text: "歯を食いしばり、壁に手をついて東管制室へ急ぐ！",
+        slot: "A_1145_METHOD",
+        flagValue: "A_BRACE_WALL",
         checkJump: {
           slotKey: "A_1015",
           branches: [
@@ -1749,6 +1876,8 @@ const SCENARIO_REN = {
       },
       {
         text: "首筋を強く押さえ、意識を保ちながら前進する！",
+        slot: "A_1145_METHOD",
+        flagValue: "A_HOLD_WOUND",
         checkJump: {
           slotKey: "A_1015",
           branches: [
@@ -1765,20 +1894,32 @@ const SCENARIO_REN = {
     id: "A_1150", char: "A", charName: "レン（自由権）", time: "11:50",
     stage: "11:50 タワー東管制室", title: "東の要衝到達",
     paragraphs: [
-      "レンの演説に呼応し、街中で自由を叫ぶ地鳴りのような声が轟いている！",
-      "レンは東管制室のコンソールへ滑り込んだ。端末が青く発光し、認証スタンバイに入っている。",
-      "「待ってろよ、見知らぬ協力者たち。シンの命に代えても、この自由は誰にも渡さねえ！」"
+      "レンは傷だらけの身体を引きずり、東翼・軍事防衛管制室の制御盤へ辿り着いた。",
+      "首の傷が熱を持ち、青い端末光が汗に濡れた視界を刺す。",
+      "緊急解除レバーへ手を伸ばした瞬間、けたたましい警告ブザーが鳴り響いた。",
+      "『警告：都市防衛機構の一斉解除には、東翼・西翼・南翼の三系統による同時承認が必要。単独操作は拒絶されます。』",
+      "「三箇所同時だと……？ 一人じゃ、この檻は壊せねえのかよ」",
+      "絶体絶命の暗闇で、制御盤のインジケータが二つ青く点滅した。西翼と南翼から、見知らぬ侵入者による強制接続を検知している。",
+      "「……オレ以外にも、ここを止めようとしてる奴がいるのか」レンは息を呑み、キーへ視線を戻した。",
+      function(state) {
+        if (state.slots && state.slots['A_1145_METHOD'] === 'A_BRACE_WALL') {
+          return "壁に残した手の熱を振り切り、オレは端末の前へ立った。倒れずに来た分、この手で最後まで押し通す。";
+        } else if (state.slots && state.slots['A_1145_METHOD'] === 'A_HOLD_WOUND') {
+          return "首筋を押さえていた指を離すと、掌には汗が滲んでいた。それでも視線だけは、青く光る認証部から外さない。";
+        }
+        return null;
+      }
     ],
     choices: [
       {
-        text: "東管制端末のスロットにキーを押し込み、トリプル・シンクロを要求する！",
+        text: "首の痛みに耐え、東翼の防衛解除キーを渾身の力で押し込む！",
         slot: "A_1150",
         flagValue: "A_KEY_INSERT",
         setFlags: ["A_FREEDOM_DONE", "A_1150_KEY"],
         checkTripleSync: true
       },
       {
-        text: "回線を開き「西と南の管制室、誰かいるか！？」と呼びかける！",
+        text: "通信スピーカーを開き「西と南の侵入者、聞こえるか！」と呼びかける！",
         slot: "A_1150",
         flagValue: "A_CALL_VOICE",
         setFlags: ["A_FREEDOM_DONE", "A_1150_CALL"],
@@ -1833,7 +1974,16 @@ const SCENARIO_ELENA = {
     stage: "10:15 統治地区の廊下", title: "貴族街のざわめき",
     paragraphs: [
       "マーサに見送られ、ハッキングを終えたエレナは私邸の裏口廊下へと忍び出た。",
-      "管理コンソールへ向かう途中、館内のスプリンクラー配管から奇妙な加圧音が響いている。"
+      "管理コンソールへ向かう途中、館内のスプリンクラー配管から奇妙な加圧音が響いている。",
+      "曲がり角の壁面モニターには、無人の廊下が映っていた。だが数歩前に通った飾り棚の欠けた縁と、映像の中の傷の位置が左右逆だ。録画映像だと気づいた瞬間、エレナは立ち止まらず脇の整備扉へ身を滑らせた。次の瞬間、正面の廊下を巡回兵が横切っていく。",
+      function(state) {
+        if (state.slots && state.slots['B_1000'] === 'B_HACK_LABOR') {
+          return "消去した連行名簿の空白が、端末の残光にちらつく。救えた者がいると信じ、エレナは足を止めなかった。";
+        } else if (state.slots && state.slots['B_1000'] === 'B_HACK_CAMERA') {
+          return "背後の監視画面では、少し前の静かな廊下が繰り返されている。作った短い猶予を、一秒も無駄にはできない。";
+        }
+        return null;
+      }
     ],
     choices: [
       {
@@ -1956,7 +2106,15 @@ const SCENARIO_ELENA = {
     paragraphs: [
       "ドレスを脱ぎ捨て、作業着に身を包んだエレナは、監視カメラの死角を縫って走る。",
       "腕には、特権階級の身分を証明する生体IDブレスレットが光っている。",
-      "これを持っていれば安全だが……それは他者の人権を否定した不当な差別の上に立つ証でもある。"
+      "これを持っていれば安全だが……それは他者の人権を否定した不当な差別の上に立つ証でもある。",
+      function(state) {
+        if (state.slots && state.slots['B_1030_ITEM'] === 'B_TAKE_PLATE') {
+          return "鞄の中で石板が小さく揺れた。重さを引き受けてでも、父が隠したものを見過ごしたくはなかった。";
+        } else if (state.slots && state.slots['B_1030_ITEM'] === 'B_IGNORE_PLATE') {
+          return "手元に残したのは小型データチップだけだ。今は走り抜けることを優先した自分の判断を、エレナは胸に刻む。";
+        }
+        return null;
+      }
     ],
     choices: [
       {
@@ -2075,9 +2233,17 @@ const SCENARIO_ELENA = {
         }
         return null;
       },
+      function(state) {
+        if (state.slots && state.slots['B_1100'] === 'B_PATH_DUCT') {
+          return "握りしめた巡回シフト表の余白に、次の交替時刻を書き留める。数字どおりに動く警備の癖を、エレナは足取りに変えた。";
+        } else if (state.slots && state.slots['B_1100'] === 'B_PATH_LIFT') {
+          return "難燃性クロークの襟を深く引き上げる。熱をこもらせる布地が、監視の目から自分を一瞬だけ遠ざけてくれた。";
+        }
+        return null;
+      },
       "手に入れた巡回シフト表の空白時間、あるいは羽織った難燃性クロークの偽装が功を奏し、監視ドローンの索敵レーダーを潜り抜けることに成功した。",
       "かつて、身分制の不当性を告発して父オーガスト卿によって座敷牢へ幽閉され、病死した母の面影が脳裏をよぎる。",
-      "（そういえば……育ての親のマーサも、夜ごと胸元で古びた青い石の細工のお守りを握りしめ、涙を流していたわね……『17年前に引き裂かれたあの子の首に、これと同じお守りをかけて送り出したのです』と、幼い私にだけぽつりと語ってくれたことがあった……）",
+      "視界の隅を横切った青白い火花に、忘れていた映像が不意に鮮明によみがえった。幼い頃、マーサが夜ごと胸元で握りしめていた手作りの真鍮ペンダント。淡い灯りの下で、百合の紋章と深い碧の石細工がきらめき、縁の小さな打痕まで目の前にあるように思い出せる。\n（……「17年前に引き裂かれたあの子の首に、これと同じものをかけて送り出したのです」と、幼い私にだけ話してくれたことがあった……）",
       "あの日からエレナの心には、血統や身分で人の尊厳を踏みにじる支配への怒りが燃え続けていた。",
       "裏口からタワー内部へ滑り込んだエレナの前に、中央制御コンソールが現れた。"
     ],
@@ -2108,7 +2274,15 @@ const SCENARIO_ELENA = {
       "カタカタカタッ……ターン！",
       "「外周セキュリティ無力化、さらにスラムの首輪マスター解除コードを発信！ スラムの人々を、もう誰にも縛らせはしないわ！」",
       "エレナが送信したシグナルが、タワー外周の赤外線ネットを次々と落とし、スラム全域へ解放の電波を放射していく。",
-      "手に入れた巡回シフト表の交替タイミング、あるいは難燃性クロークの欺瞞効果により、警備部隊の隙を突くことはできた。だが西管制室へ急行する廊下には、緊急警戒ドローンの影が見える。"
+      "手に入れた巡回シフト表の交替タイミング、あるいは難燃性クロークの欺瞞効果により、警備部隊の隙を突くことはできた。だが西管制室へ急行する廊下には、緊急警戒ドローンの影が見える。",
+      function(state) {
+        if (state.slots && state.slots['B_1115'] === 'B_CODE_SENT') {
+          return "必要な系統だけを切り離した端末には、まだ安定した送電値が残っている。壊さずに開けた道を、最後まで守り抜く。";
+        } else if (state.slots && state.slots['B_1115'] === 'B_NET_CUT') {
+          return "非常灯だけが赤く明滅し、切り落とした送電網の重さが胸に残る。急ぐほど、次は慎重にならなければならない。";
+        }
+        return null;
+      }
     ],
     choices: [
       {
@@ -2256,19 +2430,32 @@ const SCENARIO_ELENA = {
     id: "B_1150", char: "B", charName: "エレナ（平等権）", time: "11:50",
     stage: "11:50 タワー西管制室", title: "トリプル・シンクロ待機",
     paragraphs: [
-      "東と南の管制室から、同期信号が送られてくるのをエレナは固唾を呑んで見つめる。",
-      "「頼むわ……スラムで立ち上がった誰かも、命を賭けて戦う同志たちも、どうか無事でいて……！」"
+      function(state) {
+        if (state.slots && state.slots['B_1145'] === 'B_FAST_STANDBY') {
+          return "認証を急ぐと決めた指は、迷わずスロットのカバーへ伸びた。一刻でも早く、この端末を待機状態にしたい。";
+        } else if (state.slots && state.slots['B_1145'] === 'B_JAM_CAMERA') {
+          return "カメラ映像の隅に、逃げ遅れた人影が映った。わずかな退路でも残すため、エレナはノイズ発信を選んだ。";
+        }
+        return null;
+      },
+      "エレナは西翼・政庁電算室のマスターコンソールへ辿り着いた。",
+      "「お父様、あなたの作った偽りの秩序は、私が終わらせます……！」",
+      "端末に特権カードキーを差し込んだ瞬間、赤いアラートウィンドウが展開した。",
+      "『警告：戸籍・統制データベースの完全解除には、東翼・西翼・南翼の三系統による同時承認が必要。』",
+      "「一人では止められない構造……父様は、部下すら信じずに相互監視の鍵をかけていたのね」",
+      "回線ログに激しいノイズが走る。東翼と南翼にも、別の誰かが侵入している。",
+      "「誰なの……？ けれど、この街を変えようとする人が、今このタワーにいる」"
     ],
     choices: [
       {
-        text: "西管制端末からトリプル・シンクロの同調コードを打ち込む！",
+        text: "震える指で政庁電算のマスターキーを押し下げ、見知らぬ侵入者を信じる！",
         slot: "B_1150",
         flagValue: "B_CODE_INPUT",
         setFlags: ["B_EQUALITY_DONE", "B_1150_CODE"],
         checkTripleSync: true
       },
       {
-        text: "音声チャンネルを開き「東と南の端末、認証コードを受信できる！？」と呼びかける！",
+        text: "非常通信を繋ぎ「東翼と南翼の侵入者の方、こちらは西翼です！」と呼びかける！",
         slot: "B_1150",
         flagValue: "B_CALL_VOICE",
         setFlags: ["B_EQUALITY_DONE", "B_1150_CALL"],
@@ -2326,11 +2513,21 @@ const SCENARIO_DANIEL = {
       "「先生、人工呼吸器の電圧が下がっています！ 外部送電が落ちたら、子どもたちが……！」エマが悲鳴のような声を上げる。",
       "スラムの外では脱走者の警報がけたたましく鳴り響いている。街の配電盤がもし破壊されれば、この診療所の電力はひとたまりもない……！",
       "その時、天井を這う高圧配管からバチッと青い火花が散り、低周波のうなりが地下室の空気を震わせた。照明が一瞬だけ小さく明滅する。送電網のどこかで、過負荷の激しい衝撃が加わったのだ。",
-      "「信じるんだ、エマ。<span class='tip-link' data-tip='財産権の保障と制約'>命を繋ぐための最後の電力と薬</span>だけは、誰にも奪わせはしない。持ちこたえてくれ……！」"
+      "「信じるんだ、エマ。<span class='tip-link' data-tip='財産権の保障と制約'>命を繋ぐための最後の電力と薬</span>だけは、誰にも奪わせはしない。持ちこたえてくれ……！」",
+      function(state) {
+        if (state.slots && state.slots['C_1000'] === 'C_HEAL') {
+          return "包帯を巻いた警備兵は、まだ隔離室で荒い息をしている。敵を見捨てなかった判断が、いまは自分の手をぶれさせない。";
+        } else if (state.slots && state.slots['C_1000'] === 'C_DENY_POLICE') {
+          return "通報端末の送信ランプは消えずに点いている。薬を求めた選択の重さを抱えたまま、ダニエルは電圧計へ視線を戻した。";
+        }
+        return null;
+      }
     ],
     choices: [
       {
         text: "祈る思いで外部電力のメインブレーカーを監視する",
+        slot: "C_1015_METHOD",
+        flagValue: "C_WATCH_BREAKER",
         checkJump: {
           slotKey: "A_1015",
           expected: "A_SMOKE",
@@ -2340,6 +2537,8 @@ const SCENARIO_DANIEL = {
       },
       {
         text: "手動発電クランクのレバーを握りしめ、外部送電の電圧計を見つめる",
+        slot: "C_1015_METHOD",
+        flagValue: "C_CRANK_READY",
         checkJump: {
           slotKey: "A_1015",
           expected: "A_SMOKE",
@@ -2386,7 +2585,15 @@ const SCENARIO_DANIEL = {
       "心電図モニターの規則正しい鼓動音が戻り、エマとレオが安堵の息を漏らした。",
       "だが、この場しのぎでは限界がある。薬品配給を勝ち取らなければならない。",
       "ダニエルは薬品棚の最下段から、診療所の先代が命がけで遺したという、重厚な白い金属の救護箱を引っ張り出した。かすれた赤い十字の印と、今では誰も読めない古代の文字が刻印されている。",
-      "医者の誓いが刻まれたこの救護箱を担いで直談判へ向かうべきか、それとも身軽さを優先して応急処置の包帯だけで広場へ走るべきか……！"
+      "医者の誓いが刻まれたこの救護箱を担いで直談判へ向かうべきか、それとも身軽さを優先して応急処置の包帯だけで広場へ走るべきか……！",
+      function(state) {
+        if (state.slots && state.slots['C_1015_METHOD'] === 'C_WATCH_BREAKER') {
+          return "外部電源の針から目を離さなかった。待つと決めた時間にも、患者を守るための緊張が詰まっている。";
+        } else if (state.slots && state.slots['C_1015_METHOD'] === 'C_CRANK_READY') {
+          return "発電クランクを握った手のひらは赤くなっていた。電圧が落ちれば、すぐに自分の腕で補うつもりだった。";
+        }
+        return null;
+      }
     ],
     choices: [
       {
@@ -2414,6 +2621,8 @@ const SCENARIO_DANIEL = {
     paragraphs: [
       "意を決したダニエルは、地上の労働者たちが集まる広場へ向かう。",
       "スラムの住民たちは、オーガスト卿による16時間過酷労働と薬品配給打ち切りに怒りの声を上げていた。",
+      "怒号とサイレンに紛れ、路地の奥から細い喘鳴が聞こえた。ダニエルは足を止め、崩れた配管の陰でしゃがみ込む少年を見つける。倒れた荷車がその足を押さえつけていた。",
+      "「そこを動くな」周囲には届かないほどのかすかな呼吸の乱れを頼りに、ダニエルは荷車を持ち上げ、少年を壁際へ引き寄せた。直後、荷車の上の鉄材が路面へ落下する。",
       "「先生！ オーガストの野郎、オレたちを見殺しにする気だ！」",
       "労働者たちの怒りと絶望が渦巻いている。どう立ち上がるか？"
     ],
@@ -2631,7 +2840,15 @@ const SCENARIO_DANIEL = {
     stage: "11:40 タワー南側アプローチ", title: "背後の喧騒",
     paragraphs: [
       "タワー南側の送水室へ向かうダニエルの背後で、街頭ビジョンから名もなき少年の熱い演説が街中に響き渡っている。",
-      "市民たちの反応はどうなっている……！？"
+      "市民たちの反応はどうなっている……！？",
+      function(state) {
+        if (state.slots && state.slots['C_1135'] === 'C_RUN_SOLO') {
+          return "救護箱の取っ手が肩へ食い込む。音を立てずに進むと決めた以上、救える命のためにもこの荷を手放せない。";
+        } else if (state.slots && state.slots['C_1135'] === 'C_SIREN_RUSH') {
+          return "まだ耳の奥にサイレンの余韻が残る。強引に切り開いた道の先で、ダニエルは息を殺して隔壁を見上げた。";
+        }
+        return null;
+      }
     ],
     choices: [
       {
@@ -2688,19 +2905,32 @@ const SCENARIO_DANIEL = {
     id: "C_1150", char: "C", charName: "ダニエル（社会権）", time: "11:50",
     stage: "11:50 タワー南管制室", title: "南の要衝到達",
     paragraphs: [
-      "ダニエルは南管制室のメインコンソールに到達した。",
-      "「エマ、レオ、ゴードン……スラムの命の灯火は決して消させない。あとは東と西の仲間たちとタイミングを合わせるだけだ！」"
+      function(state) {
+        if (state.slots && state.slots['C_1140'] === 'C_LOCK_CHAIN') {
+          return "鉄鎖の重みを車輪に預け、ダニエルは固定具の噛み合わせを何度も確かめた。ここを離れても、水だけは止めさせない。";
+        } else if (state.slots && state.slots['C_1140'] === 'C_RUSH_TOWER') {
+          return "水圧計の針が安定域に戻るまで見届けた。わずかな揺れも見逃さずに、次の階段へ向かう。";
+        }
+        return null;
+      },
+      "ダニエルは息を乱しながら、南翼・生命インフラ管制室のメインコンソールへ飛び込んだ。",
+      "「レオ、エマ、ゴードン……スラムの命の灯火は、絶対に消させない」",
+      "コンソールに手を掛けた瞬間、赤い警告が明滅した。",
+      "『警告：全都市の生命維持統制解除には、東翼・西翼・南翼の三系統による同時承認が必要。単独解除不可。』",
+      "「単独では解除できない……三重の分割ロックか」",
+      "回線インジケータが激しく点滅する。東翼と西翼から、別の侵入者による強制接続が検知されている。",
+      "「顔も名前も知らないが、同じタワーで誰かが戦っている。ならば私は、この鍵を預かる」"
     ],
     choices: [
       {
-        text: "南管制スロットにキーを差し込み、トリプル・シンクロを要求する！",
+        text: "震える手で生命インフラの承認キーを押し込み、東と西の侵入者に希望を託す！",
         slot: "C_1150",
         flagValue: "C_KEY_INSERT",
         setFlags: ["C_SOCIAL_DONE", "C_1150_KEY"],
         checkTripleSync: true
       },
       {
-        text: "回線を開き「東と西の同志たち、こちらは準備完了だ！」と応答する！",
+        text: "非常通信のマイクを開き「東と西の侵入者、こちらは南翼だ！」と呼びかける！",
         slot: "C_1150",
         flagValue: "C_CALL_VOICE",
         setFlags: ["C_SOCIAL_DONE", "C_1150_CALL"],
@@ -2714,40 +2944,887 @@ const SCENARIO_DANIEL = {
 <script>
 /**
  * 『パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜』
+ * クライマックス：レン編（自由権）視点シナリオ (scenario_climax_ren.html)
+ * 全失敗パターン（各BAD END）および合流ハブ完全網羅（論理完全整合版）
+ */
+const SCENARIO_CLIMAX_REN = {
+  // 12:00 東翼非常排気ハッチ蹴破り突入
+  "CLIMAX_REN_START": {
+    id: "CLIMAX_REN_START", char: "A", charName: "レン（自由権）", time: "12:00",
+    stage: "12:00 中央統治タワー最上階・東ゲート", title: "自由の代償、激突の円形チャンバー",
+    paragraphs: [
+      "ドガァァンッ！",
+      "東翼の非常排気ハッチを鉄パイプで力任せに蹴破り、オレは白煙が吹き荒れるタワー最上階へ飛び込んだ。",
+      "「カハッ、ゲホッ……！」",
+      "喉を焼くような煙。10:00に地下工場で大型レンチを使って叩き割った首筋の火傷跡が、血と汗に塗れて激痛を放っている。だが、そんな痛みに構っている暇はない。",
+      "ホール中央の巨大モニターが赤く点滅し、けたたましい警告音とともに『スラム全域・電磁首輪一斉強制自爆シークエンス』の秒読みを刻んでいる。残り時間はわずか数分。スラムに残された仲間たちが全員、1年前のシンのように首を吹き飛ばされる寸前だ。",
+      "だが、足を踏み入れた瞬間、オレの全身の毛穴が総毛立った。",
+      "「……動くなッ！」",
+      "オレは咄嗟に身を低く沈め、鉄パイプの両端を握って構えた。野良犬のように血走ったオレの視線の先──西と南のゲートからも、同時に二つの影がなだれ込んできていた。",
+      "西側には、泥で汚れた純白の特権制服を着て、震える手でスタンガンを構えた令嬢。",
+      "（……支配層の女……！？ なんでこんな奴がタワーの最上階にいるんだ……！？ オレを処刑しに来た親衛隊か……！？）",
+      "そして南側には、煤まみれの白衣を翻し、重い工具バーを構えた中年の男。",
+      "（……なんだあいつは……？ スラムの反乱分子か……？ それとも統治政庁の工作員か……！？）",
+      "警報の赤い回転灯がドーム天井を血のように染め、互いの張り詰めた表情を照らし出す。一歩でも動けば、即座に殺し合いが始まる一触即発の睨み合いだった。"
+    ],
+    choices: [
+      {
+        text: "鉄パイプを構え直し、二人の出方を警戒しながら東翼コンソールへにじり寄る",
+        next: "CLIMAX_REN_STANDOFF",
+        slot: "CLIMAX_REN_MOVE",
+        flagValue: "REN_CAUTIOUS"
+      }
+    ]
+  },
+
+  // 12:05 対峙と囚人のジレンマ
+  "CLIMAX_REN_STANDOFF": {
+    id: "CLIMAX_REN_STANDOFF", char: "A", charName: "レン（自由権）", time: "12:05",
+    stage: "12:05 東翼軍事防衛コンソール前", title: "三分割の罠、囚人のジレンマ",
+    paragraphs: [
+      "「おい、二人とも聞け！」白衣の男が低い声を響かせた。「私はスラムの地下診療所の医師ダニエルだ！ 争っている猶予はない！ この少年の首筋を見ろ、大型レンチで首輪を叩き割った傷口から血を流してここまで走ってきたんだ！ スラム全域の起爆シークエンスがもう寸前なんだぞ！」",
+      "「……医師……？ 診療所の……？」オレの喉が引き攣る。",
+      "令嬢もまた、スタンガンの銃口を震わせながら叫んだ。「私も敵ではありません！ 父オーガスト卿の身分統制を止めるためにここへ来ました！」",
+      "オレは背後の東翼コンソールに飛びつき、ロック解除の認証パネルに手を叩きつけた。画面に巨大な赤文字が躍り出る。",
+      "『警告：タワー統治中枢シャットダウンには、東・西・南の３大コンソールにおける完全同時認証が必要。単独入力は不正アクセスと判定し、操作端末へ高圧電流を逆流放出。』",
+      "「……おい、嘘だろ……！？」オレの額から冷や汗が吹き出す。",
+      "三人が【完全同時】にキーを押さなければならない。もしオレだけが押し、あいつらが直前でビビって手を引いたら──オレの手元のコンソールから超高圧電流が逆流して即死する！",
+      "押さなければ、現状のまま捕まるだけだが即死は避けられる。だが、押して裏切られたら確実に死ぬ。",
+      "（誰が信じるかよ……！ 相手は上層階級の女と、見ず知らずの大人だぞ！？ オレを踏み台にして自分たちだけ助かる気かもしれねえ……！）",
+      "心臓が早鐘のように暴れ、恐怖で奥歯がガチガチと鳴る。仲間たちの首輪爆破カウントダウンが、容赦なくゼロへ迫っていた。"
+    ],
+    choices: [
+      {
+        text: "押し寄せる恐怖を必死に殺し、首元の手作りの真鍮ペンダントを無意識に強く握りしめる",
+        next: "CLIMAX_REN_DECISION",
+        slot: "CLIMAX_REN_CHOICE",
+        flagValue: "REN_HOLD_AMULET",
+        setFlags: ["FLAG_REN_CALM"]
+      },
+      {
+        text: "「てめえら絶対に押せよ！ 手ぇ抜いたらブッ殺すぞ！」と怒鳴り散らして威嚇する",
+        next: "CLIMAX_REN_DECISION",
+        slot: "CLIMAX_REN_CHOICE",
+        flagValue: "REN_THREATEN",
+        setFlags: ["FLAG_REN_PANIC"]
+      }
+    ]
+  },
+
+  // 12:10 同時押しの決断
+  "CLIMAX_REN_DECISION": {
+    id: "CLIMAX_REN_DECISION", char: "A", charName: "レン（自由権）", time: "12:10",
+    stage: "12:10 東翼軍事防衛コンソール前", title: "信じるか、拒絶するか",
+    paragraphs: [
+      "カウントダウンの警告音が短く鋭い連続音に変わる。『ピ・ピ・ピ・ピ・ピ……！』",
+      "靴底から、床下を走る三本の太い電力管の脈動が伝わってきた。東、西、南──離れた場所を走る振動が、ほんの一瞬だけぴたりと重なる。",
+      "次の脈動で何かが起きる。足場の揺れを読むように、オレは二人へ叫んだ。「床が三つ同時に脈打ってる！ 次の揺れでキーが上がる。おっちゃん、数えろ！」",
+      "コンソールの認証スロットが青白く発光し、最終承認キーがせり上がってきた。",
+      function(state) {
+        var flags = state.userFlags || [];
+        var elenaText = flags.indexOf("FLAG_ELENA_RESOLVE") !== -1 ?
+          "西を見れば、令嬢エレナが唇を噛み締め、「……逃げてたまるもんですか。絶対に押すのよ、エレナ」と自分へ言い聞かせ、キーを見据えている。" :
+          "西を見れば、令嬢エレナが「……だめよ。スラムの暴徒なんて信じられない」と震える声を漏らし、キーから視線を泳がせている。";
+        var danielText = flags.indexOf("FLAG_DANIEL_CALM") !== -1 ?
+          "南を見れば、医師ダニエルが執刀医のように落ち着いた通る声で『私が三ツ数える。同時にいくぞ！』と二人に確かな合図を送っている。" :
+          "南を見れば、医師ダニエルが猜疑心に苛まれた様子で『おい！ 本当に押すんだろうな！』と大声で問い詰めてきている。";
+        return elenaText + "\n" + danielText;
+      },
+      "（……どうする？ 押すのか？ 押さないのか……！？）",
+      "オレはずっと大人を疑い、世界を憎み、誰にも頼らず一人で噛みついて生きてきた。",
+      "信じて裏切られ、犬死にするくらいなら……直前で手を引いて、オレだけ生き残るべきなんじゃないのか……！？"
+    ],
+    choices: [
+      {
+        text: "見知らぬ二人を信じ、合図に合わせて渾身の力でシャットダウンキーを叩き込む！",
+        next: "REN_EVAL_PRESS",
+        slot: "CLIMAX_REN_EXEC",
+        flagValue: "REN_PRESS",
+        setFlags: ["FLAG_REN_PRESSED"]
+      },
+      {
+        text: "「死んでたまるか！」と恐怖に負け、直前でキーから手を引っ込めて飛び退く！",
+        next: "REN_EVAL_ABORT",
+        slot: "CLIMAX_REN_EXEC",
+        flagValue: "REN_ABORT",
+        setFlags: ["FLAG_REN_ABORTED"]
+      }
+    ]
+  },
+
+  // レンが【押す】を選んだ場合の判定分岐
+  "REN_EVAL_PRESS": {
+    id: "REN_EVAL_PRESS", char: "A", charName: "レン（自由権）", time: "12:10",
+    stage: "12:10 東翼軍事防衛コンソール前", title: "運命の激突（押下）",
+    paragraphs: [
+      "「ぐああああッ！！」",
+      "オレは咆哮とともに、せり上がった解除キーを全力で押し下げた！",
+      "指先から火花が散り、コンソール全体が激しく明滅する──！"
+    ],
+    choices: [
+      {
+        text: "三者の同期結果を見届ける……！",
+        next: function(state) {
+          var flags = state.userFlags || [];
+          var elenaPressed = flags.indexOf("FLAG_ELENA_PRESSED") !== -1;
+          var danielPressed = flags.indexOf("FLAG_DANIEL_PRESSED") !== -1;
+          if (elenaPressed && danielPressed) {
+            return "CLIMAX_CONVERGE_HUB"; // 全員押した：GOODへ！
+          } else if (!elenaPressed && danielPressed) {
+            return "BAD_REN_ELENA_FAILED"; // エレナだけ押さなかった
+          } else if (elenaPressed && !danielPressed) {
+            return "BAD_REN_DANIEL_FAILED"; // ダニエルだけ押さなかった
+          } else {
+            return "BAD_REN_ALONE_FAILED"; // レンだけ押した（他2人押さず）
+          }
+        }
+      }
+    ]
+  },
+
+  // レンが【押さない】を選んだ場合の判定分岐
+  "REN_EVAL_ABORT": {
+    id: "REN_EVAL_ABORT", char: "A", charName: "レン（自由権）", time: "12:10",
+    stage: "12:10 東翼軍事防衛コンソール前", title: "運命の激突（離脱）",
+    paragraphs: [
+      "「死んでたまるかァッ！！」",
+      "オレは恐怖に耐えきれず、キーに触れる寸前で手を引っ込め、床を転がるように飛び退いた！"
+    ],
+    choices: [
+      {
+        text: "チャンバー内の結末を見届ける……！",
+        next: function(state) {
+          var flags = state.userFlags || [];
+          var elenaPressed = flags.indexOf("FLAG_ELENA_PRESSED") !== -1;
+          var danielPressed = flags.indexOf("FLAG_DANIEL_PRESSED") !== -1;
+          if (elenaPressed && danielPressed) {
+            return "BAD_REN_RETREAT"; // レンだけ押さず助かってしまった
+          } else if (elenaPressed && !danielPressed) {
+            return "BAD_REN_BLAME_DANIEL"; // エレナだけ押して倒れ、レンとダニエルが責め合い
+          } else if (!elenaPressed && danielPressed) {
+            return "BAD_REN_BLAME_ELENA"; // ダニエルだけ押して倒れ、レンとエレナが責め合い
+          } else {
+            return "BAD_REN_TIMEOUT"; // 誰も押さず時間切れ
+          }
+        }
+      }
+    ]
+  },
+
+  // =========================================================================
+  // レン視点における全パターンのBAD END詳細シナリオ
+  // =========================================================================
+
+  // パターン2: レンだけ押さなかった（エレナ・ダニエル感電死）
+  "BAD_REN_RETREAT": {
+    id: "BAD_REN_RETREAT", char: "A", charName: "レン（自由権）", time: "12:11",
+    stage: "12:11 東翼コンソール前", title: "生き残ってしまった野良犬の慟哭",
+    paragraphs: [
+      "バチバチバチッ！！ と鼓膜をつんざく青白い放電音がチャンバー内に炸裂した。",
+      "「……えっ……？」オレが顔を上げた瞬間、信じられない光景が瞳に焼き付いた。",
+      "西翼で、令嬢エレナがキーを押し込んだまま全身を激しく痙攣させていた。南翼で、医師ダニエルが煙を吹き上げながらコンソールに崩れ落ちていく。",
+      "二人は……オレを騙すつもりなんてなかった。オレを信じて、同時にキーを押していたんだ……！",
+      "「おい……嘘だろ……？ なんで……なんでお前ら、本当に押しちまったんだよ……！？」",
+      "オレだけが無傷で取り残されていた。耳鳴りのような静寂の中、死んだ親友シンの冷たい声が脳裏に蘇る。",
+      "『レン……お前はまた、一人だけ生き残っちまったんだな。オレを見捨てたあの日と同じように……』",
+      "「違う！ オレは……オレはッ！」",
+      "倒れた二人は二度と動かない。突入してきた制圧部隊の銃口がオレを取り囲む中、オレはただ首筋の傷跡を血が出るほど掻き毟り、絶望の絶叫をあげ続けた。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_06" }]
+  },
+
+  // パターン3: エレナだけ押さなかった（レン・ダニエル感電死、無傷のエレナ）
+  "BAD_REN_ELENA_FAILED": {
+    id: "BAD_REN_ELENA_FAILED", char: "A", charName: "レン（自由権）", time: "12:11",
+    stage: "12:11 東翼コンソール前", title: "令嬢の裏切りと消えゆく意識",
+    paragraphs: [
+      "バチィィッ！！ 押し込んだキーから猛烈な高圧電流が逆流し、オレの全身を灼熱の激痛が貫いた！",
+      "「ぎゃあああああッ！！」",
+      "肉の焼ける匂いとともにオレの体は壁へと叩きつけられる。南翼を見れば、医師ダニエルもまた床に倒れ伏し、激しく痙攣していた。",
+      "だが──西翼の令嬢エレナだけは、無傷のままキーから手を引っ込め、蒼白な顔で震えていた。",
+      "（……あぁ、そうかよ……。やっぱり金持ちのお嬢様は……オレたちスラムの虫けらと心中する気なんて……最初からなかったんだな……）",
+      "急速に薄れゆく視界の向こうで、南翼のダニエルが煙を上げる体で這い寄り、虫の息のオレを抱き起こした。",
+      "「シン……すまない……！ また……またお前と同じ子供を……救えなかった……！」",
+      "（……え……？ なんで、このおっちゃんが……シンの名前を……？）",
+      "その疑問を口にする力は、もう残されていなかった。三途の川の向こうで微笑むシンの幻影を見つめながら、オレの意識は永遠の闇へと沈んでいった。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_07" }]
+  },
+
+  // パターン4: ダニエルだけ押さなかった（レン・エレナ感電死、無傷のダニエル）
+  "BAD_REN_DANIEL_FAILED": {
+    id: "BAD_REN_DANIEL_FAILED", char: "A", charName: "レン（自由権）", time: "12:11",
+    stage: "12:11 東翼コンソール前", title: "大人の欺瞞と裏切られた自由",
+    paragraphs: [
+      "閃光が炸裂し、オレとエレナの体が高圧電流に弾き飛ばされた！",
+      "「グハッ……！？」",
+      "煙を上げる床に這いつくばり、オレは血走った目で南翼を睨みつけた。",
+      "医師ダニエルは、無傷の両手を震わせながらコンソールから後ずさっていた。あのおっちゃん、土壇場で怖気づいて押しやがらなかったんだ……！",
+      "「……おい、おっちゃん……『子供を死なせねえ』って言ったじゃねえかよ……！ 嘘つき野郎……！」",
+      "駆け寄ろうとするダニエルの顔が歪む。だがオレの心臓はすでに過電流で止まりかけていた。信じた相手に裏切られた底知れぬ怒りと虚しさの中、オレの意識は永遠に途絶えた。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_08" }]
+  },
+
+  // パターン5: レンだけが押した（他2人は押さず、レン1人だけが犠牲）
+  "BAD_REN_ALONE_FAILED": {
+    id: "BAD_REN_ALONE_FAILED", char: "A", charName: "レン（自由権）", time: "12:11",
+    stage: "12:11 東翼コンソール前", title: "単独の罠、失われし自由",
+    paragraphs: [
+      "ガガガガガッ！！",
+      "オレがキーを押し下げた瞬間、東翼の端末だけに全館の防衛過電流が集中逆流した！",
+      "「ぐああああああっ！！」",
+      "オレの体は吹き飛び、壁に叩きつけられて床へ崩れ落ちた。首筋の傷口が裂け、血が煙とともに床に広がる。",
+      "薄れゆく視界の中、西を見れば令嬢が、南を見れば白衣の医者が、青ざめた顔でキーから手を引っ込めて立ち尽くしていた。",
+      "「……が、ハッ……！ 嘘だろ……あいつら、押してねえ……！」",
+      "（……あぁ、そうかよ……。どこへ走ったって壁だらけだ……。オレたちは、生まれついた瞬間からずっと……<span class='tip-link' data-tip='身体の自由'>目に見えない首輪</span>で縛られてたんだ……）",
+      "（……シン、笑えよ……。信じりゃ空が見えるなんて……信じたオレが、一番のバカだった……）",
+      "自由を求めて足掻いた命が、冷たい床の上で黒煙を上げて散っていく。二人が醜く罵り合う怒号を遠くに聞きながら、オレの意識は永遠の闇へと沈んでいった。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  },
+
+  // パターン6: エレナだけが押して倒れ、レンとダニエルが責め合う
+  "BAD_REN_BLAME_DANIEL": {
+    id: "BAD_REN_BLAME_DANIEL", char: "A", charName: "レン（自由権）", time: "12:11",
+    stage: "12:11 円形チャンバー中央", title: "令嬢の犠牲と醜い責任転嫁",
+    paragraphs: [
+      "オレとダニエルが手を引いた瞬間、西翼でエレナだけが過電流を浴びて悲鳴とともに崩れ落ちた。",
+      "「令嬢ッ！？」ダニエルが叫ぶ。",
+      "「おい、おっちゃん！ なんで押さなかったんだよ！ お前が押さねえからあいつが死んだんだろ！」オレは恐怖のあまりダニエルに鉄パイプを突きつけた。",
+      "「君こそ押さなかったじゃないか！ 自分の臆病さを他人のせいにするな！」ダニエルも血走った目で怒鳴り返す。",
+      "二人が互いを人殺しとなじり合っているその時、背後の扉が吹き飛ばされ、漆黒の制圧部隊が突入してきた。",
+      "「手を上げろ、反逆者ども！」銃声が鳴り響き、罵り合ったままのオレとダニエルは蜂の巣にされた。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  },
+
+  // パターン7: ダニエルだけが押して倒れ、レンとエレナがパニック
+  "BAD_REN_BLAME_ELENA": {
+    id: "BAD_REN_BLAME_ELENA", char: "A", charName: "レン（自由権）", time: "12:11",
+    stage: "12:11 円形チャンバー中央", title: "医師の犠牲と子供たちの崩壊",
+    paragraphs: [
+      "オレとエレナが手を引いた瞬間、南翼でダニエルだけが火花に包まれて床に倒れ伏した。",
+      "「先生……！？ うそ、先生ッ！」エレナが泣き叫びながら駆け寄る。",
+      "「お前だ……お前がビビって手を引いたから、おっちゃんが死んだんだぞ！」オレはエレナを怒鳴りつけた。",
+      "「あなたこそ！ 私を疑って逃げたくせに！」エレナも涙を流して叫ぶ。",
+      "残された子供二人がパニックで取り乱す中、無情な制圧部隊の催涙ガス弾が撃ち込まれた。咳き込み、床に這いつくばるオレたちは、冷たい手錠をかけられて引きずられていった。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  },
+
+  // パターン8: 誰も押さなかった（時間切れ）
+  "BAD_REN_TIMEOUT": {
+    id: "BAD_REN_TIMEOUT", char: "A", charName: "レン（自由権）", time: "12:11",
+    stage: "12:11 東翼コンソール前", title: "冷酷な刻限と嵌め直された首輪",
+    paragraphs: [
+      "誰も相手を信じきれず、誰もキーを押せないまま、無情なゼロカウントの電子音が響き渡った。",
+      "『タイムリミット超過。中央防衛システムを通常初期化。全反逆者を即時排除します。』",
+      "キーが床下へ沈み、モニターにはスラム全域の首輪爆破完了を示す無数の赤いドットが瞬いた。仲間たち全員が、首を吹き飛ばされて虐殺されたのだ。",
+      "突入してきた黒服の部隊に蹴り倒され、オレは床に組み伏せられた。警備兵が冷たい金属音を鳴らし、オレの首元へカチリと『新しい電磁首輪』を嵌め直した。",
+      "「貴様には一生、地下の暗闇で這いずり回る社会的身分がお似合いだ」",
+      "冷たい電子音が再び首筋を締め付ける。明日からも、死ぬまで続くスラムの奴隷労働。自由を夢見たこと自体が罪だったのだと、オレの口から乾いた笑いがこぼれ落ちた。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  }
+};
+</script>
+
+<script>
+/**
+ * 『パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜』
+ * クライマックス：エレナ編（平等権）視点シナリオ (scenario_climax_elena.html)
+ * 全失敗パターン（各BAD END）および合流ハブ完全網羅
+ */
+const SCENARIO_CLIMAX_ELENA = {
+  // 12:00 西翼政庁認証ゲート突破
+  "CLIMAX_ELENA_START": {
+    id: "CLIMAX_ELENA_START", char: "B", charName: "エレナ（平等権）", time: "12:00",
+    stage: "12:00 中央統治タワー最上階・西ゲート", title: "特権の告発、円形チャンバー",
+    paragraphs: [
+      "プシューッ……！",
+      "西翼の政庁認証ゲートが開き、私は父の屋敷から持ち出した護身用スタンガンを両手で構え、白煙の中へ飛び込んだ。",
+      "父オーガスト卿の玉座へ至る最上階の円形チャンバー。だが、そこにはすでに二つの影がなだれ込んでいた。",
+      "「……動くなッ！」",
+      "東側のゲートから現れたのは、叩き割られた電磁首輪の痛々しい火傷痕を首元に刻み、血と煤にまみれて鉄パイプを突きつけてくる獰猛な少年だった。首元で何かが揺れたが、武器を向けるその姿から目を離せない。スラムの野良犬のように飢えと警戒に燃える瞳に射抜かれ、私の喉が引き攣る。",
+      "（……スラムの脱走者……！？ なぜこの子がここに……お父様の私兵を突破してきたの……！？）",
+      "そして南側のゲートからは、重い工具バーを構えた煤けた白衣の男性が飛び込んできた。",
+      "（……地下診療所の医師の方……！？ 薬品配給を打ち切られたスラムから……！？）",
+      "警報の赤いストロボが不気味に明滅し、互いの切迫した顔を照らし出す。一瞬の身じろぎすら命取りになりかねない極限の対峙だった。"
+    ],
+    choices: [
+      {
+        text: "スタンガンを構えたまま、背後の西翼政庁コンソールへ慎重に後退する",
+        next: "CLIMAX_ELENA_STANDOFF",
+        slot: "CLIMAX_ELENA_MOVE",
+        flagValue: "ELENA_CAUTIOUS"
+      }
+    ]
+  },
+
+  // 12:05 対峙と独り言の葛藤
+  "CLIMAX_ELENA_STANDOFF": {
+    id: "CLIMAX_ELENA_STANDOFF", char: "B", charName: "エレナ（平等権）", time: "12:05",
+    stage: "12:05 西翼政庁電算コンソール前", title: "真鍮の百合、思考の乱反射",
+    paragraphs: [
+      "「二人とも武器を収めてくれ！ スラム全区画の一斉起爆まで時間がない！」南の医師が叫び、白衣の腕を広げて間に入る。",
+      "私は西翼の政庁電算マスターコンソールに手をかけた。モニターに表示された非情なシステム警告が、私の網膜を突き刺す。",
+      "『警告：タワー統治中枢シャットダウンには、東・西・南の３大コンソールにおける完全同時認証が必要。単独入力は不正アクセスと判定し、操作端末へ高圧電流を逆流放出。』",
+      "「……完全同時認証……！？ お父様は、部下の裏切りを恐れて３重の相互監視ロックを敷いていたのね……！」",
+      "もし私が押し、向こうの二人が直前で手を引けば、私だけが高圧電流で即座に絶命する。",
+      "押さなければ、現状のまま捕まるだけだが、即死は免れる。だが、押して裏切られたら確実に死ぬ。",
+      "その時──向かいの東翼で、少年が荒い息を吐きながら動いた。",
+      function(state) {
+        var flags = state.userFlags || [];
+        if (flags.indexOf("FLAG_REN_CALM") !== -1) {
+          return "少年は恐怖に震える手を必死にねじ伏せるように、胸元の手作りの真鍮ペンダントを強く握りしめていた。百合の紋章、深い碧の石細工、縁の小さな打痕──11時、青い火花の下で鮮明によみがえった、マーサが胸元で握っていたペンダントと見間違えようのない独特の造形が、赤い回転灯の下で鈍く光る。\n（……マーサが17年前に送り出した子に託したものと、同じ……？ まさか、この少年が……？）\n胸を貫く推測に息を呑む。けれど今は、それを確かめる暇などなかった。";
+        } else {
+          return "少年は鉄パイプをコンソールに叩きつけ、『てめえら絶対に押せよ！ 手ぇ抜いたらブッ殺すぞ！』と血走った目で怒鳴り散らした。凶暴な威嚇の声がドーム天井に反響する。\n（……っ！ やはりスラムの暴徒なの……！？ 暴力と脅迫でしか物事を解決できない、父様の言う通りの野蛮な破壊者なの……！？）\n恐怖で心臓が凍りつき、私の思考はパニックに呑まれかけていた。";
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "思考を必死にまとめ、「逃げてたまるもんですか……絶対に押すのよ」と覚悟を呟く",
+        next: "CLIMAX_ELENA_DECISION",
+        slot: "CLIMAX_ELENA_CHOICE",
+        flagValue: "ELENA_MURMUR_RESOLVE",
+        setFlags: ["FLAG_ELENA_RESOLVE"]
+      },
+      {
+        text: "疑心暗鬼に囚われ、「スラムの暴徒なんて信じられない……」と弱音を呟いてしまう",
+        next: "CLIMAX_ELENA_DECISION",
+        slot: "CLIMAX_ELENA_CHOICE",
+        flagValue: "ELENA_MURMUR_DESPAIR",
+        setFlags: ["FLAG_ELENA_DESPAIR"]
+      }
+    ]
+  },
+
+  // 12:10 同時押しの決断
+  "CLIMAX_ELENA_DECISION": {
+    id: "CLIMAX_ELENA_DECISION", char: "B", charName: "エレナ（平等権）", time: "12:10",
+    stage: "12:10 西翼政庁電算コンソール前", title: "平等の覚悟、運命の押下",
+    paragraphs: [
+      "ドーム天井のスピーカーから、無機質な秒読みアラートが鳴り響く。『スリー、ツー……』",
+      "コンソールの中央から、青白く発光するシャットダウン・マスターキーがせり上がってきた。",
+      "南を見れば、医師ダニエルが静かに息を呑み、こちらを見据えている。",
+      "東を見れば、スラムの少年レンが歯を食いしばり、キーの上に手を構えている。",
+      "（……信じるのよ、エレナ。自分から手を差し出さなければ、誰も応えてはくれない！）",
+      "（生まれや身分で人を切り分ける、この世界を終わらせるために私はここへ来たのよ！）"
+    ],
+    choices: [
+      {
+        text: "二人を信じ、凛とした両手でマスターキーを力強く押し込む！",
+        next: "ELENA_EVAL_PRESS",
+        slot: "CLIMAX_ELENA_EXEC",
+        flagValue: "ELENA_PRESS",
+        setFlags: ["FLAG_ELENA_PRESSED"]
+      },
+      {
+        text: "「やっぱり信じられない……！」と恐怖に負け、直前でキーから手を引っ込める！",
+        next: "ELENA_EVAL_ABORT",
+        slot: "CLIMAX_ELENA_EXEC",
+        flagValue: "ELENA_ABORT",
+        setFlags: ["FLAG_ELENA_ABORTED"]
+      }
+    ]
+  },
+
+  // エレナが【押す】を選んだ場合の判定分岐
+  "ELENA_EVAL_PRESS": {
+    id: "ELENA_EVAL_PRESS", char: "B", charName: "エレナ（平等権）", time: "12:10",
+    stage: "12:10 西翼政庁電算コンソール前", title: "運命の激突（押下）",
+    paragraphs: [
+      "「お願い……みんな、同時に……っ！」",
+      "私は祈りを込めて、せり上がったマスターキーを両手で押し下げた！",
+      "青白い光の奔流が指先から駆け巡り、コンソール全体が激しく鳴動する──！"
+    ],
+    choices: [
+      {
+        text: "三者の同期結果を見届ける……！",
+        next: function(state) {
+          var flags = state.userFlags || [];
+          var renPressed = flags.indexOf("FLAG_REN_PRESSED") !== -1;
+          var danielPressed = flags.indexOf("FLAG_DANIEL_PRESSED") !== -1;
+          if (renPressed && danielPressed) {
+            return "CLIMAX_CONVERGE_HUB"; // 全員押した：GOODへ！
+          } else if (!renPressed && danielPressed) {
+            return "BAD_ELENA_REN_FAILED"; // レンだけ押さなかった
+          } else if (renPressed && !danielPressed) {
+            return "BAD_ELENA_DANIEL_FAILED"; // ダニエルだけ押さなかった
+          } else {
+            return "BAD_ELENA_ALONE_FAILED"; // エレナだけ押した（他2人押さず）
+          }
+        }
+      }
+    ]
+  },
+
+  // エレナが【押さない】を選んだ場合の判定分岐
+  "ELENA_EVAL_ABORT": {
+    id: "ELENA_EVAL_ABORT", char: "B", charName: "エレナ（平等権）", time: "12:10",
+    stage: "12:10 西翼政庁電算コンソール前", title: "運命の激突（離脱）",
+    paragraphs: [
+      "「ダメ……押せない……っ！」",
+      "私は恐怖に耐えきれず、キーに触れる寸前で手を引っ込め、コンソールから後ずさってしまった！"
+    ],
+    choices: [
+      {
+        text: "チャンバー内の結末を見届ける……！",
+        next: function(state) {
+          var flags = state.userFlags || [];
+          var renPressed = flags.indexOf("FLAG_REN_PRESSED") !== -1;
+          var danielPressed = flags.indexOf("FLAG_DANIEL_PRESSED") !== -1;
+          if (renPressed && danielPressed) {
+            return "BAD_ELENA_RETREAT"; // エレナだけ押さず助かってしまった
+          } else if (renPressed && !danielPressed) {
+            return "BAD_ELENA_BLAME_DANIEL"; // レンだけ押して倒れ、エレナとダニエルが責め合い
+          } else if (!renPressed && danielPressed) {
+            return "BAD_ELENA_BLAME_REN"; // ダニエルだけ押して倒れ、エレナとレンがパニック
+          } else {
+            return "BAD_ELENA_TIMEOUT"; // 誰も押さず時間切れ
+          }
+        }
+      }
+    ]
+  },
+
+  // =========================================================================
+  // エレナ視点における全パターンのBAD END詳細シナリオ
+  // =========================================================================
+
+  // パターン2: エレナだけ押さなかった（レン・ダニエル感電死）
+  "BAD_ELENA_RETREAT": {
+    id: "BAD_ELENA_RETREAT", char: "B", charName: "エレナ（平等権）", time: "12:11",
+    stage: "12:11 西翼コンソール前", title: "贖罪なき生存と父の賞賛",
+    paragraphs: [
+      "バチバチバチッ！！ と鼓膜をつんざく青白い放電音がチャンバー内に轟いた。",
+      "「……きゃあっ！？」私が目を開けた瞬間、息が止まった。",
+      "東翼で少年レンが、南翼で医師ダニエルが、全身から火花を散らして床へ崩れ落ちていく。",
+      "二人は……私を疑わずに、信じて押してくれたのだ。私が手を引いたせいで、不成立の過電流が二人を直撃した……！",
+      "「嘘……嘘でしょ……！？ レン君！ ダニエル先生ッ！！」",
+      "駆け寄ろうとする私の耳に、館内スピーカーから冷酷な父オーガスト卿の声が響き渡った。",
+      "『よくぞ手を引いた、我が娘エレナ。やはりお前にはヴァイスハイトの気高き血が流れている。その二人の虫けらの死骸を片付け、私の玉座へ戻りなさい』",
+      "「いや……いやあああッ！！」",
+      "私だけが無傷で生き残ってしまった。特権を憎みながら、最後の最後で特権の保身に逃げ込んだ私自身への耐え難い自己嫌悪。黒服の私兵に両腕を掴まれ引きずられながら、私の魂は完全に死に絶えた。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_11" }]
+  },
+
+  // パターン3: レンだけ押さなかった（エレナ・ダニエル感電死、子守唄の走馬灯）
+  "BAD_ELENA_REN_FAILED": {
+    id: "BAD_ELENA_REN_FAILED", char: "B", charName: "エレナ（平等権）", time: "12:11",
+    stage: "12:11 西翼コンソール前", title: "安らかな子守唄と遠い絶叫",
+    paragraphs: [
+      "バチィィッ！！ 指先から全身へ猛烈な雷撃が走り、私の視界は一瞬で真っ白に染まった。",
+      "激痛が走り抜けた後、急速に感覚が麻痺していく。床に崩れ落ちる私の意識の奥底で、幼い頃に侍女マーサが膝の上で歌ってくれた古い子守唄が、懐かしく安らかに響き始めた。",
+      "（……あたたかい……。マーサ……私、逃げなかったわよ……。あの子を信じられたわ……）",
+      "だが、その夢の向こうから、現実の残酷な音が遠く響いてくる。「息をしろ、令嬢ッ！」と焼けただれた手で心臓マッサージを繰り返すダニエル先生の絶叫。そして、東のコンソールで無傷のまま立ち尽くすレン君の「なんでだよ……なんで押したんだよ……！」という怯えた嗚咽。",
+      "（……あぁ、あの子、怖かったのね……。ごめんなさい、私……あなたを救えなかった……）",
+      "二人の声を遠くに聞きながら、私の意識は永遠の眠りへと溶けていった。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_06" }]
+  },
+
+  // パターン4: ダニエルだけ押さなかった（エレナ・レン感電死）
+  "BAD_ELENA_DANIEL_FAILED": {
+    id: "BAD_ELENA_DANIEL_FAILED", char: "B", charName: "エレナ（平等権）", time: "12:11",
+    stage: "12:11 西翼コンソール前", title: "平等を求めて散る令嬢の無念",
+    paragraphs: [
+      "閃光が炸裂し、私とレン君の体がコンソールから弾き飛ばされた。",
+      "「きゃあああっ！！」",
+      "床に叩きつけられ、口から血の泡がこぼれ落ちる。薄れゆく視界の中で、南翼を見れば──医師ダニエル先生が無傷の両手を震わせ、立ち尽くしていた。",
+      "「……先生……どうして……？ 命に……差はないと……おっしゃったのに……」",
+      "先生は大人として、私たち子供を信じきれなかったのだ。信じ合えなかった人間という存在への哀しみを瞳に湛えたまま、私の瞳から光が静かに消え去っていった。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_08" }]
+  },
+
+  // パターン5: エレナだけが押した（他2人押さず、エレナ1人だけ感電死）
+  "BAD_ELENA_ALONE_FAILED": {
+    id: "BAD_ELENA_ALONE_FAILED", char: "B", charName: "エレナ（平等権）", time: "12:11",
+    stage: "12:11 西翼コンソール前", title: "孤立の雷撃、失われし平等",
+    paragraphs: [
+      "ガガガガッ！！ 私がキーを押し下げた瞬間、西翼の端末だけに全館の防衛過電流が集中逆流した！",
+      "「ああっ……ぎゃあああああっ！！」",
+      "全身の骨が焼き切れるような激痛。吹き飛ばされた私は壁に激突し、動けなくなった。",
+      "東を見れば鉄パイプを構えたままの少年、南を見れば手を引いた医師。二人はキーに触れてすらいなかった。",
+      "「あ、ぐッ……！ うそ……二人とも、手を引いたの……！？」",
+      "（……私一人だけが信じて……馬鹿みたい……。結局、お父様の言う通りじゃない……）",
+      "（違う身分に生まれたら、人は最初から分かり合えないのね……。<span class='tip-link' data-tip='法の下の平等'>対等になんて……なれるはずなかった</span>のよ……マーサ……）",
+      "特権を捨てて平等を求めた代償が、この孤独な感電死なのか。二人が醜く責任を擦り付け合う怒号を聞きながら、私の瞳から光が静かに消え去っていった。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  },
+
+  // パターン6: レンだけ押して倒れ、エレナとダニエルが責め合う
+  "BAD_ELENA_BLAME_DANIEL": {
+    id: "BAD_ELENA_BLAME_DANIEL", char: "B", charName: "エレナ（平等権）", time: "12:11",
+    stage: "12:11 円形チャンバー中央", title: "少年の犠牲と醜い責任転嫁",
+    paragraphs: [
+      "私とダニエル先生が手を引いた瞬間、東翼でレン君だけが過電流を浴びて跳ね上がり、床へ叩きつけられた。",
+      "「レン君ッ！？」私は悲鳴を上げて駆け寄ろうとした。",
+      "だがダニエル先生が血走った目で私を睨みつけた。「なぜ押さなかったんだ、お嬢さん！ 君が押さないからあの子が死んだんだぞ！」",
+      "「あなたこそ！ 医者のくせに、子供を見捨てて自分だけ手を引いたじゃないですか！」私も涙ながらに叫び返した。",
+      "互いに人殺しとなじり合う私たちの頭上へ、爆破された扉から漆黒の制圧部隊が突入してきた。「動くな、反逆者ども！」容赦ない銃弾が二人を貫いた。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  },
+
+  // パターン7: ダニエルだけ押して倒れ、エレナとレンがパニック
+  "BAD_ELENA_BLAME_REN": {
+    id: "BAD_ELENA_BLAME_REN", char: "B", charName: "エレナ（平等権）", time: "12:11",
+    stage: "12:11 円形チャンバー中央", title: "医師の犠牲と子供たちの崩壊",
+    paragraphs: [
+      "私とレン君が手を引いた瞬間、南翼でダニエル先生だけが青白い火花に包まれて倒れ伏した。",
+      "「先生……！？ うそ、先生ッ！」私が駆け寄ると、レン君が狂ったように私を怒鳴りつけた。",
+      "「お前だ……！ お前がビビったから、おっちゃんが死んだんだぞ！」",
+      "「あなたこそ！ 私を信じずに手を引いたくせに！」",
+      "子供二人がパニックで泣き叫ぶ中、制圧部隊が放った催涙ガスが充満した。私たちは抵抗もできず、冷たい床に押さえつけられて捕縛された。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  },
+
+  // パターン8: 誰も押さなかった（時間切れ）
+  "BAD_ELENA_TIMEOUT": {
+    id: "BAD_ELENA_TIMEOUT", char: "B", charName: "エレナ（平等権）", time: "12:11",
+    stage: "12:11 西翼コンソール前", title: "冷酷な刻限と終わらぬ支配",
+    paragraphs: [
+      "誰も相手を信じられず、誰もキーを押せないまま、無情なゼロカウントの電子音が鳴り響いた。",
+      "『タイムリミット超過。中央防衛システムを通常初期化。全反逆者を即時排除します。』",
+      "キーが床下へ沈み、父オーガスト卿の冷たい嘲笑が館内スピーカーから響いた。『無駄な足掻きだったな、エレナ。愚民たちに平等の資格などないのだ』",
+      "突入してきた私兵たちにスタンガンを奪われ、私は床に組み伏せられた。二度と日の目を見ることのない地下牢へ引きずられながら、私の平等への理想は永遠に潰えた。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  }
+};
+</script>
+
+<script>
+/**
+ * 『パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜』
+ * クライマックス：ダニエル編（社会権）視点シナリオ (scenario_climax_daniel.html)
+ * 全失敗パターン（各BAD END）および合流ハブ完全網羅
+ */
+const SCENARIO_CLIMAX_DANIEL = {
+  // 12:00 南翼生命インフラ配管突破
+  "CLIMAX_DANIEL_START": {
+    id: "CLIMAX_DANIEL_START", char: "C", charName: "ダニエル（社会権）", time: "12:00",
+    stage: "12:00 中央統治タワー最上階・南ゲート", title: "白衣の誓約、命の平等の灯火",
+    paragraphs: [
+      "ガァァンッ！",
+      "南翼の生命維持配管ハッチを押し開け、私は煤けた白衣を翻して最上階の円形チャンバーへなだれ込んだ。",
+      "工具バーを両手で握りしめ、荒い呼吸を整える。背負ってきたのは、スラムの地下診療所で死の淵をさまようレオの命、献身的なエマの願い、そして過酷労働に耐えかねて立ち上がった何百人もの労働者たちの未来だ。",
+      "「……動くなッ！」",
+      "東側の煙の中から、電磁首輪を力づくで叩き割ったのか、首筋に痛々しい火傷と裂傷を負った少年が、鉄パイプを構えて飛び出してきた。首元で何かが揺れたが、まず目に入ったのは野良犬のような飢えと警戒を帯びた眼光だった。",
+      "（……あの首筋の傷痕……無理やり電磁首輪を破砕したのか……！？ １年前に首輪の爆発で私の腕の中で息を引き取った少年シンの姿が重なる……！）",
+      "そして西側からは、純白の特権制服を着た令嬢が、震える手でスタンガンを構えて息を呑んでいた。",
+      "（……オーガスト卿の身内か……！？ なぜ特権階級の娘がこんな場所に……！？）",
+      "警報の赤い回転灯が三者の張り詰めた表情を照らし出す。誰も武器を下ろせない。一歩の身じろぎが命取りになる一触即発の睨み合い。"
+    ],
+    choices: [
+      {
+        text: "「二人とも武器を収めてくれ！ スラムの起爆まで時間がない！」と叫び、南翼インフラコンソールへ走る",
+        next: "CLIMAX_DANIEL_STANDOFF",
+        slot: "CLIMAX_DANIEL_MOVE",
+        flagValue: "DANIEL_CAUTIOUS"
+      }
+    ]
+  },
+
+  // 12:05 対峙と観察（鋭敏な聴覚によるエレナの独り言の聴取）
+  "CLIMAX_DANIEL_STANDOFF": {
+    id: "CLIMAX_DANIEL_STANDOFF", char: "C", charName: "ダニエル（社会権）", time: "12:05",
+    stage: "12:05 南翼生命インフラコンソール前", title: "医師の聴覚、反響する本音",
+    paragraphs: [
+      "私は両手に握りしめていた重い工具バーをカランと床に投げ捨て、無防備な両手を広げて二人の間に入った。敵意はないと背中で示しながら、南翼の生命インフラ管制コンソールに飛びつき、給水・薬品の強制配給レバーを掴む。",
+      "その時、主画面に表示された警告に私の息が止まった。",
+      "『警告：全都市の生命維持統制解除には、統治タワー３大権限【東翼：軍事防衛】【西翼：政庁電算】【南翼：生命インフラ】の同時承認プロトコルが必要。単独解除不可。単独操作時は高圧電流を逆流放出。』",
+      "「……同時承認プロトコルだと！？ 誰か一人でも手を抜けば、押した者が即死する仕組みか……！」",
+      "スラムの孤児、特権の令嬢、そして闇医者。昨日まで互いを知りもしなかった三人が、この瞬間に命を預け合わねばならない。",
+      "その時──ドーム状のチャンバーの天井に、西翼から届くかすかな声が反響した。",
+      "警報と機械音の隙間に意識を研ぎ澄ます。患者の微弱な呼吸音すら聞き分ける私の耳が、令嬢エレナが自分へ言い聞かせるように漏らした切迫した独り言を拾い上げた。",
+      function(state) {
+        var flags = state.userFlags || [];
+        if (flags.indexOf("FLAG_ELENA_RESOLVE") !== -1) {
+          return "「……逃げてたまるもんですか……絶対に押すのよ」\n令嬢は震えながらも、自らの迷いを断ち切るように呟いていた。\n（……少なくとも今、この人は逃げるつもりではない。その覚悟を信じよう。）\n私の心から疑念の霧が晴れていく。あとは、東翼で傷だらけの首筋を抑え、警戒を露わにする少年を、どう導くかだ。";
+        } else {
+          return "「……スラムの暴徒なんて信じられない……」\n令嬢の口から漏れ出たのは、恐怖に押し潰されそうな独り言だった。\n（……恐怖に呑まれている。今の言葉だけでは、命を預けられない。）\n私の胸に、抑えきれない猜疑心が渦巻いた。";
+        }
+      }
+    ],
+    choices: [
+      {
+        text: "「私が三ツ数える。同時にいくぞ！」と執刀医のように落ち着いた通る声で合図する",
+        next: "CLIMAX_DANIEL_DECISION",
+        slot: "CLIMAX_DANIEL_CHOICE",
+        flagValue: "DANIEL_CALM_COUNT",
+        setFlags: ["FLAG_DANIEL_CALM"]
+      },
+      {
+        text: "「おい！ 本当に押すんだろうな！」と猜疑心に駆られて大声で問い詰めてしまう",
+        next: "CLIMAX_DANIEL_DECISION",
+        slot: "CLIMAX_DANIEL_CHOICE",
+        flagValue: "DANIEL_ANGRY_SHOUT",
+        setFlags: ["FLAG_DANIEL_PANIC"]
+      }
+    ]
+  },
+
+  // 12:10 同時押しの決断
+  "CLIMAX_DANIEL_DECISION": {
+    id: "CLIMAX_DANIEL_DECISION", char: "C", charName: "ダニエル（社会権）", time: "12:10",
+    stage: "12:10 南翼生命インフラコンソール前", title: "ヒポクラテスの誓約、運命の押下",
+    paragraphs: [
+      "コンソールの中央が激しく脈動し、生命維持バイパスの最終承認キーがせり上がってきた。",
+      "東を見れば、少年レンが歯を剥き出しにし、キーを睨みつけている。",
+      "西を見れば、令嬢エレナが両手をキーの上に揃え、息を呑んでいる。",
+      "私の白衣の下で、冷たい聴診器が心臓の激しい鼓動を伝えてくる。",
+      "（レオ……エマ……ゴードン……。診療所で待つ人たちを、これ以上失わせるものか！）",
+      "医者として、大人の責任として、未来ある子供たちを見殺しにできるはずがない！"
+    ],
+    choices: [
+      {
+        text: "二人を信じ、診療所で待つ命を思いながら最終承認キーを渾身の力で押し込む！",
+        next: "DANIEL_EVAL_PRESS",
+        slot: "CLIMAX_DANIEL_EXEC",
+        flagValue: "DANIEL_PRESS",
+        setFlags: ["FLAG_DANIEL_PRESSED"]
+      },
+      {
+        text: "「まさか罠では……！？」と直前で恐怖に呑まれ、キーを押すのを躊躇してしまう！",
+        next: "DANIEL_EVAL_ABORT",
+        slot: "CLIMAX_DANIEL_EXEC",
+        flagValue: "DANIEL_ABORT",
+        setFlags: ["FLAG_DANIEL_ABORTED"]
+      }
+    ]
+  },
+
+  // ダニエルが【押す】を選んだ場合の判定分岐
+  "DANIEL_EVAL_PRESS": {
+    id: "DANIEL_EVAL_PRESS", char: "C", charName: "ダニエル（社会権）", time: "12:10",
+    stage: "12:10 南翼生命インフラコンソール前", title: "運命の激突（押下）",
+    paragraphs: [
+      "「いくぞ……三、二、一……今だッ！！」",
+      "私は叫びとともに、生命維持バイパスキーを力一杯押し下げた！",
+      "コンソールから眩い光が溢れ出し、タワー全体を震わせる重低音が響き渡る──！"
+    ],
+    choices: [
+      {
+        text: "三者の同期結果を見届ける……！",
+        next: function(state) {
+          var flags = state.userFlags || [];
+          var renPressed = flags.indexOf("FLAG_REN_PRESSED") !== -1;
+          var elenaPressed = flags.indexOf("FLAG_ELENA_PRESSED") !== -1;
+          if (renPressed && elenaPressed) {
+            return "CLIMAX_CONVERGE_HUB"; // 全員押した：GOODへ！
+          } else if (!renPressed && elenaPressed) {
+            return "BAD_DANIEL_REN_FAILED"; // レンだけ押さなかった
+          } else if (renPressed && !elenaPressed) {
+            return "BAD_DANIEL_ELENA_FAILED"; // エレナだけ押さなかった
+          } else {
+            return "BAD_DANIEL_ALONE_FAILED"; // ダニエルだけ押した（他2人押さず）
+          }
+        }
+      }
+    ]
+  },
+
+  // ダニエルが【押さない】を選んだ場合の判定分岐
+  "DANIEL_EVAL_ABORT": {
+    id: "DANIEL_EVAL_ABORT", char: "C", charName: "ダニエル（社会権）", time: "12:10",
+    stage: "12:10 南翼生命インフラコンソール前", title: "運命の激突（離脱）",
+    paragraphs: [
+      "「ま、待て……！ 本当に大丈夫なのか……！？」",
+      "土壇場で大人の猜疑心が首をもたげ、私はキーを押し込む指をコンマ数秒止めてしまった！"
+    ],
+    choices: [
+      {
+        text: "チャンバー内の結末を見届ける……！",
+        next: function(state) {
+          var flags = state.userFlags || [];
+          var renPressed = flags.indexOf("FLAG_REN_PRESSED") !== -1;
+          var elenaPressed = flags.indexOf("FLAG_ELENA_PRESSED") !== -1;
+          if (renPressed && elenaPressed) {
+            return "BAD_DANIEL_RETREAT"; // ダニエルだけ押さず助かってしまった
+          } else if (renPressed && !elenaPressed) {
+            return "BAD_DANIEL_BLAME_ELENA"; // レンだけ押して倒れ、ダニエルとエレナが責め合い
+          } else if (!renPressed && elenaPressed) {
+            return "BAD_DANIEL_BLAME_REN"; // エレナだけ押して倒れ、ダニエルとレンがパニック
+          } else {
+            return "BAD_DANIEL_TIMEOUT"; // 誰も押さず時間切れ
+          }
+        }
+      }
+    ]
+  },
+
+  // =========================================================================
+  // ダニエル視点における全パターンのBAD END詳細シナリオ
+  // =========================================================================
+
+  // パターン2: ダニエルだけ押さなかった（レン・エレナ感電死）
+  "BAD_DANIEL_RETREAT": {
+    id: "BAD_DANIEL_RETREAT", char: "C", charName: "ダニエル（社会権）", time: "12:11",
+    stage: "12:11 南翼コンソール前", title: "加害者となった医師の生ける屍",
+    paragraphs: [
+      "バチバチバチィィッ！！ と耳を裂く放電音がチャンバーを揺るがした。",
+      "「……あ……！？」",
+      "東翼で少年レンが、西翼で令嬢エレナが、激しい閃光に包まれて床へ叩きつけられていた。",
+      "二人は……私を信じて、同時に押してくれたのだ。私が手を止めたせいで、不成立の過電流が二人を直撃した……！",
+      "「うそだ……うそだろ……ッ！？ レン！ エレナさんッ！！」",
+      "私は無傷の両手を震わせながら駆け寄った。だが、医師である私の指が触れた二人の手首には、すでに脈がなかった。",
+      "「息をしろ……頼むから息をしてくれ！ 私は医者だ、君たちを救うためにここへ来たんだ……！」",
+      "心臓マッサージを繰り返すが、冷たくなっていく子供たちの体はピクリとも動かない。",
+      "薄れゆく意識の暗闇の中で、1年前に死なせた少年シンの幻影が悲しそうに微笑みかける。『先生……やっぱり、大人は誰も救えないんだね』",
+      "突入してきた黒服の部隊が銃口を突きつけてくる。だが私には、もはや逃げる気力も生きる意志も残されていなかった。私は銃口に自ら額を押し当て、慟哭の中で引き金を引かれるのを待った。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_12" }]
+  },
+
+  // パターン3: レンだけ押さなかった（ダニエル・エレナ感電死）
+  "BAD_DANIEL_REN_FAILED": {
+    id: "BAD_DANIEL_REN_FAILED", char: "C", charName: "ダニエル（社会権）", time: "12:11",
+    stage: "12:11 南翼コンソール前", title: "シンの幻影と医師の敗北",
+    paragraphs: [
+      "バチィィッ！！ 押し込んだキーから猛烈な過電流が逆流し、私の胸を激しい熱線が焼き焦がした！",
+      "「ぐあああああっ！！」",
+      "床に叩きつけられ、心臓が不規則に痙攣する。西翼を見れば、令嬢エレナもまた煙を上げて倒れていた。",
+      "だが──東翼の少年レンだけが、無傷のままキーから飛び退き、呆然と立ち尽くしていた。",
+      "（……あぁ、そうか……。あの子は……大人が怖かったんだな……。私の言葉が……あの子の恐怖を救ってやれなかった……）",
+      "薄れゆく視界の向こうで、倒れたエレナに手を伸ばそうとするが、麻痺した指先は1ミリも動かない。目の前で消えゆく若い命を救えない無力感の中、私の心臓は静かに停止した。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_06" }]
+  },
+
+  // パターン4: エレナだけ押さなかった（ダニエル・レン感電死）
+  "BAD_DANIEL_ELENA_FAILED": {
+    id: "BAD_DANIEL_ELENA_FAILED", char: "C", charName: "ダニエル（社会権）", time: "12:11",
+    stage: "12:11 南翼コンソール前", title: "少年の犠牲と無傷の令嬢",
+    paragraphs: [
+      "閃光が炸裂し、私とレンの体がコンソールから吹き飛ばされた！",
+      "「ガハッ……！？」",
+      "激痛に悶えながら顔を上げると、西翼の令嬢エレナが無傷のまま、血の気の引いた顔で後ずさっていた。",
+      "「……エレナさん……どうして……？」",
+      "あのお嬢さんは、土壇場でスラムの少年と闇医者を信じきれなかったのだ。東翼で高圧電流を浴びて心肺停止に陥った少年の姿を見つめながら、私は血の泡を吐いた。命の平等などこの都市には存在しないのだという絶望の中、私の意識は途絶えた。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_07" }]
+  },
+
+  // パターン5: ダニエルだけが押した（他2人押さず、ダニエル1人だけ感電死）
+  "BAD_DANIEL_ALONE_FAILED": {
+    id: "BAD_DANIEL_ALONE_FAILED", char: "C", charName: "ダニエル（社会権）", time: "12:11",
+    stage: "12:11 南翼コンソール前", title: "医師の孤立感電、失われし生存権",
+    paragraphs: [
+      "ドガァァンッ！！ 私がキーを押し込んだ瞬間、南翼の端末だけに全館の防衛過電流が集中逆流した！",
+      "「ぐわああああああっ！！」",
+      "心臓を直接万力で握り潰されたような激痛。吹き飛ばされた私は床に叩きつけられ、心電図の警告音が耳の奥で乱打する。",
+      "顔を上げると、レンもエレナもキーを押さず、蒼白な顔で立ちすくんでいた。",
+      "「ぐ、あ……がッ……！ なぜだ……二人とも、キーを押してない……！？」",
+      "（……待てよ、レオ……エマ……。薬も、水も……まだ、届けてないんだぞ……！）",
+      "（どうしてだ……。人は、ただ<span class='tip-link' data-tip='生存権'>人間らしく生きるため</span>だけに、こんなに踏みにじられなきゃならないんだ……！ なんで命に……値段がついてるんだよ……ッ！）",
+      "人間が人間として明日を迎えるための最後の砦が、私の死とともに崩壊していく。二人が醜く責任転嫁し合う怒号を聞きながら、私の心拍は完全に停止した。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  },
+
+  // パターン6: レンだけ押して倒れ、ダニエルとエレナが責め合う
+  "BAD_DANIEL_BLAME_ELENA": {
+    id: "BAD_DANIEL_BLAME_ELENA", char: "C", charName: "ダニエル（社会権）", time: "12:11",
+    stage: "12:11 円形チャンバー中央", title: "少年の犠牲と醜い責任転嫁",
+    paragraphs: [
+      "私とエレナが手を引いた瞬間、東翼で少年レンだけが過電流を浴びて激しく床へ叩きつけられた。",
+      "「少年ッ！？」私は駆け寄ろうとした。",
+      "だがエレナが震える声で叫んだ。「なぜ押さなかったんですか、先生！ あなたが合図を出したのに、自分が押さないなんて……！」",
+      "「君こそ押さなかったじゃないか！ 君が躊躇したから少年が死んだんだ！」私も動揺のあまり声を荒らげてしまった。",
+      "醜い責任転嫁をぶつけ合う私たちの背後の扉が爆破され、漆黒の制圧部隊が突入してきた。「全員動くな！」銃撃の嵐が二人を容赦なく薙ぎ払った。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  },
+
+  // パターン7: エレナだけ押して倒れ、ダニエルとレンがパニック
+  "BAD_DANIEL_BLAME_REN": {
+    id: "BAD_DANIEL_BLAME_REN", char: "C", charName: "ダニエル（社会権）", time: "12:11",
+    stage: "12:11 円形チャンバー中央", title: "令嬢の犠牲と崩壊のパニック",
+    paragraphs: [
+      "私とレンが手を引いた瞬間、西翼でエレナだけが青白い放電に包まれ、悲鳴とともに倒れ伏した。",
+      "「お嬢さんッ！」私が駆け寄ると、レンが血走った目で鉄パイプを突きつけてきた。",
+      "「おっちゃん！ なんで押さなかったんだよ！ あんたが『同時にいくぞ』って言ったから、あいつは押したんだぞ！」",
+      "「君だって押さなかったじゃないか！」",
+      "混乱と怒号が渦巻く中、制圧部隊の放った催涙ガス弾が炸裂した。視界を奪われ咳き込む私たちは、冷たい銃床で殴り倒されて制圧された。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  },
+
+  // パターン8: 誰も押さなかった（時間切れ）
+  "BAD_DANIEL_TIMEOUT": {
+    id: "BAD_DANIEL_TIMEOUT", char: "C", charName: "ダニエル（社会権）", time: "12:11",
+    stage: "12:11 南翼コンソール前", title: "冷酷な刻限と消えゆく命の灯火",
+    paragraphs: [
+      "誰も相手を信じきれず、誰もキーを押せないまま、無情なゼロカウントの電子音が響き渡った。",
+      "『タイムリミット超過。中央防衛システムを通常初期化。全反逆者を即時排除します。』",
+      "キーが床下へ沈み、手元の通信端末からスラムの診療所のエマの悲痛な通信が漏れ聞こえた。",
+      "『先生……！ 薬品の供給が……レオの呼吸が止まりました……！ 先生、どこにいるの……！？』",
+      "「レオ……！ エマ……ッ！」私が叫ぶ間もなく、突入してきた制圧部隊の銃弾が私の胸を貫いた。スラムの命を救う最後の希望は、冷たい銃声の中に永遠に消え去った。"
+    ],
+    choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  }
+};
+</script>
+
+<script>
+/**
+ * 『パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜』
  * クライマックス・全結末・TIPSマスターシナリオ (scenario_climax.html)
  * 全19バッドエンド・ノーマルエンド・トゥルーエンド完全網羅
  */
 const SCENARIO_CLIMAX = {
-  // 12:00 中央統治タワー最上階
+  // 12:00 中央統治タワー最上階（3視点選択ハブ）
   "CLIMAX_HUB": {
-    id: "CLIMAX_HUB", char: "ALL", charName: "レン・エレナ・ダニエル", time: "12:00",
-    stage: "12:00 中央統治タワー最上階", title: "運命の頂上",
+    id: "CLIMAX_HUB", char: "ALL", charName: "三人の集結", time: "12:00",
+    stage: "12:00 中央統治タワー最上階・円形チャンバー", title: "運命の交錯（視点選択）",
     paragraphs: [
       "ガァァァンッ！",
-      "東・西・南の三重防護ゲートが同時に跳ね上がり、最上階の円形チャンバーへ白煙とともに三つの影がなだれ込んだ！",
-      "誰もが血と煤にまみれ、肩で激しく息を切らせている。だが、一歩足を踏み入れた瞬間、張り詰めた空気が一変した。",
-      "レンは咄嗟に身を低く沈め、握りしめた鉄パイプの切っ先を突きつける。野良犬のような獰猛な眼光が二人を射抜く。「……動くなッ！」",
-      "対するエレナは両手でスタンガンを構え、震える指先で引き金に指をかけた。「……お父様の私兵なの！？ 誰なの！？」",
-      "ダニエルもまた、煤けた白衣の裾を翻し、重い工具バーを胸の前に構えて身構えた。",
-      "警報の赤い回転灯が、互いの険悪な切迫顔を不気味に照らし出す。息の詰まるような、凍りつく沈黙。",
-      "誰も武器を下ろせない。一瞬の身じろぎすら、致命的な銃撃戦の引き金になりかねない殺伐とした対峙。",
-      "ヒューヒューと喉を鳴らし、レンが後ずさりしたその時だった。破れたベストの胸元から、古びた真鍮の鎖が滑り落ち、赤いストロボに青い石が妖しく煌めいた。",
-      "エレナの瞳が、信じられないものを見たように大きく見開かれる。「……待って。その、首元の真鍮細工……」",
-      "銃口が微かに下がる。エレナの視線は、レンの首元に完全に釘付けになっていた。幾重にも刻まれた百合の刻印と、深い碧の鉱石細工。",
-      "「……マーサの……？ まさか……幼い頃、マーサが夜毎に涙を流しながら握りしめていたあのお守りと……まったく同じ……！？」",
-      "レンの呼吸が止まる。「……なんだと？ お前……オレのお袋を知っているのか……！？」",
-      "言葉を重ねる必要はなかった。エレナの瞳に滲む深い悲痛と、静かな首肯。捨てられたのではない、身分の掟から命を生かすために逃がされたのだという17年の真実が、レンの胸を貫いた。",
-      "その時、ダニエルの視線がレンの胸ポケットへ注がれる。そこから覗いていたのは、銀色に擦り切れた一本の万年筆だった。",
-      "「……その万年筆。1年前の雨の夜、私の腕の中で息を引き取った少年——シンが握りしめていたものだ」",
-      "ダニエルの静かな声に、レンの鉄パイプを握る指からふっと力が抜けた。「……あんたが、シンを……最期まで看取ってくれたのか……」",
-      "ダニエルは工具を床へ下ろし、荒く息を吐く少年の肩を力強く叩いた。「君が、あいつの言っていた弟分か。よく生きてここまで辿り着いた」",
-      "銃口と鉄パイプが、静かに床へと下ろされた。",
-      "言葉は少なくとも、三人は互いの瞳の奥にあるものを確かに悟った。自由を求めて走ってきた少年、平等を求めて特権を捨てた令嬢、命の尊厳を守るために立ち上がった医師。",
-      "ホール中央のコンソールが、三人の接近を感知して青く脈動を始めた。古遺物のスキャナトレイが、静かにせり上がってくる。"
+      "東・西・南の三重防護ゲートが白煙を噴き上げて同時に跳ね上がり、タワー最上階の円形チャンバーへ三つの影がなだれ込んだ！",
+      "電磁首輪から青白い火花を散らし鉄パイプを構えるスラムの脱走少年レン。純白の特権制服を煤で汚し、震える手でスタンガンを握る令嬢エレナ。重い工具バーを胸の前に構え、荒い息を整える闇医者ダニエル。",
+      "誰もが血と煤にまみれ、張り詰めた極限の沈黙の中、互いに武器を向け合って硬直する。",
+      "誰が味方で、誰が裏切り者かもわからぬ極限の混乱の中、三者三様の主観と覚悟が激突する！ まず誰の視点からこの決戦へ挑むか！？"
     ],
     choices: [
       {
-        text: "三人が持ち寄った古遺物をスキャナのトレイへ並べ、解析を開始する",
+        text: "青白い火花を散らす電磁首輪を抑え、東翼の防衛ラインへ飛び込む（レン視点）",
+        next: "CLIMAX_REN_START"
+      },
+      {
+        text: "父オーガスト卿の支配を終わらせるため、西翼の政庁端末へ駆け寄る（エレナ視点）",
+        next: "CLIMAX_ELENA_START"
+      },
+      {
+        text: "命に優劣をつける掟を打ち破るため、南翼の生命インフラへ向かう（ダニエル視点）",
+        next: "CLIMAX_DANIEL_START"
+      }
+    ]
+  },
+
+  // 12:15 三者同時押し成功・合流ハブ
+  "CLIMAX_CONVERGE_HUB": {
+    id: "CLIMAX_CONVERGE_HUB", char: "ALL", charName: "三者の集結", time: "12:15",
+    stage: "12:15 中央統治タワー最上階・中央コンソール", title: "三つの光の結集",
+    paragraphs: [
+      "カチリ──ッ！！",
+      "東・西・南の三箇所から放たれた承認シグナルが、100分の1秒の狂いもなく完全同期を果たした！",
+      "ドォォォォンッ……！",
+      "タワーの心臓部を揺るがす重低音とともに、防衛AIの暴走ランプが青へと反転し、三つのコンソールが連動して中央ホールへとせり上がってくる！",
+      "「……やった……！ オレたち、やり遂げたのか……！？」レンの指から鉄パイプが転がり落ちる。",
+      "エレナもスタンガンを収め、涙に濡れた瞳で二人を見つめた。「ええ……！ 三人の呼吸が揃ったわ！ 父の敷いた冷酷な身分統制が、今まさに機能を停止しようとしています！」",
+      "ダニエルも白衣の煤を払い、二人に力強い視線を送った。「命に優劣などない。人間が人間として明日を生きる権利を、この都市に取り戻すんだ！」",
+      "ホール中央のメインフレームが青白い光を放ち、三人が道中で手に入れた古遺物を待ち構えるように、光学解析スキャナのトレイが静かに展開した。"
+    ],
+    choices: [
+      {
+        text: "三人が持ち寄った古遺物をスキャナのトレイへ並べ、古代の真実を解読する！",
         next: "CLIMAX_SCAN",
         slot: "CLIMAX_HUB_ACTION",
         flagValue: "START_SCAN"
@@ -2898,12 +3975,13 @@ const SCENARIO_CLIMAX = {
     ],
     choices: [
       {
-        text: "結末の刻を迎える（古遺物の収集状況で分岐）",
-        checkSecret: true
+        text: "集めた記憶を胸に、新しい時代へ踏み出す",
+        next: "NORMAL_CLEAR"
       },
       {
-        text: "集めた記憶を胸に、未来へ踏み出す",
-        checkSecret: true
+        text: "共鳴する三つの古遺物に導かれ、失われた歴史の奥へ進む",
+        checkSecret: true,
+        requiresSecretPieces: true
       }
     ]
   },
@@ -3004,69 +4082,70 @@ const SCENARIO_CLIMAX = {
 
   "BAD_06": {
     id: "BAD_06", isBadEnd: true, badNumber: "06", type: "bad", no: "06",
-    title: "BAD END No.06【不信の断絶】",
+    title: "BAD END No.06【不信の断絶と残された慟哭】",
     paragraphs: [
-      "「本当に……この貴族の娘を信じていいのか？」",
-      "運命の同時押しを目前にして、レンの脳裏を拭いきれぬ疑念がかすめた。",
-      "そのコンマ数秒の逡巡が、致命的な同期エラーを引き起こした。",
-      "『警告。キー入力タイミング不一致。不正アクセスと判定。』",
-      "ウィィィィン！ 天井のパネルが開き、三門の自動迎撃レーザー砲が冷酷に旋回した。",
-      "「あっ……しまった！？」",
-      "閃光が円形チャンバーを満たし、疑念に囚われた三人は言葉を交わす間もなく、灼熱の熱線によって薙ぎ払われた。"
+      "東翼でレンが恐怖に耐えかねて直前で手を引っ込めた瞬間──バチバチバチッ！！ と鼓膜をつんざく青白い放電音がチャンバー内に炸裂した！",
+      "三者完全同期不成立。フェイルセーフの過電流が、信じてキーを押し込んだエレナとダニエルを直撃する！",
+      "視界が真っ白に染まるエレナの意識の奥底で、幼い頃に侍女マーサが膝の上で歌ってくれた古い子守唄が安らかに響く……。（あたたかい……。マーサ……私、あの子を信じられたわ……）",
+      "だが、その夢の向こうから、現実の残酷な音が遠く響いてくる。「息をしろ、令嬢ッ！」と焼けただれた手で心臓マッサージを試みるダニエルの絶叫。そして、奥で五体満足のまま立ち尽くすレンの「なんでだよ……なんで押したんだよ……！」という怯えた嗚咽。",
+      "死んだ親友シンの幻影が、レンの首輪から嘲笑うように囁く。『レン……お前はまた、一人だけ生き残っちまったんだな』",
+      "突入してきた制圧部隊の銃声が響き渡る中、自らの猜疑心で二人を殺してしまった少年の心は、二度と戻らない闇へと沈んでいった。"
     ],
-    desc: "レンがエレナを信じ切れずボタンを押すのを躊躇したため、同期エラーでタワーの自動迎撃レーザーが起動した。",
-    hint: "12:15のクライマックスで、仲間への疑念を完全に捨て去れ！",
-    jumpTarget: "CLIMAX_DECISION", jumpChar: "ALL", jumpCharName: "3人合同"
+    desc: "レンが仲間を信じきれず直前で手を引いたため、キーを押し込んだエレナとダニエルが高圧電流を浴びて倒れ、レンだけが生き残る地獄となった。",
+    hint: "レン編（12:10）に戻り、恐怖をねじ伏せて仲間と共にキーを押し込め！",
+    jumpTarget: "CLIMAX_REN_DECISION", jumpChar: "A", jumpCharName: "レン（自由権）"
   },
 
   "BAD_07": {
     id: "BAD_07", isBadEnd: true, badNumber: "07", type: "bad", no: "07",
-    title: "BAD END No.07【凍結した決断】",
+    title: "BAD END No.07【凍結した決断と裏切られた祈り】",
     paragraphs: [
-      "「待って……ダニエル医師の手が震えているわ。彼が怖気づいて間違えたらどうするの……？」",
-      "エレナは恐怖に囚われ、ボタンに伸ばした指を一瞬だけ止めてしまった。",
-      "そのわずかな躊躇を、タワーの防衛AIは見逃さなかった。",
-      "『認証タイムリミット超過。侵入者排除プロトコルを即時起動。』",
-      "シューーーーッ！ 床の換気グリルから高圧の神経ガスが一気に噴出した。",
-      "「ゴホッ……！ あ、息が……！」",
-      "喉を掻きむしりながらエレナは床に崩れ落ちた。互いの勇気を信じきれなかった代償を、三人は冷たい窒息の闇の中で支払うこととなった。"
+      "西翼でエレナの心に疑念が渦巻き、「スラムの暴徒なんて信じられない」と呟いてキーから手を離してしまった。",
+      "カチリ──と虚しく響いた不揃いの入力音。同期エラーの警報とともに、東翼のレンのコンソールから青白いアーク放電が噴き上がった！",
+      "「ぎゃあああっ！！」",
+      "少年レンの体が宙に跳ね上がり、煙を上げて床へ叩きつけられる。薄れゆく少年の視界の端に映ったのは、無傷で後ずさる特権の令嬢エレナの姿だった。",
+      "（……あぁ、やっぱり金持ちなんて……信じるもんじゃ……なかったな……）少年の瞳から光が消える。",
+      "「嘘……嘘でしょ……！？ 私が……私が殺したの……！？」",
+      "エレナの耳に、館内スピーカーから冷酷な父オーガスト卿の声が響き渡る。『よくぞ手を引いた、我が娘エレナ。やはりお前はヴァイスハイトの血統だ。その虫けらを片付け、私の玉座へ戻りなさい』",
+      "特権を憎みながら、土壇場で特権の保身に逃げ込んだ自分自身への耐え難い絶望。エレナはただ崩れ落ち、自らの罪の深さに打ちひしがれた。"
     ],
-    desc: "エレナがダニエルの動揺を恐れてキー入力を遅らせたため、防衛AIが先手を打って室内を神経ガスで満たした。",
-    hint: "12:15のクライマックスで、互いの覚悟を信じ切って同時押しせよ！",
-    jumpTarget: "CLIMAX_DECISION", jumpChar: "ALL", jumpCharName: "3人合同"
+    desc: "エレナがスラムへの不信感から直前でキーから手を引いたため、信じて押したレンだけが高圧電流を浴びて絶命した。",
+    hint: "エレナ編（12:05）に戻り、恐怖を捨てて「平等の覚悟」を呟いてキーを押し込め！",
+    jumpTarget: "CLIMAX_ELENA_STANDOFF", jumpChar: "B", jumpCharName: "エレナ（平等権）"
   },
 
   "BAD_08": {
     id: "BAD_08", isBadEnd: true, badNumber: "08", type: "bad", no: "08",
-    title: "BAD END No.08【恐怖の躊躇】",
+    title: "BAD END No.08【大人の猜疑心と加害の十字架】",
     paragraphs: [
-      "「レン君のあの動作……まさか武器を抜こうとしているのか！？」",
-      "懐に手を滑り込ませたレンの姿に、ダニエルは一瞬だけ身構えてキー入力を遅らせてしまった。",
-      "カチリ……と虚しく響いた単独の入力音。",
-      "『エラー。主電源遮断シークエンス失敗。バックアップ電源へ強制移行。』",
-      "バチバチバチッ！ コンソール全体から高圧電流が逆流し、青白いアーク放電が三人を呑み込んだ！",
-      "「ぐわああああっ！！」",
-      "全身を焼く激痛とともに意識が吹き飛ぶ。最後まで相手の真意を疑ってしまった悲劇の結末だった。"
+      "南翼で医師ダニエルが「おい！ 本当に押すんだろうな！」と大人の猜疑心で問い詰め、指を一瞬だけ躊躇してしまった。",
+      "そのコンマ数秒のズレが、最悪の悲劇を引き起こした。",
+      "『エラー。主電源遮断シークエンス失敗。』",
+      "バチバチバチッ！ 不成立の逆流電流が走り、東翼の少年レンと西翼の令嬢エレナの二人が、激しい閃光に包まれて床へ叩きつけられた！",
+      "二人はダニエルを信じて同時に押していたのだ。大人の自分が手を止めたせいで、未来ある若者二人の命が奪われた。",
+      "駆け寄ったダニエルの指が触れた二人の手首には、すでに脈がなかった。「息をしろ……頼むから息をしてくれ！ 私は医者だ、君たちを救うためにここへ来たんだ……！」",
+      "薄れゆく意識の暗闇の中で、1年前に死なせた少年シンの幻影が悲しそうに微笑みかける。『先生……やっぱり、大人は誰も救えないんだね』",
+      "突入してきた制圧部隊の銃口が向けられても、ダニエルはもはや逃げようともしなかった。自らの猜疑心で子供たちを殺した医師は、慟哭の中で銃弾を胸に受けた。"
     ],
-    desc: "ダニエルがレンの動作を警戒して一瞬手を止めたため、バックアップ電源が作動してシャットダウンは失敗した。",
-    hint: "12:15のクライマックスで、全員の呼吸を完全に一致させろ！",
-    jumpTarget: "CLIMAX_DECISION", jumpChar: "ALL", jumpCharName: "3人合同"
+    desc: "ダニエルが大人の猜疑心からキー入力を躊躇したため、信じて押した子供二人（レンとエレナ）が感電死し、ダニエルは医師として魂を失った。",
+    hint: "ダニエル編（12:05）に戻り、若者たちを信じて落ち着いた声でカウントダウンせよ！",
+    jumpTarget: "CLIMAX_DANIEL_STANDOFF", jumpChar: "C", jumpCharName: "ダニエル（社会権）"
   },
 
   "BAD_09": {
     id: "BAD_09", isBadEnd: true, badNumber: "09", type: "bad", no: "09",
-    title: "BAD END No.09【暴走した独裁AI】",
+    title: "BAD END No.09【信じ合えぬ世界と冷酷な刻限】",
     paragraphs: [
-      "誰かがタイミングを焦り、誰かが疑いに足を止めた。",
-      "足並みの乱れた三人の入力は、タワーのメインフレームを最悪の暴走モードへと叩き落とした！",
-      "『統治AI中枢、全区画の謀反を検知。絶対粛清コード【オメガ】を発動。』",
-      "タワーの屋上ハッチが全開となり、数千機の自律型戦闘ドローンが夜空を埋め尽くすように飛び立った。",
-      "無差別爆撃の火炎が、特権区もスラムも等しく地獄へと変えていく。",
-      "信じ合う心を失った人間たちに、独裁システムは完全な滅亡の平等を下したのだった。"
+      "誰も相手を信じきれず、誰もキーを押せないまま、無情な秒読みタイマーがゼロを告げた。",
+      "『認証タイムリミット超過。中央統治システム、フェイルセーフ初期化を完了。全区画の謀反を永久鎮圧します。』",
+      "ホール全体の光が冷酷な真紅へと反転し、三つのコンソールが床下へと沈み込んでいく。",
+      "手元の通信端末から、スラムの地下診療所のエマの悲痛な叫びが漏れ聞こえた。『先生……！ 薬品が……レオの呼吸が止まりました……！ 先生、どこにいるの……！？』",
+      "そして重厚な二重隔壁が爆破され、漆黒の装甲服を着た制圧部隊が突入してきた。",
+      "互いを信じ合い、奇跡を起こすチャンスを自ら捨てた三人に、もはや抗う力は残されていない。無慈悲な銃声が円形チャンバーに谺し、都市はより深い独裁の暗黒へと沈んでいった。"
     ],
-    desc: "三人が疑心暗鬼に陥った結果、タワー統治AIが完全防衛プロトコルを発動し、特区全域に掃討部隊を放った。",
-    hint: "3人が手に入れた古遺物の意味（人権の歴史）を思い出し、互いを信じよ！",
-    jumpTarget: "CLIMAX_DECISION", jumpChar: "ALL", jumpCharName: "3人合同"
+    desc: "誰も相手を信じられずキーを押せなかったため、時間切れで統治システムが初期化され、全員が突入部隊に制圧された。",
+    hint: "三人のタイムラインを行き来し、全員が互いを信じて「同時に押す」選択を揃えよ！",
+    jumpTarget: "CLIMAX_HUB", jumpChar: "ALL", jumpCharName: "三人の集結"
   },
 
   "BAD_10": {
@@ -3446,6 +4525,175 @@ const SCENARIO_CLIMAX = {
 </script>
 
 <script>
+/**
+ * 『パラレル・ジャパニア：クロニクル 〜失われた人権の180分〜』
+ * 全BAD ENDコンプリート特別シナリオ：エピソード・シン (scenario_shin.html)
+ * 主人公：シン（享年16）
+ * 1年前の雨の夜、レンを生かすために命を捧げた少年の真実の前日譚
+ */
+const SCENARIO_SHIN = {
+  // プロローグ：スラムの廃屋、優しい貴婦人のスープ
+  "SHIN_01_MEMORY": {
+    id: "SHIN_01_MEMORY", char: "S", charName: "シン", time: "1年前・過去",
+    stage: "1年前 スラム外縁の廃屋", title: "雲の上の太陽",
+    paragraphs: [
+      "冷たい酸性雨がスラムのトタン屋根を激しく打ち付けていた。",
+      "まだ首に鉄の輪を嵌められる前のオレは、腹を空かせて廃屋の隅で丸くなっていた。",
+      "そんな薄暗いゴミ溜めに、場違いなほど上等な衣服を着た、目の澄んだ女の人が一人で現れた。",
+      "貴族街からこっそり抜け出してきたというその人は、泥だらけのオレたちに温かいスープを配り、震えるオレの手を両手で優しく包んでくれた。",
+      "『いいかい、シン。人間はね、どんな家に生まれたかで価値が決まるんじゃないのよ』",
+      "『空を見てごらん。あの分厚い雲の向こうにはね、誰の頭の上にも、おんなじ温かさで照りつける大きな太陽があるの』",
+      "『あなたたちは誰かの家畜なんかじゃない。いつか必ず、自分の足であの光の下を歩くのよ』",
+      "その言葉の意味を、当時のオレは半分も理解できていなかった。けれど、その人の温もりだけは、凍え切ったオレの胸の奥で、決して消えない小さな火種になった。",
+      "数日後、その人は私兵たちに連行され、二度と姿を見せなくなった。誰かが『反逆罪で座敷牢に幽閉された』と噂していた。"
+    ],
+    choices: [
+      {
+        text: "胸に灯った小さな火種を抱きしめ、過酷な現実へ歩み出す",
+        next: "SHIN_02_MEETING"
+      }
+    ]
+  },
+
+  // 第1幕：強制労働区画、レンとの出会い
+  "SHIN_02_MEETING": {
+    id: "SHIN_02_MEETING", char: "S", charName: "シン", time: "1年前・秋",
+    stage: "1年前 スラム地下第3プラント", title: "一つの毛布、野良犬の誇り",
+    paragraphs: [
+      "それから間もなく、オレもまたスラム狩りに遭い、首にカチリと電磁首輪を嵌められて地下100メートルの軍需プラントへ放り込まれた。",
+      "過酷な強制労働。逆らう者は高圧電流で痙攣させられ、誰もが目を伏せて家畜のように生きていた。",
+      "だが──そこに、一匹だけ、絶対に牙を引っ込めない狂犬のような少年がいた。",
+      "レンだった。",
+      "親の顔も知らず、首に古びた真鍮細工の首飾りだけをぶら下げたそいつは、看守の理不尽な暴力に何度殴り倒されても、血だらけの顔で睨み返し、噛みついていた。",
+      "ある夜、制裁棒で滅多打ちにされ、冷たいコンクリートの上に倒れていたレンの前に、オレはしゃがみ込んだ。懐から、貴重な『干しネズミのスパイス揚げ』を半分に割って差し出す。",
+      "「……なんだよ。憐れみならいらねえぞ」レンは血走った目でオレを威嚇した。",
+      "「腹減ってんだろ。食えよ。……オレたちは犬じゃねえんだ。人間はな、分け合って食うもんなんだよ」",
+      "レンは驚いたように目を丸くし、それから奪い取るようにして肉を胃袋へ流し込んだ。",
+      "地下プラントの夜は凍えるほど寒い。破れた毛布が一枚しかない部屋で、オレたちは取っ組み合いの喧嘩をして奪い合い、最後は背中をぴったりと合わせながら眠った。",
+      "「なぁレン。オレたちの首にはこんな鉄っくび輪がついてるけどさ……心まで繋がれてるわけじゃねえよな」",
+      "「……当たり前だ。誰が家畜になんてなるかよ」",
+      "「だよな。いつか二人でここをブッ潰して、本物の青空を見に行こうぜ」",
+      "あの優しい女性から貰った言葉を、オレはレンに手渡していた。レンの熱い背中の温もりを感じながら、オレは確信していた。こいつとなら、本当に青空の下へ行けるんじゃないかって。"
+    ],
+    choices: [
+      {
+        text: "レンの背中に自分の背中を預け、冷たい地下の夜を越える",
+        next: "SHIN_03_ESCAPE"
+      }
+    ]
+  },
+
+  // 第2幕：脱走の夜、サーチライトと囮
+  "SHIN_03_ESCAPE": {
+    id: "SHIN_03_ESCAPE", char: "S", charName: "シン", time: "1年前・雨の夜",
+    stage: "1年前 地上連絡排気ダクト", title: "一筋の光、必然の決断",
+    paragraphs: [
+      "運命の夜。集中豪雨による地盤の緩みで、排気シャフトの点検扉にわずかな隙間ができた。",
+      "「今しかねえ！ 行くぞ、レン！」",
+      "オレたちは工具を片手に、泥水と油煙にまみれて縦坑を這い上がった。百メートル、五十メートル、三十メートル……地上からの冷たい雨風が、初めてオレたちの頬を撫でた。",
+      "だが──出口まであと数十歩という十字路で、甲高い索敵アラートが鳴り響いた！",
+      "ギュイイイィィンッ！",
+      "暗闇を裂いて、武装警備ドローンの赤いサーチライトが照射される。逃げ込める排気ダクトの隙間は、人が一人滑り込めるだけの幅しかなかった。",
+      "銃口が、前を走るレンの無防備な背中に向けられる。",
+      "思考する時間はゼロコンマ数秒もなかった。だが、オレの身体は、迷うことなく動いていた。"
+    ],
+    choices: [
+      {
+        text: "「走れ、レンッ！」と親友をダクトへ突き飛ばし、自らサーチライトの前へ飛び出す！",
+        next: "SHIN_04_EXECUTION"
+      }
+    ]
+  },
+
+  // 第3幕：首輪の爆破、処刑広場
+  "SHIN_04_EXECUTION": {
+    id: "SHIN_04_EXECUTION", char: "S", charName: "シン", time: "1年前・雨の夜",
+    stage: "1年前 スラム中央処刑広場", title: "雨の微笑み",
+    paragraphs: [
+      "「ぐあっ……！」",
+      "ダクトの中へ転がり込んだレンが、弾かれたように顔を上げ、鉄格子越しに絶叫した。「シンッ！？ てめえ、何やってんだ！ 戻れ、シンッ！！」",
+      "ドローンのテーザー銃がオレの肩を射抜き、冷たい泥水の中に叩き伏せられる。",
+      "駆けつけてきた看守長が、忌々しそうに携帯端末の赤い起爆キーを操作した。『逃亡奴隷を現行処分する。見せしめにしてやる』",
+      "ピピピピピピピピ──ッ！！ 首元の電磁首輪が、狂ったような甲高い警告音を上げた。",
+      "激痛と高熱が首筋を焼き始める。格子越しに泣き叫び、格子を力任せに揺らすレンの姿が見えた。",
+      "（……バカ、早く逃げろ……！ 立ち止まるな……前を向いて走れ……！）",
+      "オレは奥歯が砕けるほどの激痛をねじ伏せ、泥まみれの顔を上げて、レンに向かってニッと笑って見せた。",
+      "（生きろ、レン。お前だけでも……空の見える場所へ行け……！）",
+      "ドガァァァァンッ！！",
+      "激しい閃光と爆風がオレの視界を真っ白に染め上げ、すべての音が遠ざかっていった。"
+    ],
+    choices: [
+      {
+        text: "激痛を笑顔で押し隠し、走り去る親友の背中に祈りを遺す",
+        next: "SHIN_05_CLINIC"
+      }
+    ]
+  },
+
+  // 第4幕：スラム地下診療所、ダニエル医師の腕の中
+  "SHIN_05_CLINIC": {
+    id: "SHIN_05_CLINIC", char: "S", charName: "シン", time: "1年前・深夜",
+    stage: "1年前 スラム地下診療所", title: "人間の証",
+    paragraphs: [
+      "ザーザーと降る激しい雨の音が、トタン屋根を叩いていた。",
+      "ピー、ピー、ピー……と、弱々しい電子音が暗闇に響いている。",
+      "目を開けると、そこは見たこともない粗末な地下診療所のベッドの上だった。",
+      "「頼む、息をしてくれ！ 死ぬな……！ 私は医者だ、こんな子供を見殺しにしてたまるか……！」",
+      "煤けた白衣を着た若い男が、血だらけの手でオレの胸に何度も心肺蘇生を繰り返していた。その隣では、若い看護助手の少女が泣きながら止血帯を握りしめている。",
+      "（……あぁ、そうか……。オレは、まだ死んでないのか……？）",
+      "感覚はもう指先まで麻痺していた。だけど、必死にオレの命を繋ごうとするその医師の額から落ちる大粒の汗と、溢れる涙が、オレの首の傷口にぽたりと落ちた。",
+      "痛くなかった。温かかった。",
+      "スラムで家畜のようにこき使われ、ゴミのように捨てられたオレのために、こんなにも必死に泣いてくれる大人がいたんだ。",
+      "かつて、あの優しい女性が言っていた言葉が、胸の奥で鮮やかによみがえる。……本当だった。オレたちは、家畜なんかじゃなかった。",
+      "オレは動かない右手をほんの少しだけ持ち上げ、医師の白衣の裾を、指先でそっと掴んだ。",
+      "「……せん……せい……」",
+      "「喋るな！ 力を抜くんじゃない！」医師が顔をくしゃくしゃにして叫ぶ。",
+      "「オレは……人間として……生きられたかい……？」",
+      "医師は一瞬息を呑み、それからオレの手を両手で力強く握りしめ、魂の底から叫んでくれた。",
+      "「あぁ、お前は人間だ！ 誰が何と言おうと、誰よりも立派に生きた、尊厳ある一人の人間だ……！」",
+      "その言葉を聞いた瞬間、オレの胸を満たしたのは、言葉にできないほどの安らぎだった。",
+      "雨の音の向こうに、いつかレンが仲間たちと一緒に、青空の下で笑っている姿が、はっきりと見えた気がした。"
+    ],
+    choices: [
+      {
+        text: "医師の温かい涙を感じながら、静かに、誇らしくまぶたを閉じる",
+        next: "SHIN_06_PROLOGUE_LOOP"
+      }
+    ]
+  },
+
+  // エピローグ：本編への接続（ウロボロスの輪）
+  "SHIN_06_PROLOGUE_LOOP": {
+    id: "SHIN_06_PROLOGUE_LOOP", char: "S", charName: "シン", time: "1年前 ➔ 現在",
+    stage: "時空の狭間 ➔ スラム地下工場", title: "永遠の夜明けへ",
+    paragraphs: [
+      "ピィィィィィィィィィ────……。",
+      "心電図のフラットラインが、静かに夜の底へと消えていく。",
+      "深い、深い静寂の中、雨音がゆっくりと遠ざかっていった。",
+      "……。",
+      "…………。",
+      "チク、タク、チク、タク。",
+      "暗闇の奥底で、止まっていた時計の針が、鋭い音を立てて動き始める。",
+      "針は猛烈な勢いで回転し、雨の夜を越え、季節を越え、365日の時を巻き戻し、そして未来へと進めていく。",
+      "──あれから、1年。",
+      "友の魂を、友の遺した炎を胸に宿し、一人の少年が立ち上がる。",
+      "ピピピ、ピピピ……！",
+      "地下100メートルの軍需工場に、苛立たしい電磁首輪の警告音が鳴り響いた。",
+      "『誰にもオレたちの明日を決めさせねえ……！ 1年前、シンをあんな殺され方させておいて、一生家畜のようにこき使われてたまるか！』",
+      "少年の手には、巨大な非常用レンチが握りしめられていた。",
+      "さあ──行け、レン。今度こそ、あの青空の下へ！"
+    ],
+    choices: [
+      {
+        text: "運命の原点へ（本編 第1話『A_1000：首輪の火花』へ続く）",
+        action: "returnTitle"
+      }
+    ]
+  }
+};
+</script>
+
+<script>
 var AudioEngine = (function() {
   var ctx = null;
   var isMuted = false;
@@ -3537,6 +4785,32 @@ var AudioEngine = (function() {
         gain.connect(ctx.destination);
         osc.start(now + i * 0.1);
         osc.stop(now + i * 0.1 + 0.38);
+      });
+    } else if (type === 'preview') {
+      var bassNotes = [110, 110, 146.83, 164.81];
+      bassNotes.forEach(function(frequency, i) {
+        var bass = ctx.createOscillator();
+        var bassGain = ctx.createGain();
+        bass.type = "sawtooth";
+        bass.frequency.setValueAtTime(frequency, now + i * 0.2);
+        bassGain.gain.setValueAtTime(0.18, now + i * 0.2);
+        bassGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.35);
+        bass.connect(bassGain);
+        bassGain.connect(ctx.destination);
+        bass.start(now + i * 0.2);
+        bass.stop(now + i * 0.2 + 0.35);
+      });
+      [440, 523.25, 659.25, 880, 783.99, 1046.5].forEach(function(frequency, i) {
+        var lead = ctx.createOscillator();
+        var leadGain = ctx.createGain();
+        lead.type = "square";
+        lead.frequency.setValueAtTime(frequency, now + 0.8 + i * 0.12);
+        leadGain.gain.setValueAtTime(0.14, now + 0.8 + i * 0.12);
+        leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8 + i * 0.12 + 0.25);
+        lead.connect(leadGain);
+        leadGain.connect(ctx.destination);
+        lead.start(now + 0.8 + i * 0.12);
+        lead.stop(now + 0.8 + i * 0.12 + 0.25);
       });
     } else if (type === 'scan') {
       var osc = ctx.createOscillator();
@@ -3963,6 +5237,23 @@ var UIController = (function() {
     var totalCountEl = document.getElementById("archiveTotalCount");
     if (totalCountEl) totalCountEl.textContent = allKeys.length;
 
+    // 全TIPS解明時：検定クイズ挑戦バナーの表示制御
+    var quizBanner = document.getElementById("bannerTipsQuizChallenge");
+    if (quizBanner) {
+      if (unlockedKeys.length >= allKeys.length && allKeys.length > 0) {
+        quizBanner.classList.remove("hidden");
+        var btnStart = document.getElementById("btnStartTipsQuiz");
+        if (btnStart) {
+          btnStart.onclick = function() {
+            closeTipsArchive();
+            QuizController.startQuiz();
+          };
+        }
+      } else {
+        quizBanner.classList.add("hidden");
+      }
+    }
+
     var grid = document.getElementById("archiveCardsGrid");
     if (!grid) return;
     grid.innerHTML = "";
@@ -4110,6 +5401,36 @@ var UIController = (function() {
       emptyEl.innerHTML = '<div class="text-2xl">💀</div><div>「' + (searchQuery || "") + '」に一致する結末は見つかりませんでした。</div>';
       grid.appendChild(emptyEl);
       return;
+    }
+    // 全BAD END（23件）解明時、またはシン読了時に特別カードを表示
+    var isShinUnlocked = (unlockedBadEnds.length >= 23 || state.visitedNodes.indexOf("SHIN_01_MEMORY") !== -1);
+    var isShinCompleted = (state.visitedNodes.indexOf("SHIN_06_PROLOGUE_LOOP") !== -1);
+
+    if (isShinUnlocked && (!filterCategory || filterCategory === "all") && !q) {
+      var shinCard = document.createElement("div");
+      shinCard.className = "archive-card p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between transition-all border-2 border-amber-500/80 bg-gradient-to-br from-amber-950/50 via-neutral-900 to-neutral-950 shadow-[0_0_20px_rgba(245,158,11,0.25)] col-span-full sm:col-span-2";
+      shinCard.innerHTML = '<div>' +
+        '<div class="flex items-center justify-between gap-1 mb-1.5">' +
+          '<span class="text-[9px] font-mono px-2 py-0.5 rounded border text-amber-300 border-amber-600 bg-amber-950/90 font-bold">🕊️ 奇跡解禁【全BAD END踏破特典】</span>' +
+          '<span class="text-[10px] text-amber-400 font-mono font-bold">' + (isShinCompleted ? '✓ 読了済' : '★ 未読了') + '</span>' +
+        '</div>' +
+        '<h4 class="text-sm sm:text-base font-black text-amber-200 font-hud">外伝：雨の日の約束 〜シンの見た青空〜</h4>' +
+        '<p class="text-[11px] text-neutral-300 mt-2 leading-relaxed">1年前の酸性雨の夜、親友レンを生かすために自ら犠牲となった少年シン。23通りの絶望を踏破した者だけに明かされる、すべての始まりの真実。</p>' +
+        '</div>' +
+        '<div class="mt-3 pt-2.5 border-t border-amber-900/60 flex justify-between items-center">' +
+          '<span class="text-[10px] text-amber-500/80 font-mono font-bold">EPISODE: SHIN</span>' +
+          '<button class="btn-play-shin px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 text-xs font-black rounded-lg shadow-lg transition-all active:scale-95 cursor-pointer font-hud">特別エピソードを開始する ➔</button>' +
+        '</div>';
+      var btnShin = shinCard.querySelector(".btn-play-shin");
+      if (btnShin) {
+        btnShin.onclick = function(e) {
+          e.stopPropagation();
+          AudioEngine.play('jump');
+          closeBadEndArchive();
+          GameEngine.launchNode("SHIN_01_MEMORY");
+        };
+      }
+      grid.appendChild(shinCard);
     }
 
     filteredKeys.forEach(function(k) {
@@ -4446,6 +5767,64 @@ var UIController = (function() {
     }
   }
 
+  function showHour1Preview() {
+    var modal = document.getElementById("modalHour1Preview");
+    if (!modal) return;
+    AudioEngine.play('preview');
+    TimelineState.getState().hour1PreviewSeen = true;
+    TimelineState.saveLocal();
+    modal.classList.remove("hidden");
+
+    var startButton = document.getElementById("btnStartHour2FromPreview");
+    if (startButton) {
+      startButton.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+        switchView('auth');
+        renderTimeBlockStatus();
+      };
+    }
+  }
+
+  function showCharWaitOption(charKey, hourNum) {
+    var modal = document.getElementById("modalCharWaitOption");
+    if (!modal) return;
+    var charName = charKey === "A" ? "レン（自由権）" : charKey === "B" ? "エレナ（平等権）" : "ダニエル（社会権）";
+    var title = document.getElementById("charWaitModalTitle");
+    var description = document.getElementById("charWaitModalDesc");
+    if (title) title.textContent = charName + "は第" + hourNum + "アワー待機中";
+    if (description) {
+      description.textContent = hourNum === 1
+        ? "この時間帯は完了しています。現在の場面を再読するか、タイムラインから過去の分岐へJUMPできます。"
+        : "管制室で待機中です。現在の場面を再読するか、タイムラインから過去の分岐へJUMPできます。";
+    }
+    modal.classList.remove("hidden");
+
+    var sceneButton = document.getElementById("btnCharWaitGoScene");
+    if (sceneButton) {
+      sceneButton.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+        GameEngine.switchChar(charKey);
+      };
+    }
+    var chartButton = document.getElementById("btnCharWaitOpenChart");
+    if (chartButton) {
+      chartButton.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+        openChart();
+      };
+    }
+    var closeButton = document.getElementById("btnCharWaitClose");
+    if (closeButton) {
+      closeButton.onclick = function() {
+        AudioEngine.play('tap');
+        modal.classList.add("hidden");
+      };
+    }
+  }
+
   function checkAllClearBadge() {
     var state = TimelineState.getState();
     var count = Object.keys(state.unlockedEndings).length;
@@ -4474,17 +5853,207 @@ var UIController = (function() {
     renderBadEndArchiveModal: renderBadEndArchiveModal,
     renderTimeBlockStatus: renderTimeBlockStatus,
     showToBeContinued: showToBeContinued,
+    showHour1Preview: showHour1Preview,
+    showCharWaitOption: showCharWaitOption,
     checkAllClearBadge: checkAllClearBadge
+  };
+})();
+
+// 憲法マスター検定クイズコントローラー
+var QuizController = (function() {
+  var quizQuestions = [
+    {
+      category: "自由権（身体の自由）",
+      question: "ネオ・ジャパニアで市民に強制されていた『電子首輪による移動制限や労働強制』。現実の日本国憲法において、何人も正当な法的手続きによらずに抑留・拘禁されず、奴隷的拘束を受けないことを保障している権利はどれか？",
+      choices: [
+        "第18条・第31条：身体の自由（奴隷的拘束の禁止と適正手続の保障）",
+        "第21条：表現の自由（集会・結社及び言論の自由と検閲の禁止）",
+        "第29条：財産権の保障（正当な補償の下での収用）"
+      ],
+      correctIndex: 0,
+      explanation: "正解！ 憲法第18条は何人も奴隷的拘束を受けないことを規定し、第31条は法律の定める適正な手続によらなければ生命・自由を奪われないことを保障しています。"
+    },
+    {
+      category: "平等権（法の下の平等）",
+      question: "貴族院や統制局特権階級による支配に立ち向かったエレナ。現実の日本国憲法第14条第1項（法の下の平等）に基づき、最高裁判所が戦後初めて違憲判決を下した重大事件（刑法200条の尊属に対する殺人罪重罰規定を巡る判例）はどれか？",
+      choices: [
+        "東大ポポロ事件（学問の自由と大学の自治）",
+        "尊属殺重罰規定違憲判決（法の下の平等と刑罰の不均衡）",
+        "津地平熱鎮撫事件（政教分離原則と宗教的儀式）"
+      ],
+      correctIndex: 1,
+      explanation: "正解！ 1973年、最高裁判所は普通殺人よりも著しく重い刑を科す尊属殺規定（旧刑法200条）について、目的は正当でも手段が不合理に過酷であり、法の下の平等に反し違憲であると判断しました。"
+    },
+    {
+      category: "社会権（生存権）",
+      question: "地下診療所で無償医療を行い『命に値段がついてる世界はおかしい』と叫んだダニエル。現実の日本国憲法第25条第1項で保障されている、すべて国民が営む権利を有する生活の基準とは何か？",
+      choices: [
+        "贅沢で文化的な最高の生活水準",
+        "国家が指定する統制管理された労働生活",
+        "健康で文化的な最低限度の生活"
+      ],
+      correctIndex: 2,
+      explanation: "正解！ 憲法第25条第1項は『すべて国民は、健康で文化的な最低限度の生活を営む権利を有する』と定め、国の生存権保障義務（生活保護や公衆衛生の向上等）の根幹となっています。"
+    }
+  ];
+
+  var currentIndex = 0;
+  var isAnswering = false;
+
+  function init() {
+    var btnClose = document.getElementById("btnCloseQuiz");
+    if (btnClose) {
+      btnClose.onclick = function() {
+        AudioEngine.play('tap');
+        closeQuiz();
+      };
+    }
+  }
+
+  function startQuiz() {
+    AudioEngine.play('chime');
+    currentIndex = 0;
+    isAnswering = false;
+    var modal = document.getElementById("modalQuiz");
+    if (modal) modal.classList.remove("hidden");
+    renderCurrentQuestion();
+  }
+
+  function closeQuiz() {
+    var modal = document.getElementById("modalQuiz");
+    if (modal) modal.classList.add("hidden");
+  }
+
+  function renderCurrentQuestion() {
+    var q = quizQuestions[currentIndex];
+    if (!q) return;
+
+    isAnswering = false;
+    var idxEl = document.getElementById("quizCurrentIndex");
+    if (idxEl) idxEl.textContent = currentIndex + 1;
+
+    var catEl = document.getElementById("quizCategoryBadge");
+    if (catEl) catEl.textContent = q.category;
+
+    var textEl = document.getElementById("quizQuestionText");
+    if (textEl) textEl.textContent = q.question;
+
+    var feedbackBox = document.getElementById("quizFeedbackBox");
+    if (feedbackBox) {
+      feedbackBox.classList.add("hidden");
+      feedbackBox.innerHTML = "";
+    }
+
+    var choicesCont = document.getElementById("quizChoicesContainer");
+    if (!choicesCont) return;
+    choicesCont.innerHTML = "";
+
+    q.choices.forEach(function(choiceText, idx) {
+      var btn = document.createElement("button");
+      btn.className = "w-full p-3.5 sm:p-4 rounded-xl border border-neutral-700 bg-neutral-800/80 hover:bg-neutral-700/90 text-left text-xs sm:text-sm font-hud text-neutral-200 transition-all flex items-center justify-between gap-2 cursor-pointer shadow-md";
+      btn.innerHTML = '<span class="flex items-center gap-2.5"><span>' + ['①', '②', '③'][idx] + '</span><span>' + choiceText + '</span></span>' +
+                       '<span class="text-neutral-500 text-xs shrink-0">選択 ▶</span>';
+
+      btn.onclick = function() {
+        if (isAnswering) return;
+        isAnswering = true;
+        handleAnswer(idx);
+      };
+
+      choicesCont.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(selectedIdx) {
+    var q = quizQuestions[currentIndex];
+    var isCorrect = (selectedIdx === q.correctIndex);
+    var feedbackBox = document.getElementById("quizFeedbackBox");
+    if (!feedbackBox) return;
+
+    feedbackBox.classList.remove("hidden");
+
+    if (isCorrect) {
+      AudioEngine.play('chime');
+      feedbackBox.className = "p-4 rounded-xl border border-emerald-500/70 bg-emerald-950/40 text-xs font-hud space-y-2 text-emerald-200 shadow-lg";
+      feedbackBox.innerHTML = '<div>' +
+        '<div class="font-black text-emerald-400 text-sm flex items-center gap-1.5"><span>⭕</span><span>正 解 ！</span></div>' +
+        '<p class="mt-1 text-neutral-300 leading-relaxed font-sans-jp">' + q.explanation + '</p>' +
+        '</div>' +
+        '<div class="pt-2 text-right">' +
+        '<button id="btnQuizNextAction" class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 text-neutral-950 font-black text-xs rounded-lg shadow cursor-pointer font-hud transition-transform active:scale-95">' +
+        (currentIndex + 1 < quizQuestions.length ? '次の問題へ進む ▶' : '🏆 全問合格！ 修了証書を受け取る ▶') +
+        '</button>' +
+        '</div>';
+
+      var nextBtn = document.getElementById("btnQuizNextAction");
+      if (nextBtn) {
+        nextBtn.onclick = function() {
+          AudioEngine.play('tap');
+          if (currentIndex + 1 < quizQuestions.length) {
+            currentIndex++;
+            renderCurrentQuestion();
+          } else {
+            // 合格処理
+            closeQuiz();
+            var state = TimelineState.getState();
+            state.quizMasterPassed = true;
+            TimelineState.saveLocal();
+            CertRenderer.openModal(true);
+          }
+        };
+      }
+    } else {
+      AudioEngine.play('bad');
+      feedbackBox.className = "p-4 rounded-xl border border-rose-500/70 bg-rose-950/40 text-xs font-hud space-y-2 text-rose-200 shadow-lg";
+      feedbackBox.innerHTML = '<div>' +
+        '<div class="font-black text-rose-400 text-sm flex items-center gap-1.5"><span>❌</span><span>不 正 解 ……</span></div>' +
+        '<p class="mt-1 text-neutral-300 leading-relaxed font-sans-jp">もう一度条文と判例の解説を振り返り、再挑戦してください。</p>' +
+        '</div>' +
+        '<div class="pt-2 text-right">' +
+        '<button id="btnQuizRetryAction" class="px-4 py-2 bg-rose-800 hover:bg-rose-700 text-white font-bold text-xs rounded-lg shadow cursor-pointer font-hud transition-transform active:scale-95">もう一度解き直す 🔄</button>' +
+        '</div>';
+
+      var retryBtn = document.getElementById("btnQuizRetryAction");
+      if (retryBtn) {
+        retryBtn.onclick = function() {
+          AudioEngine.play('tap');
+          renderCurrentQuestion();
+        };
+      }
+    }
+  }
+
+  // 初期化実行
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  return {
+    startQuiz: startQuiz,
+    closeQuiz: closeQuiz
   };
 })();
 
 // 表彰状PDFジェネレータ
 var CertRenderer = (function() {
-  function openModal() {
+  function openModal(isQuizMaster) {
     AudioEngine.play('chime');
     var modal = document.getElementById("modalCertificate");
     if (modal) modal.classList.remove("hidden");
-    drawCertificate();
+
+    var gradeBadge = document.getElementById("certGradeBadge");
+    var mainTitle = document.getElementById("certMainTitle");
+    if (isQuizMaster) {
+      if (gradeBadge) gradeBadge.textContent = "CONSTITUTIONAL MASTER QUALIFIED";
+      if (mainTitle) mainTitle.textContent = "日本国憲法マスター 修了証書";
+    } else {
+      if (gradeBadge) gradeBadge.textContent = "CONSTITUTIONAL HARMONY DIPLOMA";
+      if (mainTitle) mainTitle.textContent = "人権調和 表彰状";
+    }
+
+    drawCertificate(isQuizMaster);
   }
 
   function closeModal() {
@@ -4493,7 +6062,7 @@ var CertRenderer = (function() {
     if (modal) modal.classList.add("hidden");
   }
 
-  function drawCertificate() {
+  function drawCertificate(isQuizMaster) {
     var canvas = document.getElementById("canvasCert");
     if (!canvas) return;
     var ctx = canvas.getContext("2d");
@@ -4507,7 +6076,7 @@ var CertRenderer = (function() {
     // 背景
     var bgGrad = ctx.createLinearGradient(0, 0, w, h);
     bgGrad.addColorStop(0, "#0a0a0f");
-    bgGrad.addColorStop(0.5, "#12131f");
+    bgGrad.addColorStop(0.5, isQuizMaster ? "#17150a" : "#12131f");
     bgGrad.addColorStop(1, "#0a0a0f");
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
@@ -4525,11 +6094,11 @@ var CertRenderer = (function() {
     ctx.fillStyle = "#fde047";
     ctx.font = "bold 44px 'Shippori Mincho', serif";
     ctx.textAlign = "center";
-    ctx.fillText("憲 法 探 究 証 書", w / 2, 120);
+    ctx.fillText(isQuizMaster ? "日 本 国 憲 法 マ ス タ ー 修 了 証 書" : "憲 法 探 究 証 書", w / 2, 120);
 
     ctx.fillStyle = "#94a3b8";
     ctx.font = "18px 'Zen Kaku Gothic New', sans-serif";
-    ctx.fillText("PARALLEL JAPANIA CHRONICLE CERTIFICATE", w / 2, 160);
+    ctx.fillText(isQuizMaster ? "PARALLEL JAPANIA CONSTITUTIONAL MASTER DIPLOMA" : "PARALLEL JAPANIA CHRONICLE CERTIFICATE", w / 2, 160);
 
     // 授与者名
     ctx.fillStyle = "#ffffff";
@@ -4539,16 +6108,27 @@ var CertRenderer = (function() {
     // 本文
     ctx.fillStyle = "#e2e8f0";
     ctx.font = "20px 'Shippori Mincho', serif";
-    ctx.fillText("貴殿は『パラレル・ジャパニア：クロニクル』において、", w / 2, 320);
-    ctx.fillText("自由権・平等権・社会権の三大基本的人権を巡る幾多の歴史的分岐を乗り越え、", w / 2, 360);
-    ctx.fillText("日本国憲法第97条が謳う『永久の信託』の精神を体現し、", w / 2, 400);
-    ctx.fillText("人権の真の尊厳を解き明かしたことをここに証します。", w / 2, 440);
+    if (isQuizMaster) {
+      ctx.fillText("貴殿は『パラレル・ジャパニア：クロニクル』全人権TIPSを完全解明し、", w / 2, 320);
+      ctx.fillText("自由権・平等権・社会権の憲法マスター検定において極めて優秀な知見を示されました。", w / 2, 360);
+      ctx.fillText("日本国憲法第97条が謳う『人類の多年にわたる自由獲得の成果』を胸に刻み、", w / 2, 400);
+      ctx.fillText("人権の尊厳を守り抜く真のマスターたる見識を有することをここに証します。", w / 2, 440);
+    } else {
+      ctx.fillText("貴殿は『パラレル・ジャパニア：クロニクル』において、", w / 2, 320);
+      ctx.fillText("自由権・平等権・社会権の三大基本的人権を巡る幾多の歴史的分岐を乗り越え、", w / 2, 360);
+      ctx.fillText("日本国憲法第97条が謳う『永久の信託』の精神を体現し、", w / 2, 400);
+      ctx.fillText("人権の真の尊厳を解き明かしたことをここに証します。", w / 2, 440);
+    }
 
     // 実績
-    var count = Object.keys(state.unlockedEndings).length;
     ctx.fillStyle = "#38bdf8";
     ctx.font = "bold 22px 'Zen Kaku Gothic New', sans-serif";
-    ctx.fillText("到達結末数: " + count + " / 25 結末解明", w / 2, 530);
+    if (isQuizMaster) {
+      ctx.fillText("全18大 人権TIPS完全解明 ＆ 憲法マスター検定全問合格", w / 2, 530);
+    } else {
+      var count = Object.keys(state.unlockedEndings).length;
+      ctx.fillText("到達結末数: " + count + " / 25 結末解明", w / 2, 530);
+    }
 
     // 日付・発行者
     var today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -4591,7 +6171,17 @@ var CertRenderer = (function() {
  */
 var MASTER_DB = {
   tips: TIPS_MASTER,
-  nodes: Object.assign({}, SCENARIO_REN, SCENARIO_ELENA, SCENARIO_DANIEL, SCENARIO_CLIMAX)
+  nodes: Object.assign(
+    {},
+    SCENARIO_REN,
+    SCENARIO_ELENA,
+    SCENARIO_DANIEL,
+    (typeof SCENARIO_CLIMAX_REN !== "undefined" ? SCENARIO_CLIMAX_REN : {}),
+    (typeof SCENARIO_CLIMAX_ELENA !== "undefined" ? SCENARIO_CLIMAX_ELENA : {}),
+    (typeof SCENARIO_CLIMAX_DANIEL !== "undefined" ? SCENARIO_CLIMAX_DANIEL : {}),
+    SCENARIO_CLIMAX,
+    (typeof SCENARIO_SHIN !== "undefined" ? SCENARIO_SHIN : {})
+  )
 };
 
 var GameEngine = (function() {
@@ -4759,22 +6349,38 @@ var GameEngine = (function() {
 
     var prog = TimelineState.getHourProgress();
 
-    // 428 アワー終端判定：Hour 1 終端（11:00）で他キャラが未完了の場合
-    if ((node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") && !prog.hour1.allClear) {
-      var tbcBtn = document.createElement("button");
-      tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group";
-      tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
-        + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
-      tbcBtn.onclick = function(e) {
+    // 428 アワー終端判定：Hour 1 終端（11:00）
+    if (node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") {
+      if (!prog.hour1.allClear) {
+        var tbcBtn = document.createElement("button");
+        tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group";
+        tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
+          + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
+        tbcBtn.onclick = function(e) {
+          e.stopPropagation();
+          UIController.showToBeContinued(
+            node.char,
+            1,
+            "第1アワー（10:00〜11:00）を突破しました！",
+            "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
+          );
+        };
+        wrapper.appendChild(tbcBtn);
+        return;
+      }
+
+      var previewBtn = document.createElement("button");
+      previewBtn.className = "w-full text-left p-4 bg-gradient-to-r from-emerald-950/90 via-neutral-900 to-sky-950/90 border-2 border-emerald-400 rounded-xl text-xs sm:text-sm font-black text-emerald-200 shadow-xl flex items-center justify-between group cursor-pointer";
+      previewBtn.innerHTML = '<span>🎬 第1アワー突破：ここまでの記録と次章予告を見る</span>'
+        + '<span class="text-emerald-400 font-mono text-xs">PREVIEW ▶</span>';
+      previewBtn.onclick = function(e) {
         e.stopPropagation();
-        UIController.showToBeContinued(
-          node.char,
-          1,
-          "第1アワー（10:00〜11:00）を突破しました！",
-          "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
-        );
+        UIController.showHour1Preview();
       };
-      wrapper.appendChild(tbcBtn);
+      wrapper.appendChild(previewBtn);
+      if (!state.hour1PreviewSeen) {
+        setTimeout(function() { UIController.showHour1Preview(); }, 350);
+      }
       return;
     }
 
@@ -4798,6 +6404,14 @@ var GameEngine = (function() {
     }
 
     node.choices.forEach(function(ch) {
+      if (ch.requiresSecretPieces) {
+        var secretFlags = state.userFlags || [];
+        var hasAllSecretPieces = ["PIECE_A", "PIECE_B", "PIECE_C"].every(function(flag) {
+          return secretFlags.indexOf(flag) !== -1;
+        });
+        if (!hasAllSecretPieces) return;
+      }
+
       // クリア後限定選択肢（古遺物回収イベント）の非表示制御
       if (ch.requiresClear && !TimelineState.hasClearedOnce()) {
         return; // 1周目（未クリア時）は表示しない
@@ -5271,22 +6885,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
       var prog = TimelineState.getHourProgress();
 
-      // もしHour 1未完了で、既にクリア済みのキャラを押した場合
-      if (!prog.hour1.allClear) {
-        if (prog.hour1[targetChar]) {
-          AudioEngine.play('tap');
-          UIController.showToast("この主人公は第1アワー（10:00〜11:00）をクリア済みです。\n他の主人公を進めて11:00を解放してください。");
-          return;
-        }
-      }
-
-      // もしHour 1完了後、Hour 2進行中で既にクリア済みのキャラを押した場合
-      if (prog.hour1.allClear && !prog.hour2.allClear) {
-        if (prog.hour2[targetChar]) {
-          AudioEngine.play('tap');
-          UIController.showToast("この主人公は第2アワー（11:00〜12:00）をクリア済みです。\n他の主人公を進めて12:00クライマックスを解放してください。");
-          return;
-        }
+      var isWaitingH1 = !prog.hour1.allClear && prog.hour1[targetChar];
+      var isWaitingH2 = prog.hour1.allClear && !prog.hour2.allClear && prog.hour2[targetChar];
+      if (isWaitingH1 || isWaitingH2) {
+        AudioEngine.play('tap');
+        UIController.showCharWaitOption(targetChar, isWaitingH1 ? 1 : 2);
+        return;
       }
 
       GameEngine.switchChar(targetChar);

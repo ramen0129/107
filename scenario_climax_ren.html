@@ -52,7 +52,7 @@ const SCENARIO_CLIMAX_REN = {
     ],
     choices: [
       {
-        text: "押し寄せる恐怖を必死に殺し、首元の古びた真鍮細工を無意識に強く握りしめる",
+        text: "押し寄せる恐怖を必死に殺し、首元の手作りの真鍮ペンダントを無意識に強く握りしめる",
         next: "CLIMAX_REN_DECISION",
         slot: "CLIMAX_REN_CHOICE",
         flagValue: "REN_HOLD_AMULET",
@@ -74,13 +74,15 @@ const SCENARIO_CLIMAX_REN = {
     stage: "12:10 東翼軍事防衛コンソール前", title: "信じるか、拒絶するか",
     paragraphs: [
       "カウントダウンの警告音が短く鋭い連続音に変わる。『ピ・ピ・ピ・ピ・ピ……！』",
+      "靴底から、床下を走る三本の太い電力管の脈動が伝わってきた。東、西、南──離れた場所を走る振動が、ほんの一瞬だけぴたりと重なる。",
+      "次の脈動で何かが起きる。足場の揺れを読むように、オレは二人へ叫んだ。「床が三つ同時に脈打ってる！ 次の揺れでキーが上がる。おっちゃん、数えろ！」",
       "コンソールの認証スロットが青白く発光し、最終承認キーがせり上がってきた。",
       function(state) {
-        var flags = state.flags || {};
-        var elenaText = flags["FLAG_ELENA_RESOLVE"] ?
-          "西を見れば、令嬢エレナが唇を噛み締め、『逃げてたまるもんですか……絶対に押すのよ』と自らに言い聞かせるように呟き、凛とした瞳でキーを見据えている。" :
-          "西を見れば、令嬢エレナが『スラムの暴徒なんて信じられない……』と震える声で弱音を呟き、怯え切った顔でキーから視線を泳がせている。";
-        var danielText = flags["FLAG_DANIEL_CALM"] ?
+        var flags = state.userFlags || [];
+        var elenaText = flags.indexOf("FLAG_ELENA_RESOLVE") !== -1 ?
+          "西を見れば、令嬢エレナが唇を噛み締め、「……逃げてたまるもんですか。絶対に押すのよ、エレナ」と自分へ言い聞かせ、キーを見据えている。" :
+          "西を見れば、令嬢エレナが「……だめよ。スラムの暴徒なんて信じられない」と震える声を漏らし、キーから視線を泳がせている。";
+        var danielText = flags.indexOf("FLAG_DANIEL_CALM") !== -1 ?
           "南を見れば、医師ダニエルが執刀医のように落ち着いた通る声で『私が三ツ数える。同時にいくぞ！』と二人に確かな合図を送っている。" :
           "南を見れば、医師ダニエルが猜疑心に苛まれた様子で『おい！ 本当に押すんだろうな！』と大声で問い詰めてきている。";
         return elenaText + "\n" + danielText;
@@ -91,7 +93,7 @@ const SCENARIO_CLIMAX_REN = {
     ],
     choices: [
       {
-        text: "仲間を信じ、合図に合わせて渾身の力でシャットダウンキーを叩き込む！",
+        text: "見知らぬ二人を信じ、合図に合わせて渾身の力でシャットダウンキーを叩き込む！",
         next: "REN_EVAL_PRESS",
         slot: "CLIMAX_REN_EXEC",
         flagValue: "REN_PRESS",

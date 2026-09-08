@@ -199,12 +199,13 @@ const SCENARIO_CLIMAX = {
     ],
     choices: [
       {
-        text: "結末の刻を迎える（古遺物の収集状況で分岐）",
-        checkSecret: true
+        text: "集めた記憶を胸に、新しい時代へ踏み出す",
+        next: "NORMAL_CLEAR"
       },
       {
-        text: "集めた記憶を胸に、未来へ踏み出す",
-        checkSecret: true
+        text: "共鳴する三つの古遺物に導かれ、失われた歴史の奥へ進む",
+        checkSecret: true,
+        requiresSecretPieces: true
       }
     ]
   },
