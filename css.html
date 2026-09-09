@@ -92,6 +92,17 @@
     50% { box-shadow: 0 0 8px 2px rgba(239, 68, 68, 0.45); }
   }
 
+  @keyframes tipPulseGlow {
+    0% { background-color: rgba(56, 189, 248, 0.5); box-shadow: 0 0 12px rgba(56, 189, 248, 0.8); }
+    50% { background-color: rgba(56, 189, 248, 0.25); box-shadow: 0 0 6px rgba(56, 189, 248, 0.4); }
+    100% { background-color: transparent; box-shadow: none; }
+  }
+  .tip-link-focused {
+    animation: tipPulseGlow 1.5s ease-out;
+    border-radius: 4px;
+    padding: 0 2px;
+  }
+
   /* 外伝・追想録JUMPボタン */
   .btn-secret-jump,
   .btn-canaan-jump {

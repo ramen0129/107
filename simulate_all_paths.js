@@ -7,11 +7,12 @@ console.log("=== PARALLEL JAPANIA 428-STYLE FULL CAUSALITY SIMULATOR (BAD_01 - B
 function loadScenarioFile(fileName) {
   const content = fs.readFileSync(path.join(__dirname, fileName), 'utf8');
   const m = content.match(/<script>([\s\S]*?)<\/script>/i);
-  const code = (m ? m[1] : content).replace(/const\s+(SCENARIO_[A-Z]+|TIPS_MASTER)/g, 'var $1');
+  const code = (m ? m[1] : content).replace(/const\s+(SCENARIO_[A-Z]+|TIPS_MASTER|TIPS_QUIZ_QUESTIONS)/g, 'var $1');
   return code;
 }
 
 const context = {};
+context.window = context;
 vm.createContext(context);
 vm.runInContext(loadScenarioFile('scenario_ren.html'), context);
 vm.runInContext(loadScenarioFile('scenario_elena.html'), context);
@@ -29,6 +30,9 @@ if (fs.existsSync(path.join(__dirname, 'scenario_climax_daniel.html'))) {
 if (fs.existsSync(path.join(__dirname, 'scenario_shin.html'))) {
   vm.runInContext(loadScenarioFile('scenario_shin.html'), context);
 }
+if (fs.existsSync(path.join(__dirname, 'scenario_august.html'))) {
+  vm.runInContext(loadScenarioFile('scenario_august.html'), context);
+}
 
 const allNodes = Object.assign(
   {},
@@ -39,7 +43,8 @@ const allNodes = Object.assign(
   context.SCENARIO_CLIMAX_REN || {},
   context.SCENARIO_CLIMAX_ELENA || {},
   context.SCENARIO_CLIMAX_DANIEL || {},
-  context.SCENARIO_SHIN || {}
+  context.SCENARIO_SHIN || {},
+  context.SCENARIO_AUGUST || {}
 );
 
 const nodeKeys = Object.keys(allNodes);
@@ -217,7 +222,9 @@ const requiredSpecSlots = [
   // Daniel Route
   "C_1000", "C_1030_ITEM", "C_1045", "C_1100", "C_1110", "C_1135", "C_1140", "C_1150",
   // Climax
-  "CLIMAX_HUB_ACTION", "CLIMAX_SCAN_ACTION", "CLIMAX_CHOICE"
+  "CLIMAX_HUB_ACTION", "CLIMAX_SCAN_ACTION", "CLIMAX_CHOICE",
+  // Epilogue Vows
+  "CLIMAX_EPILOGUE_C", "CLIMAX_EPILOGUE_B", "CLIMAX_EPILOGUE_A"
 ];
 
 let slotErrors = [];
@@ -255,11 +262,26 @@ if (slotErrors.length > 0) {
   console.log("✓ 100% of specification slots and checkJump references are perfectly matched!");
 }
 
+// 5.5 Check Constitutional Master Quiz Questions (All 10 Questions)
+console.log("\n--- Checking Constitutional Master Quiz Questions (10 Questions) ---");
+vm.runInContext(loadScenarioFile('js_tips.html'), context);
+const quizQuestions = context.TIPS_QUIZ_QUESTIONS || [];
+if (!Array.isArray(quizQuestions) || quizQuestions.length !== 10) {
+  console.error(`✗ Quiz questions count mismatch: expected 10, got ${quizQuestions.length}`);
+  process.exit(1);
+}
+
+quizQuestions.forEach((q, qIdx) => {
+  if (!q.id || !q.category || !q.question || !Array.isArray(q.choices) || q.choices.length !== 3 || typeof q.correctIndex !== 'number' || !q.explanation) {
+    console.error(`✗ Malformed quiz question at index ${qIdx}:`, q);
+    process.exit(1);
+  }
+});
+console.log(`✓ TIPS_QUIZ_QUESTIONS: 10/10 questions perfectly formatted and verified!`);
+
 // 6. Comprehensive Narrative Secrecy & Rules Auditor (DIR_01, DIR_02, DIR_03, Meta Parentheses, TIPS)
 console.log("\n--- Checking Narrative Secrecy (DIR_03), Persona Boundaries (DIR_01, DIR_02) & TIPS Consistency ---");
 
-// Load TIPS_MASTER
-vm.runInContext(loadScenarioFile('js_tips.html'), context);
 const tipsKeys = Object.keys(context.TIPS_MASTER || {});
 
 let ruleErrors = [];
@@ -316,6 +338,22 @@ nodeKeys.forEach(nodeId => {
       if (narrationOnly.includes("君は") || narrationOnly.includes("あなたは") || narrationOnly.includes("あなたの") || narrationOnly.includes("あなたの選択") || narrationOnly.includes("あなたの決断")) {
         ruleErrors.push(`DIR_01 Violation in node ${nodeId} paragraph[${idx}]: reader-directed second-person pronoun in narrative text`);
       }
+      // DIR_01/教本規律: レン編（char === 'A'）・エレナ編（char === 'B'）・ダニエル編（char === 'C'）における三人称および自己属性紹介の撲滅
+      if (node.char === 'A' && (nodeId.startsWith('A_') || nodeId.startsWith('CLIMAX_REN_') || nodeId === 'CLIMAX_EPILOGUE_A')) {
+        if (narrationOnly.includes("レンは") || narrationOnly.includes("レンの") || narrationOnly.includes("少年だ。") || narrationOnly.includes("少年である。")) {
+          ruleErrors.push(`POV Violation in Ren node ${nodeId} paragraph[${idx}]: third-person reference or self-profiling ('レンは'/'少年だ') in pure first-person route`);
+        }
+      }
+      if (node.char === 'B' && (nodeId.startsWith('B_') || nodeId.startsWith('CLIMAX_ELENA_') || nodeId === 'CLIMAX_EPILOGUE_B')) {
+        if (narrationOnly.includes("エレナは") || narrationOnly.includes("エレナの") || narrationOnly.includes("令嬢エレナ")) {
+          ruleErrors.push(`POV Violation in Elena node ${nodeId} paragraph[${idx}]: third-person reference ('エレナは'/'エレナの'/'令嬢エレナ') in pure first-person route`);
+        }
+      }
+      if (node.char === 'C' && (nodeId.startsWith('C_') || nodeId.startsWith('CLIMAX_DANIEL_') || nodeId === 'CLIMAX_EPILOGUE_C')) {
+        if (narrationOnly.includes("ダニエルは") || narrationOnly.includes("ダニエルの")) {
+          ruleErrors.push(`POV Violation in Daniel node ${nodeId} paragraph[${idx}]: third-person reference ('ダニエルは'/'ダニエルの') in pure first-person route`);
+        }
+      }
     });
   }
 });
@@ -342,7 +380,8 @@ const usedTips = new Set();
   'scenario_climax_ren.html',
   'scenario_climax_elena.html',
   'scenario_climax_daniel.html',
-  'scenario_shin.html'
+  'scenario_shin.html',
+  'scenario_august.html'
 ].forEach(f => {
   if (fs.existsSync(path.join(__dirname, f))) {
     const content = fs.readFileSync(path.join(__dirname, f), 'utf8');
@@ -357,6 +396,12 @@ const usedTips = new Set();
 const missingTips = Array.from(usedTips).filter(t => !tipsKeys.includes(t));
 if (missingTips.length > 0) {
   ruleErrors.push(`Missing TIPS_MASTER keys for data-tip: ${missingTips.join(', ')}`);
+}
+
+// 死蔵TIPS（TIPS_MASTERにあるが本編シナリオ全編で一度もリンクされていない項目）の検出
+const unreferencedTips = tipsKeys.filter(k => !usedTips.has(k));
+if (unreferencedTips.length > 0) {
+  ruleErrors.push(`Unreferenced (Dead) TIPS detected (total ${unreferencedTips.length}): ${unreferencedTips.join(', ')}`);
 }
 
 if (ruleErrors.length > 0) {

@@ -5,6 +5,7 @@
  */
 var TimelineState = (function() {
   var STORAGE_KEY = "PARALLEL_JAPANIA_CHRONICLE_SAVE_v5";
+  var memoryFallbackState = null;
 
   var state = {
     studentName: "",
@@ -16,7 +17,8 @@ var TimelineState = (function() {
     visitedNodes: ["A_1000"],
     unlockedEndings: {},
     unlockedTips: {},
-    hasClearedOnce: false
+    hasClearedOnce: false,
+    trophies: {}
   };
 
   function rebuildFlags() {
@@ -116,6 +118,7 @@ var TimelineState = (function() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
+      memoryFallbackState = JSON.parse(JSON.stringify(state));
       console.error("Local state save error", e);
     }
   }
@@ -123,6 +126,9 @@ var TimelineState = (function() {
   function loadLocal() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw && memoryFallbackState) {
+        raw = JSON.stringify(memoryFallbackState);
+      }
       if (raw) {
         var parsed = JSON.parse(raw);
         if (parsed.studentName) {
@@ -132,6 +138,7 @@ var TimelineState = (function() {
           state.visitedNodes = Array.from(new Set(state.visitedNodes.concat(parsed.visitedNodes || [])));
           state.unlockedEndings = Object.assign({}, state.unlockedEndings, parsed.unlockedEndings || {});
           state.unlockedTips = Object.assign({}, state.unlockedTips, parsed.unlockedTips || {});
+          state.trophies = Object.assign({}, parsed.trophies || {});
           state.hasClearedOnce = Boolean(
             parsed.hasClearedOnce ||
             (parsed.unlockedEndings && (parsed.unlockedEndings["NORMAL_CLEAR"] || parsed.unlockedEndings["TRUE_SECRET_END"])) ||
@@ -166,6 +173,23 @@ var TimelineState = (function() {
     saveLocal();
   }
 
+  // 5大栄誉トロフィー管理API
+  function unlockTrophy(key) {
+    if (!state.trophies) state.trophies = {};
+    var isFirst = !state.trophies[key];
+    state.trophies[key] = true;
+    saveLocal();
+    return isFirst;
+  }
+
+  function hasTrophy(key) {
+    return Boolean(state.trophies && state.trophies[key]);
+  }
+
+  function getUnlockedTrophies() {
+    return state.trophies || {};
+  }
+
   function syncServer(sceneTitle) {
     saveLocal();
     var indicator = document.getElementById("saveStatus");
@@ -181,7 +205,8 @@ var TimelineState = (function() {
         userFlags: state.userFlags,
         visitedNodes: state.visitedNodes,
         unlockedEndings: state.unlockedEndings,
-        slots: state.slots
+        slots: state.slots,
+        trophies: state.trophies || {}
       };
 
       google.script.run
@@ -210,7 +235,10 @@ var TimelineState = (function() {
     syncServer: syncServer,
     hasClearedOnce: hasClearedOnce,
     hasClearedTrueEnd: hasClearedTrueEnd,
-    markCleared: markCleared
+    markCleared: markCleared,
+    unlockTrophy: unlockTrophy,
+    hasTrophy: hasTrophy,
+    getUnlockedTrophies: getUnlockedTrophies
   };
 })();
 </script>

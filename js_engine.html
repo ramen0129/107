@@ -50,6 +50,10 @@ var GameEngine = (function() {
     if (nodeId === "B_1150") TimelineState.markHourClear("B", 2);
     if (nodeId === "C_1150") TimelineState.markHourClear("C", 2);
 
+    if (node.unlockTrophy) {
+      TimelineState.unlockTrophy(node.unlockTrophy);
+    }
+
     if (node.isTrueEnd) {
       startTrueEndSequence();
       return;
@@ -175,7 +179,9 @@ var GameEngine = (function() {
       wrapper.appendChild(beBtn);
 
       var tapZone = document.getElementById("novelTapZone");
-      if (tapZone) tapZone.scrollTop = tapZone.scrollHeight;
+      if (tapZone) {
+        setTimeout(function() { tapZone.scrollTop = tapZone.scrollHeight; }, 60);
+      }
       return;
     }
 
@@ -183,37 +189,25 @@ var GameEngine = (function() {
 
     var prog = TimelineState.getHourProgress();
 
-    // 428 アワー終端判定：Hour 1 終端（11:00）
-    if (node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") {
-      if (!prog.hour1.allClear) {
-        var tbcBtn = document.createElement("button");
-        tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group";
-        tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
-          + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
-        tbcBtn.onclick = function(e) {
-          e.stopPropagation();
-          UIController.showToBeContinued(
-            node.char,
-            1,
-            "第1アワー（10:00〜11:00）を突破しました！",
-            "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
-          );
-        };
-        wrapper.appendChild(tbcBtn);
-        return;
-      }
-
-      var previewBtn = document.createElement("button");
-      previewBtn.className = "w-full text-left p-4 bg-gradient-to-r from-emerald-950/90 via-neutral-900 to-sky-950/90 border-2 border-emerald-400 rounded-xl text-xs sm:text-sm font-black text-emerald-200 shadow-xl flex items-center justify-between group cursor-pointer";
-      previewBtn.innerHTML = '<span>🎬 第1アワー突破：ここまでの記録と次章予告を見る</span>'
-        + '<span class="text-emerald-400 font-mono text-xs">PREVIEW ▶</span>';
-      previewBtn.onclick = function(e) {
+    // 428 アワー終端判定：Hour 1 終端（11:00）で他キャラが未完了の場合
+    if ((node.id === "A_1100" || node.id === "B_1100" || node.id === "C_1100") && !prog.hour1.allClear) {
+      var tbcBtn = document.createElement("button");
+      tbcBtn.className = "w-full text-left p-4 bg-gradient-to-r from-amber-950/80 to-neutral-900 border-2 border-amber-400 rounded-xl text-xs sm:text-sm font-black text-amber-200 shadow-xl flex items-center justify-between group";
+      tbcBtn.innerHTML = '<span>⏳【第1アワー完了】タイムラインへ戻り他の主人公を進める</span>'
+        + '<span class="text-amber-400 font-mono text-xs">TO BE CONTINUED ▶</span>';
+      tbcBtn.onclick = function(e) {
         e.stopPropagation();
-        UIController.showHour1Preview();
+        UIController.showToBeContinued(
+          node.char,
+          1,
+          "第1アワー（10:00〜11:00）を突破しました！",
+          "3人全員が11:00に到達するまで、この主人公は一時待機となります。他の主人公を選択してタイムラインを進めてください。"
+        );
       };
-      wrapper.appendChild(previewBtn);
-      if (!state.hour1PreviewSeen) {
-        setTimeout(function() { UIController.showHour1Preview(); }, 350);
+      wrapper.appendChild(tbcBtn);
+      var tapZone = document.getElementById("novelTapZone");
+      if (tapZone) {
+        setTimeout(function() { tapZone.scrollTop = tapZone.scrollHeight; }, 60);
       }
       return;
     }
@@ -234,18 +228,14 @@ var GameEngine = (function() {
         );
       };
       wrapper.appendChild(tbcBtn2);
+      var tapZone = document.getElementById("novelTapZone");
+      if (tapZone) {
+        setTimeout(function() { tapZone.scrollTop = tapZone.scrollHeight; }, 60);
+      }
       return;
     }
 
     node.choices.forEach(function(ch) {
-      if (ch.requiresSecretPieces) {
-        var secretFlags = state.userFlags || [];
-        var hasAllSecretPieces = ["PIECE_A", "PIECE_B", "PIECE_C"].every(function(flag) {
-          return secretFlags.indexOf(flag) !== -1;
-        });
-        if (!hasAllSecretPieces) return;
-      }
-
       // クリア後限定選択肢（古遺物回収イベント）の非表示制御
       if (ch.requiresClear && !TimelineState.hasClearedOnce()) {
         return; // 1周目（未クリア時）は表示しない
@@ -268,7 +258,7 @@ var GameEngine = (function() {
           var hasB = flags.indexOf("PIECE_B") !== -1;
           var hasC = flags.indexOf("PIECE_C") !== -1;
           if (hasA && hasB && hasC) {
-            launchNode("TRUE_SECRET_END");
+            launchNode("CLIMAX_EPILOGUE_C");
           } else {
             launchNode("NORMAL_CLEAR");
           }
@@ -405,6 +395,22 @@ var GameEngine = (function() {
             UIController.renderTimeBlockStatus();
             return;
           }
+          if (ch.unlockTrophy) {
+            TimelineState.unlockTrophy(ch.unlockTrophy);
+          }
+          if (ch.fx === "tadaima_silence") {
+            var overlay = document.getElementById("vfxOverlay");
+            if (overlay) {
+              overlay.className = "absolute inset-0 pointer-events-none z-50 bg-black opacity-100 transition-opacity duration-300";
+            }
+            setTimeout(function() {
+              if (overlay) {
+                overlay.className = "absolute inset-0 pointer-events-none z-50 bg-transparent transition-opacity duration-500";
+              }
+              if (ch.next) launchNode(ch.next);
+            }, 800);
+            return;
+          }
           if (ch.fx === "flash") UIController.flashScreen();
           if (ch.fx === "shake") UIController.shakeScreen();
 
@@ -426,6 +432,10 @@ var GameEngine = (function() {
       }
       wrapper.appendChild(btn);
     });
+    var tapZone = document.getElementById("novelTapZone");
+    if (tapZone) {
+      setTimeout(function() { tapZone.scrollTop = tapZone.scrollHeight; }, 60);
+    }
   }
 
   function triggerBadEnd(badEndId) {
@@ -533,6 +543,7 @@ var GameEngine = (function() {
   function triggerGoodEnd(node) {
     AudioEngine.play('fanfare');
     TimelineState.markCleared(node.id);
+    TimelineState.unlockTrophy('normalClear');
 
     UIController.switchView('novel');
     currentParagraphs = node.paragraphs || [];
@@ -551,6 +562,7 @@ var GameEngine = (function() {
   function startTrueEndSequence() {
     AudioEngine.play('fanfare');
     TimelineState.markCleared("TRUE_SECRET_END");
+    TimelineState.unlockTrophy('trueEnd');
     trueEndStep = 0;
 
     UIController.switchView('trueend');
@@ -617,9 +629,9 @@ var GameEngine = (function() {
       actContent.innerHTML = [
         '<div class="p-3 bg-neutral-950/80 border-l-4 border-emerald-400 rounded space-y-1">',
         '  <div class="text-xs font-black text-emerald-400">【17年の歳月を超えた絆】</div>',
-        '  <div class="text-[11px] text-neutral-300">タワー地上広場へ降り立った三人の前へ、スラムから駆けつけたマーサが涙を流して歩み寄る。その震える手には、17年間片時も離さず抱きしめ続けていた青い産着の片割れが握られていた。</div>',
+        '  <div class="text-[11px] text-neutral-300">タワー地上広場へ降り立った三人の前へ、駆けつけた侍女長マーサが涙を流して歩み寄る。その震える手には、17年間片時も離さず握りしめ続けていた碧の石細工のお守りが握られていた。</div>',
         '</div>',
-        '<p class="para-in text-xs text-neutral-300 leading-relaxed">レンは胸元の擦り切れた青い布を取り出し、母の布とそっと重ね合わせた。17年の断絶を超え、繊維のほつれが寸分違わず噛み合う——命と愛の証だった。「……ただいま、母さん」。溢れる涙を止められない抱擁に、広場中から地鳴りのような歓声と拍手が湧き起こる。</p>',
+        '<p class="para-in text-xs text-neutral-300 leading-relaxed">レンは胸元の真鍮ペンダントを取り出し、母のお守りとそっと並べた。百合の紋章と深い碧の石、そして縁の小さな打痕——17年の断絶を超え、同じ想いで作られた対の細工が朝陽を浴びて煌めいた。「……ただいま、母さん」。溢れる涙を止められない抱擁に、広場中から地鳴りのような歓声と拍手が湧き起こる。</p>',
         '<p class="para-in text-xs text-neutral-300 leading-relaxed">エレナとダニエルは互いに頷き合い、朝陽に照らされた東京の空を見上げた。人間として生まれた誰もが尊重され、平等に生き、命を守られる世界——新しい日本の歴史が、ここから始まるのだ。</p>'
       ].join("");
 
@@ -719,12 +731,22 @@ document.addEventListener("DOMContentLoaded", function() {
 
       var prog = TimelineState.getHourProgress();
 
-      var isWaitingH1 = !prog.hour1.allClear && prog.hour1[targetChar];
-      var isWaitingH2 = prog.hour1.allClear && !prog.hour2.allClear && prog.hour2[targetChar];
-      if (isWaitingH1 || isWaitingH2) {
-        AudioEngine.play('tap');
-        UIController.showCharWaitOption(targetChar, isWaitingH1 ? 1 : 2);
-        return;
+      // もしHour 1未完了で、既にクリア済みのキャラを押した場合
+      if (!prog.hour1.allClear) {
+        if (prog.hour1[targetChar]) {
+          AudioEngine.play('tap');
+          UIController.showToast("この主人公は第1アワー（10:00〜11:00）をクリア済みです。\n他の主人公を進めて11:00を解放してください。");
+          return;
+        }
+      }
+
+      // もしHour 1完了後、Hour 2進行中で既にクリア済みのキャラを押した場合
+      if (prog.hour1.allClear && !prog.hour2.allClear) {
+        if (prog.hour2[targetChar]) {
+          AudioEngine.play('tap');
+          UIController.showToast("この主人公は第2アワー（11:00〜12:00）をクリア済みです。\n他の主人公を進めて12:00クライマックスを解放してください。");
+          return;
+        }
       }
 
       GameEngine.switchChar(targetChar);
@@ -753,7 +775,15 @@ document.addEventListener("DOMContentLoaded", function() {
   // 画面タップで段落進行
   var novelTap = document.getElementById("novelTapZone");
   if (novelTap) {
-    novelTap.addEventListener("click", function() {
+    novelTap.addEventListener("click", function(e) {
+      // TIPSリンク、スキップボタン、またはその子要素をクリックした場合は段落を進めない
+      if (e.target.closest(".tip-link") || e.target.closest("#btnSkipNovel") || e.target.closest("button")) {
+        return;
+      }
+      // TIPSモーダルを閉じた直後のタップ貫通（ゴーストクリック）を防止
+      if (UIController.isTipCooldown && UIController.isTipCooldown()) {
+        return;
+      }
       GameEngine.showNextParagraph();
     });
   }
@@ -797,14 +827,36 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // TIPSリンク委譲クリック
+  // TIPSリンク委譲クリック（キャプチャフェーズで最優先捕捉し、novelTapZoneへのバブリングを完全遮断）
   document.addEventListener("click", function(e) {
     var tipTarget = e.target.closest(".tip-link");
     if (tipTarget) {
       e.stopPropagation();
+      e.preventDefault();
       var term = tipTarget.getAttribute("data-tip");
-      if (term) UIController.openTip(term);
+      if (term) UIController.openTip(term, tipTarget);
     }
+  }, true);
+
+  // ブラウザ「戻る」ボタン制御（モーダル閉じ・チャート表示による誤離脱ガード）
+  window.addEventListener("popstate", function(e) {
+    var modalTip = document.getElementById("modalTip");
+    if (modalTip && !modalTip.classList.contains("hidden")) {
+      UIController.closeTip();
+      return;
+    }
+    var chartModal = document.getElementById("chartModal");
+    if (chartModal && !chartModal.classList.contains("hidden")) {
+      ChartRenderer.closeModal();
+      return;
+    }
+    // タイトル画面（viewAuth）ではチャートを開かず誤爆を防止
+    var viewAuth = document.getElementById("viewAuth");
+    if (viewAuth && !viewAuth.classList.contains("hidden")) {
+      return;
+    }
+    // ノベル中・BAD END等のプレイ中に戻るが押された場合のみチャートを開いて安全に保護
+    ChartRenderer.openModal();
   });
 
   // TRUE END 進行ボタン

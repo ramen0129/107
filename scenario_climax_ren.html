@@ -52,7 +52,7 @@ const SCENARIO_CLIMAX_REN = {
     ],
     choices: [
       {
-        text: "押し寄せる恐怖を必死に殺し、首元の手作りの真鍮ペンダントを無意識に強く握りしめる",
+        text: "押し寄せる恐怖を必死に殺し、首元の古びた真鍮細工を無意識に強く握りしめる",
         next: "CLIMAX_REN_DECISION",
         slot: "CLIMAX_REN_CHOICE",
         flagValue: "REN_HOLD_AMULET",
@@ -74,15 +74,13 @@ const SCENARIO_CLIMAX_REN = {
     stage: "12:10 東翼軍事防衛コンソール前", title: "信じるか、拒絶するか",
     paragraphs: [
       "カウントダウンの警告音が短く鋭い連続音に変わる。『ピ・ピ・ピ・ピ・ピ……！』",
-      "靴底から、床下を走る三本の太い電力管の脈動が伝わってきた。東、西、南──離れた場所を走る振動が、ほんの一瞬だけぴたりと重なる。",
-      "次の脈動で何かが起きる。足場の揺れを読むように、オレは二人へ叫んだ。「床が三つ同時に脈打ってる！ 次の揺れでキーが上がる。おっちゃん、数えろ！」",
       "コンソールの認証スロットが青白く発光し、最終承認キーがせり上がってきた。",
       function(state) {
-        var flags = state.userFlags || [];
-        var elenaText = flags.indexOf("FLAG_ELENA_RESOLVE") !== -1 ?
-          "西を見れば、令嬢エレナが唇を噛み締め、「……逃げてたまるもんですか。絶対に押すのよ、エレナ」と自分へ言い聞かせ、キーを見据えている。" :
-          "西を見れば、令嬢エレナが「……だめよ。スラムの暴徒なんて信じられない」と震える声を漏らし、キーから視線を泳がせている。";
-        var danielText = flags.indexOf("FLAG_DANIEL_CALM") !== -1 ?
+        var flags = state.flags || {};
+        var elenaText = flags["FLAG_ELENA_RESOLVE"] ?
+          "西を見れば、令嬢エレナが唇を噛み締め、『逃げてたまるもんですか……絶対に押すのよ』と自らに言い聞かせるように呟き、凛とした瞳でキーを見据えている。" :
+          "西を見れば、令嬢エレナが『スラムの暴徒なんて信じられない……』と震える声で弱音を呟き、怯え切った顔でキーから視線を泳がせている。";
+        var danielText = flags["FLAG_DANIEL_CALM"] ?
           "南を見れば、医師ダニエルが執刀医のように落ち着いた通る声で『私が三ツ数える。同時にいくぞ！』と二人に確かな合図を送っている。" :
           "南を見れば、医師ダニエルが猜疑心に苛まれた様子で『おい！ 本当に押すんだろうな！』と大声で問い詰めてきている。";
         return elenaText + "\n" + danielText;
@@ -93,7 +91,7 @@ const SCENARIO_CLIMAX_REN = {
     ],
     choices: [
       {
-        text: "見知らぬ二人を信じ、合図に合わせて渾身の力でシャットダウンキーを叩き込む！",
+        text: "仲間を信じ、合図に合わせて渾身の力でシャットダウンキーを叩き込む！",
         next: "REN_EVAL_PRESS",
         slot: "CLIMAX_REN_EXEC",
         flagValue: "REN_PRESS",
@@ -283,6 +281,75 @@ const SCENARIO_CLIMAX_REN = {
       "冷たい電子音が再び首筋を締め付ける。明日からも、死ぬまで続くスラムの奴隷労働。自由を夢見たこと自体が罪だったのだと、オレの口から乾いた笑いがこぼれ落ちた。"
     ],
     choices: [{ text: "絶望の結末を受け入れる……", next: "BAD_09" }]
+  },
+
+  // 12:25 レン編エピローグ判定ゲート
+  "CLIMAX_EPILOGUE_A_GATE": {
+    id: "CLIMAX_EPILOGUE_A_GATE", char: "A", charName: "レン", time: "12:25",
+    stage: "12:25 タワー前広場 中央", title: "奇跡の交差点",
+    paragraphs: [
+      "広場の中央で、朝陽のまばゆい光がオレの足元を照らし出す。",
+      "遠くで響く人々の歓声、そして風に乗って届く仲間たちの誓約——。"
+    ],
+    choices: [
+      {
+        text: "胸元の真鍮の百合を握りしめ、前を向く",
+        next: function(state) {
+          var flags = state.userFlags || [];
+          var hasDaniel = flags.indexOf("FLAG_DANIEL_VOW") !== -1 || (state.slots && state.slots["CLIMAX_EPILOGUE_C"] === "VOW_SOLIDARITY");
+          var hasElena = flags.indexOf("FLAG_ELENA_VOW") !== -1 || (state.slots && state.slots["CLIMAX_EPILOGUE_B"] === "VOW_GUIDE_MARTHA");
+          if (hasDaniel && hasElena) {
+            return "CLIMAX_EPILOGUE_A";
+          } else {
+            return "CLIMAX_KEEPOUT_A";
+          }
+        }
+      }
+    ]
+  },
+
+  // 12:25 レン編最終エピローグ（アンカー：奇跡の結実）
+  "CLIMAX_EPILOGUE_A": {
+    id: "CLIMAX_EPILOGUE_A", char: "A", charName: "レン", time: "12:25",
+    stage: "12:25 タワー前広場 中央", title: "……ただいま、母さん",
+    paragraphs: [
+      "広場の中央で、オレは首の傷口を押さえながら立ち尽くしていた。",
+      "遠くでダニエルが仲間たちに囲まれて笑っているのが見える。『……ただいま、だ』。その声が風に乗って聞こえた時、オレの胸が小さく痛んだ。帰る場所があるって、いいもんだな。",
+      "エレナが空を見上げ、亡き父母に誓っている姿が見える。『母さん』という響きが、耳に残る。",
+      "そこへ──群衆をかき分け、一人の女性が涙をボロボロと流しながら、なりふり構わず走ってきた。",
+      "「……レン……！ 本当に……私の……あの子なのね……！？」",
+      "女性の両手には、オレの首元とまったく同じ、傷だらけの真鍮の百合が握りしめられていた。",
+      "ダニエルが見せてくれた『ただいま』。",
+      "エレナが教えてくれた『母さん』。",
+      "そしてエレナが走らせてくれた、目の前の温もり。",
+      "生まれてから17年間、一度も口にしたことがない。だけど胸の奥底でずっと憧れていた言葉。",
+      "風が止まり、広場のざわめきがフッと消え去った。"
+    ],
+    choices: [
+      {
+        text: "母の温もりを力いっぱい抱きしめ、「……ただいま、母さん」と応える",
+        next: "TRUE_SECRET_END",
+        slot: "CLIMAX_EPILOGUE_A",
+        flagValue: "VOW_TADAIMA_MOM",
+        fx: "tadaima_silence"
+      },
+      {
+        text: "17年間捨てられていた憎しみに囚われ、母の手を冷たく振り払う",
+        next: "CLIMAX_KEEPOUT_A",
+        slot: "CLIMAX_EPILOGUE_A",
+        flagValue: "VOW_REVENGE",
+        fx: "flash"
+      }
+    ]
+  },
+
+  "CLIMAX_KEEPOUT_A": {
+    id: "CLIMAX_KEEPOUT_A", char: "A", charName: "レン", time: "12:25",
+    isKeepOut: true, type: "keepout",
+    stage: "12:25 タワー前広場 中央", title: "KEEP OUT // 届かぬ奇跡の絆",
+    reason: "レンの前に立ちはだかる因果の壁。ダニエルとエレナの二人が、真の誓約（生存権と平等の覚悟）を交わしていなければ、この奇跡の扉は開かない！",
+    hint: "ダニエル編およびエレナ編のエピローグへJUMPし、二人の誓約（VOW）を完了させよ！",
+    jumpTarget: "CLIMAX_EPILOGUE_C", jumpChar: "C", jumpCharName: "ダニエル"
   }
 };
 </script>

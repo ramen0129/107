@@ -1,5 +1,8 @@
 <script>
 var UIController = (function() {
+  var tipCooldownUntil = 0;
+  var lastClickedTipTarget = null;
+
   function switchView(viewName) {
     var views = ["viewAuth", "viewNovel", "viewKeepOut", "viewBadEnd", "viewTrueEnd"];
     views.forEach(function(v) {
@@ -23,6 +26,14 @@ var UIController = (function() {
     if (btnChart) btnChart.classList.toggle("hidden", !isNovel);
     var btnHome = document.getElementById("btnHome");
     if (btnHome) btnHome.classList.toggle("hidden", !isNovel);
+
+    try {
+      if (window.history && window.history.pushState) {
+        window.history.pushState({ view: viewName }, "", "#" + viewName);
+      }
+    } catch (e) {
+      // GAS iframe等でのSecurityError抑制
+    }
   }
 
   function updateHeaderTabs() {
@@ -68,8 +79,9 @@ var UIController = (function() {
     }, 2800);
   }
 
-  function openTip(term) {
+  function openTip(term, clickedEl) {
     AudioEngine.play('tap');
+    lastClickedTipTarget = clickedEl || null;
     var tip = (MASTER_DB.tips && MASTER_DB.tips[term]) || (typeof TIPS_MASTER !== "undefined" ? TIPS_MASTER[term] : null);
     if (!tip) return;
 
@@ -109,17 +121,31 @@ var UIController = (function() {
         return '<div class="p-3.5 rounded-xl border leading-relaxed text-xs sm:text-sm ' + borderStyle + '">' + p.replace(/\n/g, '<br>') + '</div>';
       }).join("");
 
-      // 真エンドクリア済みの「オーガスト卿」TIPSに追想録JUMPボタンを追加
-      if (isAugustSecret) {
-        var jumpBtn = document.createElement("button");
-        jumpBtn.className = "w-full mt-3 p-3.5 btn-secret-jump btn-canaan-jump rounded-xl text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-2xl transition-all";
-        jumpBtn.innerHTML = '<span class="text-base animate-pulse">🔴</span><span>【極秘追想録へJUMP】オーガスト卿の手記を読む ➔</span>';
-        jumpBtn.onclick = function() {
-          closeTip();
-          closeTipsArchive();
-          GameEngine.launchNode("SIDE_AUGUST");
-        };
-        descEl.appendChild(jumpBtn);
+      // ユーザー指示対応：1回クリア（ノーマルクリア等）で裏面史が開示され、真エンドへのモチベーションを高める！
+      if (term === "オーガスト卿") {
+        if (TimelineState.hasClearedOnce()) {
+          var secretBox = document.createElement("div");
+          secretBox.className = "p-3.5 rounded-xl border border-red-500/60 bg-red-950/40 text-red-200 leading-relaxed text-xs sm:text-sm mt-3 space-y-2";
+          secretBox.innerHTML = '<div class="font-bold text-red-400 flex items-center gap-1.5"><span>🔴</span><span>クリア後特典・統治機構の裏面史</span></div>' +
+            '<div>冷酷非道な独裁者の仮面の奥には、かつて平等を掲げ、三十年前の大破局の極限下で「全員を救おうとすれば全員が餓死する」という数理的絶望に直面した男の、身を切るような苦渋の選択が封印されていました。</div>' +
+            (TimelineState.hasClearedTrueEnd() ?
+              '<div class="text-xs text-amber-300 font-bold pt-1">★ 真エンディング達成により、オーガスト卿自身の手記（極秘追想録）が解放されました。</div>' :
+              '<div class="text-xs text-amber-400 font-bold pt-1">🗝️【真エンディングへの手引き】：10:30の時間軸に眠る3つの古遺物をすべて回収して真エンディングを達成すると、彼自身が真実の慟哭を綴った【極秘追想録（外伝シナリオ）】へジャンプできます！</div>');
+          descEl.appendChild(secretBox);
+        }
+
+        // 真エンドクリア済みの場合はJUMPボタンを追加
+        if (TimelineState.hasClearedTrueEnd()) {
+          var jumpBtn = document.createElement("button");
+          jumpBtn.className = "w-full mt-3 p-3.5 btn-secret-jump btn-canaan-jump rounded-xl text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-2xl transition-all";
+          jumpBtn.innerHTML = '<span class="text-base animate-pulse">🔴</span><span>【極秘追想録へJUMP】オーガスト卿の手記を読む ➔</span>';
+          jumpBtn.onclick = function() {
+            closeTip();
+            closeTipsArchive();
+            GameEngine.launchNode("SIDE_AUGUST");
+          };
+          descEl.appendChild(jumpBtn);
+        }
       }
     }
 
@@ -131,6 +157,20 @@ var UIController = (function() {
     AudioEngine.play('tap');
     var modal = document.getElementById("modalTip");
     if (modal) modal.classList.add("hidden");
+    tipCooldownUntil = Date.now() + 350; // 350msのタップ貫通ガード
+
+    if (lastClickedTipTarget) {
+      try {
+        lastClickedTipTarget.classList.remove("tip-link-focused");
+        void lastClickedTipTarget.offsetWidth; // リフロー強制でアニメーション再起動
+        lastClickedTipTarget.classList.add("tip-link-focused");
+      } catch (e) {}
+      lastClickedTipTarget = null;
+    }
+  }
+
+  function isTipCooldown() {
+    return Date.now() < tipCooldownUntil;
   }
 
   function openTipsArchive() {
@@ -687,64 +727,6 @@ var UIController = (function() {
     }
   }
 
-  function showHour1Preview() {
-    var modal = document.getElementById("modalHour1Preview");
-    if (!modal) return;
-    AudioEngine.play('preview');
-    TimelineState.getState().hour1PreviewSeen = true;
-    TimelineState.saveLocal();
-    modal.classList.remove("hidden");
-
-    var startButton = document.getElementById("btnStartHour2FromPreview");
-    if (startButton) {
-      startButton.onclick = function() {
-        AudioEngine.play('tap');
-        modal.classList.add("hidden");
-        switchView('auth');
-        renderTimeBlockStatus();
-      };
-    }
-  }
-
-  function showCharWaitOption(charKey, hourNum) {
-    var modal = document.getElementById("modalCharWaitOption");
-    if (!modal) return;
-    var charName = charKey === "A" ? "レン（自由権）" : charKey === "B" ? "エレナ（平等権）" : "ダニエル（社会権）";
-    var title = document.getElementById("charWaitModalTitle");
-    var description = document.getElementById("charWaitModalDesc");
-    if (title) title.textContent = charName + "は第" + hourNum + "アワー待機中";
-    if (description) {
-      description.textContent = hourNum === 1
-        ? "この時間帯は完了しています。現在の場面を再読するか、タイムラインから過去の分岐へJUMPできます。"
-        : "管制室で待機中です。現在の場面を再読するか、タイムラインから過去の分岐へJUMPできます。";
-    }
-    modal.classList.remove("hidden");
-
-    var sceneButton = document.getElementById("btnCharWaitGoScene");
-    if (sceneButton) {
-      sceneButton.onclick = function() {
-        AudioEngine.play('tap');
-        modal.classList.add("hidden");
-        GameEngine.switchChar(charKey);
-      };
-    }
-    var chartButton = document.getElementById("btnCharWaitOpenChart");
-    if (chartButton) {
-      chartButton.onclick = function() {
-        AudioEngine.play('tap');
-        modal.classList.add("hidden");
-        openChart();
-      };
-    }
-    var closeButton = document.getElementById("btnCharWaitClose");
-    if (closeButton) {
-      closeButton.onclick = function() {
-        AudioEngine.play('tap');
-        modal.classList.add("hidden");
-      };
-    }
-  }
-
   function checkAllClearBadge() {
     var state = TimelineState.getState();
     var count = Object.keys(state.unlockedEndings).length;
@@ -762,6 +744,7 @@ var UIController = (function() {
     showToast: showToast,
     openTip: openTip,
     closeTip: closeTip,
+    isTipCooldown: isTipCooldown,
     openChart: openChart,
     closeChart: closeChart,
     renderChartModal: renderChartModal,
@@ -773,50 +756,13 @@ var UIController = (function() {
     renderBadEndArchiveModal: renderBadEndArchiveModal,
     renderTimeBlockStatus: renderTimeBlockStatus,
     showToBeContinued: showToBeContinued,
-    showHour1Preview: showHour1Preview,
-    showCharWaitOption: showCharWaitOption,
     checkAllClearBadge: checkAllClearBadge
   };
 })();
 
 // 憲法マスター検定クイズコントローラー
 var QuizController = (function() {
-  var quizQuestions = [
-    {
-      category: "自由権（身体の自由）",
-      question: "ネオ・ジャパニアで市民に強制されていた『電子首輪による移動制限や労働強制』。現実の日本国憲法において、何人も正当な法的手続きによらずに抑留・拘禁されず、奴隷的拘束を受けないことを保障している権利はどれか？",
-      choices: [
-        "第18条・第31条：身体の自由（奴隷的拘束の禁止と適正手続の保障）",
-        "第21条：表現の自由（集会・結社及び言論の自由と検閲の禁止）",
-        "第29条：財産権の保障（正当な補償の下での収用）"
-      ],
-      correctIndex: 0,
-      explanation: "正解！ 憲法第18条は何人も奴隷的拘束を受けないことを規定し、第31条は法律の定める適正な手続によらなければ生命・自由を奪われないことを保障しています。"
-    },
-    {
-      category: "平等権（法の下の平等）",
-      question: "貴族院や統制局特権階級による支配に立ち向かったエレナ。現実の日本国憲法第14条第1項（法の下の平等）に基づき、最高裁判所が戦後初めて違憲判決を下した重大事件（刑法200条の尊属に対する殺人罪重罰規定を巡る判例）はどれか？",
-      choices: [
-        "東大ポポロ事件（学問の自由と大学の自治）",
-        "尊属殺重罰規定違憲判決（法の下の平等と刑罰の不均衡）",
-        "津地平熱鎮撫事件（政教分離原則と宗教的儀式）"
-      ],
-      correctIndex: 1,
-      explanation: "正解！ 1973年、最高裁判所は普通殺人よりも著しく重い刑を科す尊属殺規定（旧刑法200条）について、目的は正当でも手段が不合理に過酷であり、法の下の平等に反し違憲であると判断しました。"
-    },
-    {
-      category: "社会権（生存権）",
-      question: "地下診療所で無償医療を行い『命に値段がついてる世界はおかしい』と叫んだダニエル。現実の日本国憲法第25条第1項で保障されている、すべて国民が営む権利を有する生活の基準とは何か？",
-      choices: [
-        "贅沢で文化的な最高の生活水準",
-        "国家が指定する統制管理された労働生活",
-        "健康で文化的な最低限度の生活"
-      ],
-      correctIndex: 2,
-      explanation: "正解！ 憲法第25条第1項は『すべて国民は、健康で文化的な最低限度の生活を営む権利を有する』と定め、国の生存権保障義務（生活保護や公衆衛生の向上等）の根幹となっています。"
-    }
-  ];
-
+  var quizQuestions = [];
   var currentIndex = 0;
   var isAnswering = false;
 
@@ -828,18 +774,40 @@ var QuizController = (function() {
         closeQuiz();
       };
     }
+    var btnStart = document.getElementById("btnStartTipsQuiz");
+    if (btnStart) {
+      btnStart.onclick = function() {
+        startQuiz();
+      };
+    }
+  }
+
+  function getQuestions() {
+    if (typeof window !== "undefined" && window.TIPS_QUIZ_QUESTIONS && window.TIPS_QUIZ_QUESTIONS.length > 0) {
+      return window.TIPS_QUIZ_QUESTIONS;
+    }
+    if (typeof TIPS_QUIZ_QUESTIONS !== "undefined" && TIPS_QUIZ_QUESTIONS.length > 0) {
+      return TIPS_QUIZ_QUESTIONS;
+    }
+    return [];
   }
 
   function startQuiz() {
     AudioEngine.play('chime');
+    quizQuestions = getQuestions();
     currentIndex = 0;
     isAnswering = false;
+
+    var totalCountEl = document.getElementById("quizTotalCount");
+    if (totalCountEl) totalCountEl.textContent = quizQuestions.length;
+
     var modal = document.getElementById("modalQuiz");
     if (modal) modal.classList.remove("hidden");
     renderCurrentQuestion();
   }
 
   function closeQuiz() {
+    AudioEngine.play('tap');
     var modal = document.getElementById("modalQuiz");
     if (modal) modal.classList.add("hidden");
   }
@@ -913,12 +881,10 @@ var QuizController = (function() {
             currentIndex++;
             renderCurrentQuestion();
           } else {
-            // 合格処理
+            // 全問合格処理
             closeQuiz();
-            var state = TimelineState.getState();
-            state.quizMasterPassed = true;
-            TimelineState.saveLocal();
-            CertRenderer.openModal(true);
+            TimelineState.unlockTrophy('quizMaster');
+            CertRenderer.openModal('quizMaster');
           }
         };
       }
@@ -943,7 +909,6 @@ var QuizController = (function() {
     }
   }
 
-  // 初期化実行
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {
@@ -956,24 +921,101 @@ var QuizController = (function() {
   };
 })();
 
-// 表彰状PDFジェネレータ
+// 5大栄誉表彰状 Canvas / PDF レンダラー
 var CertRenderer = (function() {
-  function openModal(isQuizMaster) {
+  var DIPLOMA_SPECS = {
+    quizMaster: {
+      mainTitle: "日本国憲法マスター 修了証書",
+      engTitle: "CONSTITUTIONAL MASTER DIPLOMA",
+      badgeText: "CONSTITUTIONAL MASTER QUALIFIED",
+      bgGradient: ["#0a0a0f", "#17150a", "#0a0a0f"],
+      lines: [
+        "貴殿は全19大 人権TIPSを完全解明し、",
+        "自由権・平等権・社会権の憲法マスター検定において極めて優秀な知見を示されました。",
+        "日本国憲法第97条が謳う『人類の多年にわたる自由獲得の成果』を胸に刻み、",
+        "人権の尊厳を守り抜く真のマスターたる見識を有することをここに証します。"
+      ],
+      achievement: "全19大人権TIPS完全解明 ＆ 憲法マスター検定全問合格"
+    },
+    shinMaster: {
+      mainTitle: "探 究 の 鬼 表 彰 状",
+      engTitle: "THE ABYSS EXPLORER DIPLOMA",
+      badgeText: "THE ABYSS OBSERVER QUALIFIED",
+      bgGradient: ["#0f0a0a", "#1a0f0f", "#0f0a0a"],
+      lines: [
+        "貴殿は23通りに及ぶ過酷なる絶望と人権喪失の結末をすべて見届け、",
+        "友レンのために散った少年シンの魂を受け継ぎました。",
+        "いかなる破滅の闇からも目を逸らさず、因果の真実を照らし抜いた",
+        "不屈の探究心と人間愛をここに称え表彰します。"
+      ],
+      achievement: "全23BAD END完全踏破 ＆ 特別外伝『エピソード・シン』読了"
+    },
+    trueEnd: {
+      mainTitle: "新 世 紀 立 憲 者 表 彰 状",
+      engTitle: "TRUE CONSTITUTIONAL ARCHITECT",
+      badgeText: "TRUE CONSTITUTIONAL ARCHITECT",
+      bgGradient: ["#0a0f14", "#0f1c24", "#0a0f14"],
+      lines: [
+        "貴殿は過酷な180分のタイムラインにおいて3つの古遺物を結集させ、",
+        "憲法第97条が謳う『永久の信託』の精神を暗黒のディストピアに解凍しました。",
+        "自由・平等・生存の三光を調和させ、新世紀の日本国憲法を創出した",
+        "偉大なる立憲の功績をここに永久に証します。"
+      ],
+      achievement: "13:00 TRUE SECRET END【東京湾の夜明け、新世紀の日本国憲法】到達"
+    },
+    normalClear: {
+      mainTitle: "人 権 調 和 表 彰 状",
+      engTitle: "CONSTITUTIONAL HARMONY DIPLOMA",
+      badgeText: "CONSTITUTIONAL HARMONY ACHIEVED",
+      bgGradient: ["#0a140f", "#0f2117", "#0a140f"],
+      lines: [
+        "貴殿は自由・平等・生存を背負う三人の主人公の意志を繋ぎ合わせ、",
+        "都市の電磁首輪を解除して新たな朝を切り拓きました。",
+        "権利相互の衝突を乗り越え、分断された社会に調和をもたらした",
+        "貴殿の勇気と決断をここに称え表彰します。"
+      ],
+      achievement: "12:30 NORMAL CLEAR【三色の光が照らす朝】到達"
+    },
+    augustMaster: {
+      mainTitle: "真 実 の 編 纂 者 表 彰 状",
+      engTitle: "CHRONICLE ARCHIVIST DIPLOMA",
+      badgeText: "CHRONICLE ARCHIVIST QUALIFIED",
+      bgGradient: ["#120a17", "#1f0f26", "#120a17"],
+      lines: [
+        "貴殿は統制庁の冷酷なる最高権力者オーガスト卿が胸に秘めていた",
+        "哀しき独白と新憲法温存の真意を看破しました。",
+        "暴君の仮面の下にあった孤独な祈りを解き明かし、",
+        "失われた歴史の表裏のすべてを編纂した見識をここに証します。"
+      ],
+      achievement: "極秘手記『SIDE_AUGUST（オーガスト卿の独白）』読了"
+    }
+  };
+
+  var currentKey = "normalClear";
+
+  function openModal(trophyKey) {
+    if (typeof trophyKey === "boolean") {
+      trophyKey = trophyKey ? "quizMaster" : "normalClear";
+    }
+    currentKey = trophyKey || "normalClear";
+    var spec = DIPLOMA_SPECS[currentKey] || DIPLOMA_SPECS.normalClear;
+
     AudioEngine.play('chime');
     var modal = document.getElementById("modalCertificate");
     if (modal) modal.classList.remove("hidden");
 
     var gradeBadge = document.getElementById("certGradeBadge");
     var mainTitle = document.getElementById("certMainTitle");
-    if (isQuizMaster) {
-      if (gradeBadge) gradeBadge.textContent = "CONSTITUTIONAL MASTER QUALIFIED";
-      if (mainTitle) mainTitle.textContent = "日本国憲法マスター 修了証書";
-    } else {
-      if (gradeBadge) gradeBadge.textContent = "CONSTITUTIONAL HARMONY DIPLOMA";
-      if (mainTitle) mainTitle.textContent = "人権調和 表彰状";
-    }
+    if (gradeBadge) gradeBadge.textContent = spec.badgeText;
+    if (mainTitle) mainTitle.textContent = spec.mainTitle;
 
-    drawCertificate(isQuizMaster);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function() {
+        drawCertificate(currentKey);
+      });
+    } else {
+      drawCertificate(currentKey);
+    }
   }
 
   function closeModal() {
@@ -982,7 +1024,8 @@ var CertRenderer = (function() {
     if (modal) modal.classList.add("hidden");
   }
 
-  function drawCertificate(isQuizMaster) {
+  function drawCertificate(trophyKey) {
+    var spec = DIPLOMA_SPECS[trophyKey] || DIPLOMA_SPECS.normalClear;
     var canvas = document.getElementById("canvasCert");
     if (!canvas) return;
     var ctx = canvas.getContext("2d");
@@ -993,62 +1036,65 @@ var CertRenderer = (function() {
     canvas.width = w;
     canvas.height = h;
 
-    // 背景
+    // 背景グラデーション
     var bgGrad = ctx.createLinearGradient(0, 0, w, h);
-    bgGrad.addColorStop(0, "#0a0a0f");
-    bgGrad.addColorStop(0.5, isQuizMaster ? "#17150a" : "#12131f");
-    bgGrad.addColorStop(1, "#0a0a0f");
+    bgGrad.addColorStop(0, spec.bgGradient[0]);
+    bgGrad.addColorStop(0.5, spec.bgGradient[1]);
+    bgGrad.addColorStop(1, spec.bgGradient[2]);
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // 金枠
+    // 金枠外枠（太さ 6px）
     ctx.strokeStyle = "#eab308";
     ctx.lineWidth = 6;
     ctx.strokeRect(30, 30, w - 60, h - 60);
 
-    ctx.strokeStyle = "rgba(234, 179, 8, 0.4)";
+    // 金枠内枠（余白10px、太さ 2px）
+    ctx.strokeStyle = "rgba(234, 179, 8, 0.45)";
     ctx.lineWidth = 2;
     ctx.strokeRect(40, 40, w - 80, h - 80);
 
-    // タイトル
+    // 四隅のコーナー装飾
+    ctx.strokeStyle = "#eab308";
+    ctx.lineWidth = 3;
+    var cornerSize = 25;
+    // 左上
+    ctx.strokeRect(45, 45, cornerSize, cornerSize);
+    // 右上
+    ctx.strokeRect(w - 45 - cornerSize, 45, cornerSize, cornerSize);
+    // 左下
+    ctx.strokeRect(45, h - 45 - cornerSize, cornerSize, cornerSize);
+    // 右下
+    ctx.strokeRect(w - 45 - cornerSize, h - 45 - cornerSize, cornerSize, cornerSize);
+
+    // メインタイトル
     ctx.fillStyle = "#fde047";
     ctx.font = "bold 44px 'Shippori Mincho', serif";
     ctx.textAlign = "center";
-    ctx.fillText(isQuizMaster ? "日 本 国 憲 法 マ ス タ ー 修 了 証 書" : "憲 法 探 究 証 書", w / 2, 120);
+    ctx.fillText(spec.mainTitle, w / 2, 120);
 
+    // 英文ディプロマ名
     ctx.fillStyle = "#94a3b8";
-    ctx.font = "18px 'Zen Kaku Gothic New', sans-serif";
-    ctx.fillText(isQuizMaster ? "PARALLEL JAPANIA CONSTITUTIONAL MASTER DIPLOMA" : "PARALLEL JAPANIA CHRONICLE CERTIFICATE", w / 2, 160);
+    ctx.font = "16px 'Zen Kaku Gothic New', sans-serif";
+    ctx.letterSpacing = "2px";
+    ctx.fillText("PARALLEL JAPANIA // " + spec.engTitle, w / 2, 160);
 
     // 授与者名
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 32px 'Zen Kaku Gothic New', sans-serif";
     ctx.fillText((state.studentName || "探究者") + " 殿", w / 2, 240);
 
-    // 本文
+    // 本文（4行）
     ctx.fillStyle = "#e2e8f0";
     ctx.font = "20px 'Shippori Mincho', serif";
-    if (isQuizMaster) {
-      ctx.fillText("貴殿は『パラレル・ジャパニア：クロニクル』全人権TIPSを完全解明し、", w / 2, 320);
-      ctx.fillText("自由権・平等権・社会権の憲法マスター検定において極めて優秀な知見を示されました。", w / 2, 360);
-      ctx.fillText("日本国憲法第97条が謳う『人類の多年にわたる自由獲得の成果』を胸に刻み、", w / 2, 400);
-      ctx.fillText("人権の尊厳を守り抜く真のマスターたる見識を有することをここに証します。", w / 2, 440);
-    } else {
-      ctx.fillText("貴殿は『パラレル・ジャパニア：クロニクル』において、", w / 2, 320);
-      ctx.fillText("自由権・平等権・社会権の三大基本的人権を巡る幾多の歴史的分岐を乗り越え、", w / 2, 360);
-      ctx.fillText("日本国憲法第97条が謳う『永久の信託』の精神を体現し、", w / 2, 400);
-      ctx.fillText("人権の真の尊厳を解き明かしたことをここに証します。", w / 2, 440);
-    }
+    spec.lines.forEach(function(line, idx) {
+      ctx.fillText(line, w / 2, 320 + (idx * 40));
+    });
 
     // 実績
     ctx.fillStyle = "#38bdf8";
     ctx.font = "bold 22px 'Zen Kaku Gothic New', sans-serif";
-    if (isQuizMaster) {
-      ctx.fillText("全18大 人権TIPS完全解明 ＆ 憲法マスター検定全問合格", w / 2, 530);
-    } else {
-      var count = Object.keys(state.unlockedEndings).length;
-      ctx.fillText("到達結末数: " + count + " / 25 結末解明", w / 2, 530);
-    }
+    ctx.fillText("【達成実績】 " + spec.achievement, w / 2, 530);
 
     // 日付・発行者
     var today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -1066,20 +1112,243 @@ var CertRenderer = (function() {
     var canvas = document.getElementById("canvasCert");
     if (!canvas) return;
 
+    var spec = DIPLOMA_SPECS[currentKey] || DIPLOMA_SPECS.normalClear;
+    var filename = "Parallel_Japania_" + currentKey + ".pdf";
+
     if (window.jspdf && window.jspdf.jsPDF) {
       var jsPDF = window.jspdf.jsPDF;
       var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       var imgData = canvas.toDataURL("image/jpeg", 0.95);
       doc.addImage(imgData, 'JPEG', 0, 0, 297, 210);
-      doc.save("Parallel_Japania_Certificate.pdf");
+      doc.save(filename);
     } else {
       var link = document.createElement('a');
-      link.download = 'Parallel_Japania_Certificate.png';
+      link.download = "Parallel_Japania_" + currentKey + ".png";
       link.href = canvas.toDataURL('image/png');
       link.click();
     }
   }
 
-  return { openModal: openModal, closeModal: closeModal, downloadPdf: downloadPdf };
+  function init() {
+    var btnPdf = document.getElementById("btnDownloadPdf");
+    if (btnPdf) btnPdf.onclick = downloadPdf;
+    var btnCloseTop = document.getElementById("btnCloseCertTop");
+    if (btnCloseTop) btnCloseTop.onclick = closeModal;
+    var btnCloseBottom = document.getElementById("btnCloseCertBottom");
+    if (btnCloseBottom) btnCloseBottom.onclick = closeModal;
+
+    // クリアバナー等の表彰状ボタン結線
+    var btnFromBanner = document.getElementById("btnCertFromBanner");
+    if (btnFromBanner) {
+      btnFromBanner.onclick = function() {
+        openModal('normalClear');
+      };
+    }
+    var btnFromTrue = document.getElementById("btnCertFromTrue");
+    if (btnFromTrue) {
+      btnFromTrue.onclick = function() {
+        openModal('trueEnd');
+      };
+    }
+    var btnChartCert = document.getElementById("btnChartCertDownload");
+    if (btnChartCert) {
+      btnChartCert.onclick = function() {
+        openModal('normalClear');
+      };
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  return {
+    openModal: openModal,
+    closeModal: closeModal,
+    downloadPdf: downloadPdf
+  };
 })();
+
+// 栄誉殿堂（5大トロフィー・表彰状ギャラリー）コントローラー
+var TrophyGallery = (function() {
+  var TROPHY_DEFS = [
+    {
+      key: "quizMaster",
+      title: "日本国憲法マスター 修了証書",
+      badgeText: "CONSTITUTIONAL MASTER",
+      desc: "全19大人権TIPS完全解明 ＆ 憲法マスター検定全問合格",
+      icon: "🎓",
+      colorBorder: "border-amber-500/70",
+      colorBg: "bg-amber-950/40",
+      colorText: "text-amber-300",
+      colorBadge: "bg-amber-950 border-amber-500/60 text-amber-300"
+    },
+    {
+      key: "shinMaster",
+      title: "探究の鬼 表彰状",
+      badgeText: "ABYSS EXPLORER",
+      desc: "全23BAD END完全踏破 ＆ 特別外伝『エピソード・シン』読了",
+      icon: "💀",
+      colorBorder: "border-rose-500/70",
+      colorBg: "bg-rose-950/40",
+      colorText: "text-rose-300",
+      colorBadge: "bg-rose-950 border-rose-500/60 text-rose-300"
+    },
+    {
+      key: "trueEnd",
+      title: "新世紀立憲者 表彰状",
+      badgeText: "TRUE ARCHITECT",
+      desc: "13:00 TRUE SECRET END【東京湾の夜明け、新世紀の日本国憲法】到達",
+      icon: "✨",
+      colorBorder: "border-sky-500/70",
+      colorBg: "bg-sky-950/40",
+      colorText: "text-sky-300",
+      colorBadge: "bg-sky-950 border-sky-500/60 text-sky-300"
+    },
+    {
+      key: "normalClear",
+      title: "人権調和 表彰状",
+      badgeText: "HARMONY ACHIEVED",
+      desc: "12:30 NORMAL CLEAR【三色の光が照らす朝】到達",
+      icon: "🕊️",
+      colorBorder: "border-emerald-500/70",
+      colorBg: "bg-emerald-950/40",
+      colorText: "text-emerald-300",
+      colorBadge: "bg-emerald-950 border-emerald-500/60 text-emerald-300"
+    },
+    {
+      key: "augustMaster",
+      title: "真実の編纂者 表彰状",
+      badgeText: "CHRONICLE ARCHIVIST",
+      desc: "極秘手記『SIDE_AUGUST（オーガスト卿の独白）』読了",
+      icon: "📜",
+      colorBorder: "border-purple-500/70",
+      colorBg: "bg-purple-950/40",
+      colorText: "text-purple-300",
+      colorBadge: "bg-purple-950 border-purple-500/60 text-purple-300"
+    }
+  ];
+
+  function init() {
+    var btnTitle = document.getElementById("btnTrophyGalleryTitle");
+    if (btnTitle) {
+      btnTitle.onclick = function() {
+        openModal();
+      };
+    }
+    var btnClose = document.getElementById("btnCloseTrophyGallery");
+    if (btnClose) {
+      btnClose.onclick = function() {
+        closeModal();
+      };
+    }
+    var modalEl = document.getElementById("modalTrophyGallery");
+    if (modalEl) {
+      modalEl.addEventListener("click", function(e) {
+        if (e.target === modalEl) closeModal();
+      });
+    }
+  }
+
+  function openModal() {
+    AudioEngine.play('tap');
+    var modal = document.getElementById("modalTrophyGallery");
+    if (modal) modal.classList.remove("hidden");
+    renderGallery();
+  }
+
+  function closeModal() {
+    AudioEngine.play('tap');
+    var modal = document.getElementById("modalTrophyGallery");
+    if (modal) modal.classList.add("hidden");
+  }
+
+  function renderGallery() {
+    var state = TimelineState.getState();
+    var trophies = state.trophies || {};
+
+    // 獲得数計算
+    var unlockedCount = 0;
+    TROPHY_DEFS.forEach(function(t) {
+      if (trophies[t.key]) unlockedCount++;
+    });
+
+    var badge = document.getElementById("trophyCountBadge");
+    if (badge) badge.textContent = unlockedCount + " / " + TROPHY_DEFS.length;
+
+    var grid = document.getElementById("trophyCardsGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+
+    TROPHY_DEFS.forEach(function(t) {
+      var isUnlocked = Boolean(trophies[t.key]);
+      var card = document.createElement("div");
+
+      if (isUnlocked) {
+        card.className = "p-4 rounded-2xl border " + t.colorBorder + " " + t.colorBg + " shadow-xl flex flex-col justify-between space-y-3 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.99]";
+        card.innerHTML =
+          '<div class="flex items-start justify-between gap-2">' +
+            '<div class="flex items-center gap-2.5">' +
+              '<span class="text-2xl sm:text-3xl">' + t.icon + '</span>' +
+              '<div>' +
+                '<span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded border ' + t.colorBadge + '">' + t.badgeText + '</span>' +
+                '<h4 class="text-sm sm:text-base font-black ' + t.colorText + ' font-hud mt-1">' + t.title + '</h4>' +
+              '</div>' +
+            '</div>' +
+            '<span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-600/50 px-2 py-0.5 rounded shrink-0">獲得済</span>' +
+          '</div>' +
+          '<p class="text-xs text-neutral-300 leading-relaxed font-sans-jp">' + t.desc + '</p>' +
+          '<div class="pt-2 border-t border-neutral-800 flex justify-between items-center text-xs">' +
+            '<span class="text-neutral-400 text-[11px]">タップで賞状を表示</span>' +
+            '<button class="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 ' + t.colorText + ' font-bold font-hud flex items-center gap-1 shadow">' +
+              '<span>賞状を見る</span><span>▶</span>' +
+            '</button>' +
+          '</div>';
+
+        card.onclick = function() {
+          CertRenderer.openModal(t.key);
+        };
+      } else {
+        card.className = "p-4 rounded-2xl border border-neutral-800 bg-neutral-950/60 shadow-inner flex flex-col justify-between space-y-3 opacity-60";
+        card.innerHTML =
+          '<div class="flex items-start justify-between gap-2">' +
+            '<div class="flex items-center gap-2.5">' +
+              '<span class="text-2xl sm:text-3xl filter grayscale opacity-40">🔒</span>' +
+              '<div>' +
+                '<span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded border border-neutral-800 bg-neutral-900 text-neutral-500">LOCKED</span>' +
+                '<h4 class="text-sm sm:text-base font-black text-neutral-400 font-hud mt-1">未解明の栄誉</h4>' +
+              '</div>' +
+            '</div>' +
+            '<span class="text-[10px] font-mono text-neutral-500 bg-neutral-900 border border-neutral-800 px-2 py-0.5 rounded shrink-0">未獲得</span>' +
+          '</div>' +
+          '<p class="text-xs text-neutral-500 leading-relaxed font-sans-jp">解明条件：' + t.desc + '</p>' +
+          '<div class="pt-2 border-t border-neutral-900 text-[11px] text-neutral-600 font-mono">' +
+            '条件を達成すると栄誉表彰状が解放されます' +
+          '</div>';
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  return {
+    openModal: openModal,
+    closeModal: closeModal,
+    renderGallery: renderGallery
+  };
+})();
+
+if (typeof window !== "undefined") {
+  window.QuizController = QuizController;
+  window.CertRenderer = CertRenderer;
+  window.TrophyGallery = TrophyGallery;
+}
 </script>

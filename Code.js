@@ -55,9 +55,20 @@ function getOrCreateSheet() {
       '【システム用】獲得フラグJSON',
       '【システム用】通過ノードJSON',
       '【システム用】解放結末JSON',
-      '【システム用】スロット状態JSON'
+      '【システム用】スロット状態JSON',
+      '獲得トロフィー',
+      '【システム用】トロフィーJSON'
     ]);
     sheet.setFrozenRows(1);
+  } else {
+    // 既存シートのヘッダー自動マイグレーション（12列目・13列目の追加）
+    const lastCol = sheet.getLastColumn();
+    if (lastCol < 12) {
+      sheet.getRange(1, 12).setValue('獲得トロフィー');
+      sheet.getRange(1, 13).setValue('【システム用】トロフィーJSON');
+    } else if (lastCol === 12) {
+      sheet.getRange(1, 13).setValue('【システム用】トロフィーJSON');
+    }
   }
   return sheet;
 }
@@ -78,6 +89,7 @@ function registerStudent(katakanaName) {
     const initialVisited = ["A_1000"];
     const initialEndings = {};
     const initialSlots = {};
+    const initialTrophies = {};
 
     sheet.appendRow([
       new Date(),
@@ -85,12 +97,14 @@ function registerStudent(katakanaName) {
       `'${passcode}`,
       "A: レン（自由権）",
       "10:00 首輪の火花",
-      "0 / 11 結末解明",
+      "0 / 25 結末解明 (🏆 0/5)",
       "A_1000",
       JSON.stringify(initialFlags),
       JSON.stringify(initialVisited),
       JSON.stringify(initialEndings),
-      JSON.stringify(initialSlots)
+      JSON.stringify(initialSlots),
+      "🏆 0/5 [未獲得]",
+      JSON.stringify(initialTrophies)
     ]);
 
     return { status: "success", passcode: passcode };
@@ -124,7 +138,8 @@ function loadStudentProgress(katakanaName, passcode) {
             userFlagsJSON: rows[i][7] || "[]",
             visitedNodesJSON: rows[i][8] || "[]",
             unlockedEndingsJSON: rows[i][9] || "{}",
-            slotsJSON: rows[i][10] || "{}"
+            slotsJSON: rows[i][10] || "{}",
+            trophiesJSON: rows[i][12] || "{}"
           }
         };
       }
@@ -151,6 +166,7 @@ function saveProgress(data) {
     let targetRow = -1;
     let existingVisited = [];
     let existingEndings = {};
+    let existingTrophies = {};
 
     for (let i = 1; i < rows.length; i++) {
       const rowKey = `${String(rows[i][1]).trim()}_${String(rows[i][2]).replace("'", "").trim()}`;
@@ -158,6 +174,7 @@ function saveProgress(data) {
         targetRow = i + 1;
         try { existingVisited = JSON.parse(rows[i][8] || "[]"); } catch (e) { existingVisited = []; }
         try { existingEndings = JSON.parse(rows[i][9] || "{}"); } catch (e) { existingEndings = {}; }
+        try { existingTrophies = JSON.parse(rows[i][12] || "{}"); } catch (e) { existingTrophies = {}; }
         break;
       }
     }
@@ -168,7 +185,22 @@ function saveProgress(data) {
     const incomingEndings = data.unlockedEndings || {};
     const mergedEndings = Object.assign({}, existingEndings, incomingEndings);
 
+    const incomingTrophies = data.trophies || {};
+    const mergedTrophies = Object.assign({}, existingTrophies, incomingTrophies);
+
     const unlockedCount = Object.keys(mergedEndings).length;
+
+    // トロフィー可読サマリー
+    const TROPHY_MAP = {
+      quizMaster: "憲法マスター",
+      shinMaster: "探究の鬼",
+      trueEnd: "新世紀立憲者",
+      normalClear: "人権調和",
+      augustMaster: "真実の編纂者"
+    };
+    const trophyList = Object.keys(mergedTrophies).filter(k => mergedTrophies[k]).map(k => TROPHY_MAP[k] || k);
+    const trophyCount = trophyList.length;
+    const trophyText = trophyCount > 0 ? `🏆 ${trophyCount}/5 [${trophyList.join(', ')}]` : '🏆 0/5 [未獲得]';
 
     const rowData = [
       new Date(),
@@ -176,12 +208,14 @@ function saveProgress(data) {
       `'${String(data.passcode)}`,
       data.currentCharName || "未選択",
       data.currentSceneTitle || "進行中",
-      `${unlockedCount} / 11 結末解明`,
+      `${unlockedCount} / 25 結末解明 (🏆 ${trophyCount}/5)`,
       data.currentNodeKey || "A_1000",
       JSON.stringify(data.userFlags || []),
       JSON.stringify(mergedVisited),
       JSON.stringify(mergedEndings),
-      JSON.stringify(data.slots || {})
+      JSON.stringify(data.slots || {}),
+      trophyText,
+      JSON.stringify(mergedTrophies)
     ];
 
     if (targetRow > 0) {
@@ -193,7 +227,8 @@ function saveProgress(data) {
     return { 
       status: "success", 
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      unlockedCount: unlockedCount
+      unlockedCount: unlockedCount,
+      trophyCount: trophyCount
     };
   } catch (error) {
     return { status: "error", message: error.toString() };

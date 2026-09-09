@@ -127,10 +127,13 @@
         </div>
         <div class="flex items-center gap-2 text-[11px] font-mono">
           <button id="btnTipsArchiveTitle" class="px-2.5 py-1 rounded-lg bg-sky-950/60 hover:bg-sky-900 border border-sky-600/40 text-sky-300 flex items-center gap-1 shadow-sm cursor-pointer transition-colors" title="公民TIPS・判例図鑑アーカイブを開く">
-            <span>💡</span><span>TIPS:</span><strong id="headerTipsCount" class="text-white">0</strong><span>/18</span>
+            <span>💡</span><span>TIPS:</span><strong id="headerTipsCount" class="text-white">0</strong><span>/19</span>
           </button>
           <button id="btnBadEndArchiveTitle" class="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-600/40 text-rose-300 flex items-center gap-1 shadow-sm cursor-pointer transition-colors" title="全23大 BAD END 図鑑アーカイブを開く">
             <span>💀</span><span>BAD:</span><strong id="bannerBadEndCount" class="text-white">0</strong><span>/23</span>
+          </button>
+          <button id="btnTrophyGalleryTitle" class="px-2.5 py-1 rounded-lg bg-amber-950/60 hover:bg-amber-900 border border-amber-600/40 text-amber-300 flex items-center gap-1 shadow-sm cursor-pointer transition-colors" title="獲得した5大栄誉表彰状（トロフィー）を開く">
+            <span>🏆</span><span>栄誉殿堂</span>
           </button>
         </div>
       </div>
@@ -398,14 +401,14 @@
         </div>
       </div>
 
-      <div id="paragraphsList" class="space-y-3.5 pt-2"></div>
+      <div id="paragraphsList" class="space-y-3.5 pt-2 pb-6"></div>
 
       <div id="promptNext" class="hidden text-right pt-2">
         <span class="blink-indicator inline-block text-amber-400 text-xs sm:text-sm font-black">▼ タップして次へ</span>
       </div>
     </div>
 
-    <div id="choicesWrapper" class="hidden mt-3 pt-3 border-t border-neutral-800 flex flex-col gap-2"></div>
+    <div id="choicesWrapper" class="hidden mt-3 pt-3 border-t border-neutral-800 flex flex-col gap-2 max-h-[42vh] overflow-y-auto shrink-0 pr-1"></div>
   </div>
 
   <!-- 3. KEEP OUT ビュー（トリプル・シンクロゲート対応） -->
@@ -739,6 +742,31 @@
   </div>
 </div>
 
+<!-- 栄誉殿堂（トロフィー一覧）モーダル -->
+<div id="modalTrophyGallery" class="hidden fixed inset-0 tip-modal-overlay p-3 sm:p-6 z-50 flex items-center justify-center">
+  <div class="bg-neutral-900 border-2 border-amber-500/80 max-w-2xl w-full rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+    <!-- ヘッダー -->
+    <div class="p-4 sm:p-5 border-b border-neutral-800 bg-neutral-950/90 flex justify-between items-center">
+      <div class="flex items-center gap-2.5">
+        <span class="text-2xl">🏆</span>
+        <div>
+          <div class="text-[10px] text-amber-400 font-mono font-bold tracking-wider uppercase">HALL OF FAME // CONSTITUTIONAL TROPHIES</div>
+          <h3 class="text-base sm:text-lg font-black text-white font-hud flex items-center gap-2">
+            <span>栄誉殿堂（獲得した表彰状）</span>
+            <span id="trophyCountBadge" class="text-xs font-mono px-2 py-0.5 rounded-full bg-amber-950 border border-amber-500/50 text-amber-300">0 / 5</span>
+          </h3>
+        </div>
+      </div>
+      <button id="btnCloseTrophyGallery" class="text-xs px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl border border-neutral-700 cursor-pointer">✕ 閉じる (ESC)</button>
+    </div>
+
+    <!-- トロフィーグリッド -->
+    <div id="trophyCardsGrid" class="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+      <!-- 動的レンダリング -->
+    </div>
+  </div>
+</div>
+
 <!-- 表彰状モーダル -->
 <div id="modalCertificate" class="hidden fixed inset-0 bg-black/95 p-3 sm:p-6 z-50 flex flex-col items-center justify-center overflow-y-auto">
   <div class="max-w-2xl w-full space-y-3.5 text-center">
@@ -797,7 +825,7 @@
     <!-- 問題表示エリア -->
     <div class="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto">
       <div class="flex items-center justify-between text-xs font-mono text-neutral-400 border-b border-neutral-800 pb-2">
-        <span>第 <span id="quizCurrentIndex">1</span> 問 / 全 3 問</span>
+        <span>第 <span id="quizCurrentIndex">1</span> 問 / 全 <span id="quizTotalCount">10</span> 問</span>
         <span id="quizCategoryBadge" class="px-2 py-0.5 rounded text-[10px] bg-amber-950 border border-amber-600/40 text-amber-300">自由権</span>
       </div>
       <div id="quizQuestionText" class="text-sm sm:text-base font-bold text-neutral-100 font-story leading-relaxed">
@@ -813,36 +841,6 @@
   </div>
 </div>
 
-<!-- 第1アワー突破後の章間予告 -->
-<div id="modalHour1Preview" class="hidden fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/95 p-4 backdrop-blur-lg">
-  <div class="w-full max-w-xl space-y-5 rounded-2xl border-2 border-emerald-500/80 bg-neutral-900 p-6 shadow-2xl">
-    <div class="text-center">
-      <div class="font-tech text-xs font-black tracking-[0.24em] text-emerald-400">INTERMISSION // HOUR 02</div>
-      <h2 class="mt-2 text-xl font-black text-white">第1アワー突破</h2>
-    </div>
-    <div class="space-y-3 border-y border-emerald-900/70 py-4 text-sm leading-relaxed text-neutral-200">
-      <p>三つの時間軸で起きた小さな決断が、別の場所の生死と進路を変え始めている。</p>
-      <p>次の一時間、三人は中央統治タワーへ近づく。互いの顔も名も知らぬまま、都市を縛る中枢へ。</p>
-    </div>
-    <button id="btnStartHour2FromPreview" class="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-sky-500 px-4 py-3 text-sm font-black text-neutral-950 shadow-lg transition-transform active:scale-[0.99]">
-      第2アワーへ進む ▶
-    </button>
-  </div>
-</div>
-
-<!-- 待機中の主人公を再訪するための選択 -->
-<div id="modalCharWaitOption" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
-  <div class="w-full max-w-md space-y-4 rounded-2xl border border-amber-500/50 bg-neutral-900 p-6 shadow-2xl">
-    <h3 id="charWaitModalTitle" class="text-center text-base font-black text-amber-400"></h3>
-    <p id="charWaitModalDesc" class="text-sm leading-relaxed text-neutral-300"></p>
-    <div class="space-y-2 pt-2">
-      <button id="btnCharWaitGoScene" class="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-black text-neutral-950">現在の場面を再読する</button>
-      <button id="btnCharWaitOpenChart" class="w-full rounded-xl border border-sky-500/60 bg-sky-950/50 px-4 py-3 text-sm font-bold text-sky-200">タイムラインを開いて過去へJUMPする</button>
-      <button id="btnCharWaitClose" class="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-3 text-sm font-bold text-neutral-300">戻る</button>
-    </div>
-  </div>
-</div>
-
 <!-- 分割された各モジュールをGASテンプレート方式でインクルード -->
 <?!= HtmlService.createHtmlOutputFromFile('js_assets').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('js_tips').getContent(); ?>
@@ -854,6 +852,7 @@
 <?!= HtmlService.createHtmlOutputFromFile('scenario_climax_daniel').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('scenario_climax').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('scenario_shin').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('scenario_august').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('js_audio').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('js_state').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('js_ui').getContent(); ?>
@@ -994,6 +993,7 @@ window.addEventListener('DOMContentLoaded', function() {
               TimelineState.rebuildFlags();
               state.visitedNodes = JSON.parse(d.visitedNodesJSON || "[]");
               state.unlockedEndings = JSON.parse(d.unlockedEndingsJSON || "{}");
+              state.trophies = JSON.parse(d.trophiesJSON || "{}");
               TimelineState.saveLocal();
               UIController.showToast("記録を復元しました！");
               displayCharSelect();
